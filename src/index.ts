@@ -24,6 +24,7 @@ app.use(bodyParser.json())
 app.use(express.json())
 // Nếu client push lên ko phải là string, json mà là mảng ... thì nó có thể convert qua json rồi đọc
 app.use(express.urlencoded({ extended: true }))
+connection();
 
 const server = http.createServer(app);
 
