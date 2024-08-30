@@ -8,8 +8,7 @@ var userSchema = new mongoose.Schema({
         require: true
     },
     username: {
-        type: String,
-        required: true
+        type: String
     },
     dob: {
         type: Date
@@ -18,7 +17,8 @@ var userSchema = new mongoose.Schema({
         type: String
     },
     avatar: {
-        type: String
+        type: String,
+        default: "https://res.cloudinary.com/dcti265mg/image/upload/v1725036493/png-clipart-united-states-avatar-organization-information-user-avatar-service-computer-wallpaper_xa2b6h.png"
     },
     posts: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -43,6 +43,9 @@ var userSchema = new mongoose.Schema({
     refreshToken: {
         type: String,
         require: true
+    },
+    gender: {
+        type: Number
     }
 
 }, { timestamps: true });

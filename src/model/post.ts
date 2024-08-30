@@ -20,13 +20,13 @@ var postSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    comment: {
+    comment: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Comment'
-    },
+    }],
     postAt: {
         type: Date,
-        required: true,
+        default: Date.now
     },
     editAt: {
         type: Date

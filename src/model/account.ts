@@ -5,12 +5,14 @@ var accountSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        // validate: {
-        //     validator: (email: any) => {
-        //         return true
-        //     },
-        //     message: "Invalid email format"
-        // }
+        validate: {
+            validator: (email: String) => {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(String(email));
+            },
+            message: "Invalid email format"
+        }
+
     }, password: {
         type: String,
         required: true,
@@ -21,15 +23,14 @@ var accountSchema = new mongoose.Schema({
     },
     isActive: {
         type: Boolean,
-        require: true
+        default: true
     },
     isBlocked: {
         type: Boolean,
-        require: true
+        default: false
     },
     authenWith: {
-        type: String,
-        require: true
+        type: String
     },
     passwordChangeAt: {
         type: String

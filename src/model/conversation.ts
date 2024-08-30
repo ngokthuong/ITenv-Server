@@ -22,7 +22,8 @@ var conversationSchema = new mongoose.Schema({
             default: false
         },
         sentAt: {
-            type: Date
+            type: Date,
+            default: Date.now
         }
     }],
     createAt: {

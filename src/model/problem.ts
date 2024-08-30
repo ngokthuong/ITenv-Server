@@ -40,7 +40,7 @@ var problemSchema = new mongoose.Schema({
     },
     tags: {
         type: [String],
-        required: true,
+        required: true
     },
     acceptance: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -78,7 +78,7 @@ var problemSchema = new mongoose.Schema({
     },
     status: {
         type: Boolean,
-        default: false
+        default: true
     }
 }, { timestamps: true });
 

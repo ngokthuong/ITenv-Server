@@ -6,8 +6,7 @@ const codeSchema = new mongoose.Schema({
         required: true // Bắt buộc phải có giá trị
     },
     content: {
-        type: String,
-        required: true // Bắt buộc phải có giá trị
+        type: String
     }
 });
 // Declare the Schema of the Mongo model
@@ -26,12 +25,10 @@ var submissionSchema = new mongoose.Schema({
         type: codeSchema
     },
     score: {
-        type: Number,
-        default: 0
+        type: Number
     },
     isAcceped: {
-        type: Boolean,
-        default: false
+        type: Boolean
     },
     submitAt: {
         type: Date,
