@@ -6,6 +6,7 @@ import compression from 'compression';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import { connection } from './config';
+import initRoutes from './routes/index.routes';
 dotenv.config();
 
 const app = express();
@@ -25,6 +26,8 @@ app.use(express.json())
 // Nếu client push lên ko phải là string, json mà là mảng ... thì nó có thể convert qua json rồi đọc
 app.use(express.urlencoded({ extended: true }))
 connection();
+
+initRoutes(app)
 
 const server = http.createServer(app);
 

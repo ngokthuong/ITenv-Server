@@ -12,10 +12,11 @@ var accountSchema = new mongoose.Schema({
             },
             message: "Invalid email format"
         }
-
     }, password: {
-        type: String,
-        required: true,
+        type: String
+    },
+    confirmPassword: {
+        type: String
     },
     role: {
         type: String,
@@ -30,7 +31,10 @@ var accountSchema = new mongoose.Schema({
         default: false
     },
     authenWith: {
-        type: String
+        type: Number,
+        require: true,
+        min: 0,
+        max: 3
     },
     passwordChangeAt: {
         type: String
@@ -40,6 +44,14 @@ var accountSchema = new mongoose.Schema({
     },
     passwordResetExpires: {
         type: String
+    },
+    firstName: {
+        type: String,
+        require: true
+    },
+    lastName: {
+        type: String,
+        require: true
     }
 }, { timestamps: true });
 
