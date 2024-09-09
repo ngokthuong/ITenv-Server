@@ -22,6 +22,9 @@ var notificationSchema = new mongoose.Schema({
     postAt: {
         type: Date,
         default: Date.now
+    },
+    notificationType: {
+        type: String
     }
 }, { timestamps: true });
 

@@ -1,8 +1,22 @@
-import joi from 'joi'
+import Joi from 'joi'
 
-export const email = joi.string().required()
-export const firstName = joi.string().required()
-export const lastName = joi.string().required()
-export const authenWith = joi.number().required()
+// Định nghĩa schema Joi chỉ bao gồm các trường cần xác thực
+const schema = Joi.object({
+    email: Joi.string().email().required().messages({
+        'string.email': 'Invalid email format',
+        'any.required': 'Email is required'
+    }),
+    firstName: Joi.string().required().messages({
+        'any.required': 'First name is required'
+    }),
+    lastName: Joi.string().required().messages({
+        'any.required': 'Last name is required'
+    }),
+    authenWith: Joi.number().integer().required().messages({
+        'number.base': 'Authentication method must be a number',
+        'any.required': 'Authentication method is required'
+    })
+});
 
-export const refreshToken = joi.string().required()
+export default schema;
+

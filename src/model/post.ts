@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import userSchema from "./user"
 // Declare the Schema of the Mongo model
 var postSchema = new mongoose.Schema({
     postBy: {

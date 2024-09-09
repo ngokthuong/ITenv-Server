@@ -2,11 +2,11 @@ import mongoose from "mongoose"; // Erase if already required
 import accountSchema from "./account"
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema({
-    account: {
+    account: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Account',
         require: true
-    },
+    }],
     username: {
         type: String
     },

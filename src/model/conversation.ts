@@ -8,27 +8,20 @@ var conversationSchema = new mongoose.Schema({
         required: true
     }],
     messages: [{
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User', // Tham chiếu đến User
-            required: true
-        },
-        content: {
-            type: String,
-            required: true
-        },
-        isSeen: {
-            type: Boolean,
-            default: false
-        },
-        sentAt: {
-            type: Date,
-            default: Date.now
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Message', // Tham chiếu đến User
+        required: true
     }],
-    createAt: {
+    createdAt: {
         type: Date,
         default: Date.now
+    },
+    isGroupChat: {
+        type: Boolean,
+        default: false
+    },
+    groupName: {
+        type: String
     }
 }, { timestamps: true });
 

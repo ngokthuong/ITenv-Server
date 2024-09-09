@@ -1,18 +1,36 @@
-import mongoose from "mongoose";
-// Declare the Schema of the Mongo model
-var accountSchema = new mongoose.Schema({
+import mongoose, { Document, Schema } from "mongoose";
+import bcrypt from "bcrypt";
+
+// Định nghĩa interface cho dữ liệu của Account
+interface IAccount extends Document {
+    email: string;
+    password: string;
+    confirmPassword?: string;
+    role: string;
+    isActive: boolean;
+    isBlocked: boolean;
+    authenWith: number;
+    passwordChangeAt?: string;
+    passwordResetToken?: string;
+    passwordResetExpires?: string;
+    firstName: string;
+    lastName: string;
+    user: mongoose.Schema.Types.ObjectId;
+}
+
+// Định nghĩa Schema của Mongo model
+const accountSchema: Schema<IAccount> = new Schema({
     email: {
         type: String,
-        required: true,
-        unique: true,
         validate: {
-            validator: (email: String) => {
+            validator: (email: string) => {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return emailRegex.test(String(email));
+                return emailRegex.test(email);
             },
             message: "Invalid email format"
         }
-    }, password: {
+    },
+    password: {
         type: String
     },
     confirmPassword: {
@@ -32,7 +50,6 @@ var accountSchema = new mongoose.Schema({
     },
     authenWith: {
         type: Number,
-        require: true,
         min: 0,
         max: 3
     },
@@ -46,14 +63,35 @@ var accountSchema = new mongoose.Schema({
         type: String
     },
     firstName: {
-        type: String,
-        require: true
+        type: String
     },
     lastName: {
-        type: String,
-        require: true
+        type: String
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 }, { timestamps: true });
 
-//Export the model
-export default mongoose.model('Account', accountSchema);
+// Trước khi lưu thì thực hiện code trong callback (hash password)
+// Mongo không đọc được `this` trong arrow function
+accountSchema.pre<IAccount>('save', async function (next) {
+    try {
+        // if password is changed then hash new password
+        if (!this.isModified('password')) {
+            next()
+        }
+        // Tạo salt
+        const salt = bcrypt.genSaltSync(10);
+        // Hash password
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        console.error(error)
+    }
+});
+
+// Export model
+const Account = mongoose.model<IAccount>('Account', accountSchema);
+export default Account;

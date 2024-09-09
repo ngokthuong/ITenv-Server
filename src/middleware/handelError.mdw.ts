@@ -1,5 +1,29 @@
 import createError from 'http-errors'
+import { Request, Response, NextFunction } from 'express';
 
+interface ErrorWithStatus extends Error {
+    status?: number;
+}
+
+export const notFound = (req: Request, resp: Response, next: NextFunction): void => {
+    // Gửi phản hồi lỗi 404 với thông báo
+    const error = new Error(`Route ${req.originalUrl} is not found`)
+    // sent to client 
+    resp.status(404)
+    next(error)
+};
+// main handler error
+export const errHandler = (error: ErrorWithStatus, req: Request, resp: Response, next: NextFunction): void => {
+    // Nếu lỗi có thuộc tính status, sử dụng giá trị đó và 200 => ko phải lỗi code mà là db hoặc...
+    const statusCode = error.status === 200 ? 500 : resp.statusCode;
+
+    // Gửi phản hồi lỗi
+    resp.status(statusCode).json({
+        status: 'error',
+        message: error.message || 'Internal Server Error',
+    });
+};
+// 400 error
 export const badRequest = (err: string, respond: any) => {
     const error = createError.BadRequest(err);
     return respond.status(error.status).json({
@@ -7,6 +31,7 @@ export const badRequest = (err: string, respond: any) => {
         mes: error.message
     });
 }
+
 
 // export const interalServerError = (req, resp) => {
 //     const error = createError.InternalServerError()
