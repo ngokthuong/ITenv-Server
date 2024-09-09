@@ -7,7 +7,6 @@ const registerService = async (data: any) => {
     // Gửi OTP về email
     // JWT và refresh roken 
     // Băm mk và add vào database
-    console.log(data)
     const account = await Account.create(data)
     const user = await User.create({
         username: account.firstName + account.lastName,
@@ -18,5 +17,11 @@ const registerService = async (data: any) => {
     return account
 }
 
+const createAccountWithOldUserID = async (data: any) => {
+    const accountExist = await Account.findOne({ email: data.email });
+    data.user = accountExist?.user
+    const newAccount = await Account.create(data);
+    return newAccount;
+}
 
-export { registerService }
+export { registerService, createAccountWithOldUserID }

@@ -1,12 +1,45 @@
-### 
+### Request api register with authenWith = 0 ( email pass )
 POST http://localhost:8080/api/account/register
 
 {
-    "email": "email1@gmail.com",
-    "password": "123456t",
-    "confirmPassword": "123456t",
-    "firstName": "Thuong",
-    "lastName": "Thuong",
-    "authenWith": 2
+    "email": "thuong@gmail.com",
+    "password": "1234567890",
+    "role": "user",
+    "isActive": true,   
+    "isBlocked": false,
+    "authenWith": 0,
+    "passwordChangeAt": "",
+    "passwordResetToken": "",
+    "passwordResetExpires": "",
+    "firstName": "John",
+    "lastName": "Doe",
+    "user":null
 }
-###
+### response 
+{
+    "success": true,
+    "response": "Register is successfully. Please login with email and password"
+}
+
+### Request api register with authenWith = 1 2 hoặc 3 ( GG FB GIT  )
+POST http://localhost:8080/api/account/register
+
+{
+    "email": "thuong@gmail.com",
+    "password": "1234567890",
+    "role": "user",
+    "isActive": true,   
+    "isBlocked": false,
+    "authenWith": 1,
+    "passwordChangeAt": "",
+    "passwordResetToken": "",
+    "passwordResetExpires": "",
+    "firstName": "John",
+    "lastName": "Doe",
+    "user":null
+}
+### response
+{
+    "success": true,
+    "response": "Register with Google successfully"
+}
