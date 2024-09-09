@@ -1,11 +1,29 @@
-import mongoose from "mongoose"; // Erase if already required
-import accountSchema from "./account"
-// Declare the Schema of the Mongo model
-var userSchema = new mongoose.Schema({
+import mongoose, { Document, Schema } from "mongoose";
+import accountSchema from "./account";
+
+// Define interfaces for the documents
+interface IUser extends Document {
+    _id: mongoose.Types.ObjectId;
+    account: mongoose.Schema.Types.ObjectId[];
+    username?: string;
+    dob?: Date;
+    phoneNumber?: string;
+    avatar?: string;
+    posts: mongoose.Schema.Types.ObjectId[];
+    friends: mongoose.Schema.Types.ObjectId[];
+    friendRequests: mongoose.Schema.Types.ObjectId[];
+    notifications: mongoose.Schema.Types.ObjectId[];
+    submissions: mongoose.Schema.Types.ObjectId[];
+    refreshToken: string;
+    gender?: number;
+}
+
+// Define the schema
+const userSchema = new Schema<IUser>({
     account: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Account',
-        require: true
+        required: true
     }],
     username: {
         type: String
@@ -22,33 +40,33 @@ var userSchema = new mongoose.Schema({
     },
     posts: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Post' // Tham chiếu đến schema User
+        ref: 'Post'
     }],
     friends: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' // Tham chiếu đến schema User
+        ref: 'User'
     }],
     friendRequests: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' // Tham chiếu đến schema User
+        ref: 'User'
     }],
     notifications: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Notification' // Tham chiếu đến schema User
+        ref: 'Notification'
     }],
     submissions: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Submission' // Tham chiếu đến schema User
+        ref: 'Submission'
     }],
     refreshToken: {
-        type: String,
-        require: true
+        type: String
     },
     gender: {
         type: Number
     }
-
 }, { timestamps: true });
 
-//Export the model
-export default mongoose.model('User', userSchema);
+// Export the model
+const User = mongoose.model<IUser>('User', userSchema);
+
+export default User;

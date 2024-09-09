@@ -1,11 +1,11 @@
 import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcrypt";
+import { func } from "joi";
 
 // Định nghĩa interface cho dữ liệu của Account
 interface IAccount extends Document {
     email: string;
     password: string;
-    confirmPassword?: string;
     role: string;
     isActive: boolean;
     isBlocked: boolean;
@@ -15,7 +15,8 @@ interface IAccount extends Document {
     passwordResetExpires?: string;
     firstName: string;
     lastName: string;
-    user: mongoose.Schema.Types.ObjectId;
+    user: mongoose.Types.ObjectId;
+    isCorrectPassword(password: string): Promise<boolean>;
 }
 
 // Định nghĩa Schema của Mongo model
@@ -31,9 +32,6 @@ const accountSchema: Schema<IAccount> = new Schema({
         }
     },
     password: {
-        type: String
-    },
-    confirmPassword: {
         type: String
     },
     role: {
@@ -91,6 +89,16 @@ accountSchema.pre<IAccount>('save', async function (next) {
         console.error(error)
     }
 });
+
+// check pass in login
+// all function được định nghĩa để sử dụng cho model
+accountSchema.methods = {
+    // use compare function to compare password user wirted and pass in db 
+    isCorrectPassword: async function (password: string) {
+        return await bcrypt.compare(password, this.password)
+    }
+}
+
 
 // Export model
 const Account = mongoose.model<IAccount>('Account', accountSchema);
