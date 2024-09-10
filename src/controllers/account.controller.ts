@@ -3,6 +3,8 @@ import asyncHandeler from "express-async-handler";
 import { registerService, loginService } from '../services/index.services';
 import { Request, Response } from 'express';
 import schema from "../helper/joiSchema.helper";
+import User from "../model/user";
+import Account from "../model/account";
 // use express-async-handler
 
 export const registerController = asyncHandeler(async (req: any, res: any) => {
@@ -37,7 +39,9 @@ export const loginController = asyncHandeler(async (req: any, res: any) => {
         });
     }
     try {
-        const { accessToken, accountData } = await loginService(email, password);
+        const { accessToken, refreshToken, accountData } = await loginService(email, password);
+        // save refreshToken in cookie 
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 1000 })
         return res.status(200).json({
             success: true,
             accessToken,
@@ -50,3 +54,13 @@ export const loginController = asyncHandeler(async (req: any, res: any) => {
         });
     }
 });
+
+
+// export const getOneAccountDetail = asyncHandeler(async (req: any, res: any) => {
+//     const { _id } = req.account;
+//     const account = await Account.findById(_id)
+//     return res.status.json({
+//         success: false,
+//         rs: account ? account : "account notfound"
+//     })
+// });

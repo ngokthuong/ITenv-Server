@@ -73,7 +73,11 @@ const loginService = async (email: string, password: string) => {
         const accessToken = generateAccessToken(account._id as string, role);
         // create refresh token 
         const refreshToken = generateRefreshToken(account._id as string);
-        return { accessToken, accountData };
+        // save refreshToken in Database 
+        await User.findByIdAndUpdate(account.user, { refreshToken }, { new: true })
+
+
+        return { accessToken, refreshToken, accountData };
     } else {
         throw new Error('Invalid credentials!');
     }
