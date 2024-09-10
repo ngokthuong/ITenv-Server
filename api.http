@@ -15,7 +15,7 @@ POST http://localhost:8080/api/account/register
     "lastName": "Doe",
     "user":null
 }
-### response 
+### Response of api register with authenWith = 0 ( email pass )
 {
     "success": true,
     "response": "Register is successfully. Please login with email and password"
@@ -38,7 +38,7 @@ POST http://localhost:8080/api/account/register
     "lastName": "Doe",
     "user":null
 }
-### response
+### response api register with authenWith = 1 2 hoặc 3 ( GG FB GIT  )
 {
     "success": true,
     "response": "Register with Google successfully"

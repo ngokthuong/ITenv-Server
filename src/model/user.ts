@@ -14,7 +14,6 @@ interface IUser extends Document {
     friendRequests: mongoose.Schema.Types.ObjectId[];
     notifications: mongoose.Schema.Types.ObjectId[];
     submissions: mongoose.Schema.Types.ObjectId[];
-    accessToken: String;
     refreshToken: string;
     gender?: number;
 }
@@ -59,9 +58,6 @@ const userSchema = new Schema<IUser>({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Submission'
     }],
-    accessToken: {
-        type: String
-    },
     refreshToken: {
         type: String
     },
