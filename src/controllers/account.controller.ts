@@ -3,8 +3,6 @@ import asyncHandeler from "express-async-handler";
 import { registerService, loginService } from '../services/index.services';
 import { Request, Response } from 'express';
 import schema from "../helper/joiSchema.helper";
-import User from "../model/user";
-import Account from "../model/account";
 import axios from "axios";
 // use express-async-handler
 
@@ -16,7 +14,6 @@ export const registerController = asyncHandeler(async (req: any, res: any) => {
             message: "Missing inputs in signup"
         });
     }
-
     try {
         const result = await registerService(req.body);
         return res.status(200).json({
@@ -33,10 +30,8 @@ export const registerController = asyncHandeler(async (req: any, res: any) => {
 
 
 export const loginController = asyncHandeler(async (req: any, res: any) => {
-    const { email, password, authenWith } = req.body;
-
     try {
-        const { accessToken, refreshToken, accountData } = await loginService(email, password, authenWith);
+        const { accessToken, refreshToken, accountData } = await loginService(req.body);
         // save refreshToken in cookie 
         res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 1000 })
         return res.status(200).json({
@@ -53,14 +48,6 @@ export const loginController = asyncHandeler(async (req: any, res: any) => {
 });
 
 
-// export const getOneAccountDetail = asyncHandeler(async (req: any, res: any) => {
-//     const { _id } = req.account;
-//     const account = await Account.findById(_id)
-//     return res.status.json({
-//         success: false,
-//         rs: account ? account : "account notfound"
-//     })
-// });
 
 export const githubOauthController = asyncHandeler(async (req: Request, res: Response, next) => {
     const { code } = req.body;
@@ -77,9 +64,7 @@ export const githubOauthController = asyncHandeler(async (req: Request, res: Res
             },
             { headers: { Accept: 'application/json' } },
         );
-
         const { access_token } = tokenResponse.data;
-
         // Fetch user data
         const userResponse = await fetch('https://api.github.com/user', {
             headers: {
@@ -107,11 +92,8 @@ export const githubOauthController = asyncHandeler(async (req: Request, res: Res
             lastName: userData.lastName,
             authenWith: userData.authenWith,
         };
-
         req.body = account;
-
-        registerController(req, res, next);
-
+        loginController(req, res, next);
         // res.status(200).json({ success: true, user: userData });
     } catch (error) {
         console.error('Error exchanging token or fetching user data:', error);
