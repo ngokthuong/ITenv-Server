@@ -7,7 +7,7 @@ const registerService = async (body: any) => {
     const account = await Account.findOne({ email });
 
     if (account) {
-        throw new Error('Account is existed');
+        throw new Error('The email has already been used.');
     } else {
         // sign up a new account 
         const newAccount = await registerAccount(body);
@@ -68,39 +68,35 @@ const createAllToken = async (account: any) => {
     await User.findByIdAndUpdate(account.user, { refreshToken }, { new: true })
     return { accessToken, refreshToken }
 }
-
 const loginService = async (data: any) => {
-    const { email, password, authenWith } = data;
-    // find account with email
+    const { email, authenWith, password } = data;
+    // Tìm tài khoản với email
     const account = await Account.findOne({ email });
-
-    // if account exist with authenWith sample account.authenWith and password are equal then return token 
-    if (account && authenWith === 0 && account.authenWith === 0 && await account.isCorrectPassword(password)) {
-        const { role, ...accountData } = account.toObject();
-        // create token
-        const { accessToken, refreshToken } = await createAllToken(account);
-        return { accessToken, refreshToken, accountData };
-    }
-    // if account exits with authenWith 1 2 3
-    else if (account && (authenWith >= 1 && authenWith <= 3)) {
-        // Check if an account with authenWith values of 1, 2, or 3 already exists
-        const existingAccounts = await Account.find({ email, authenWith: { $in: [1, 2, 3] } });
-        const existingAuthenWith = existingAccounts.map(acc => acc.authenWith);
-        // Nếu chưa có tài khoản với giá trị authenWith mà chúng ta cần, tạo tài khoản mới
-        if (!existingAuthenWith.includes(authenWith)) {
-            // Tạo tài khoản mới với userID cũ
-            const newAccount = await createAccountWithOldUserID(data);
-            const { accessToken, refreshToken } = await createAllToken(newAccount);
-            return { accessToken, refreshToken, accountData: newAccount };
-        } else {
-            // Nếu đã có tài khoản với giá trị authenWith, trả về token
+    // Xử lý khi `authenWith === 0` và so sánh mật khẩu
+    if (account && authenWith === 0 && account.authenWith === 0) {
+        if (password === account.password) {
+            const { role, ...accountData } = account.toObject();
             const { accessToken, refreshToken } = await createAllToken(account);
-            return { accessToken, refreshToken, accountData: account.toObject() };
+            return { accessToken, refreshToken, accountData };
         }
-    }
-    else {
         throw new Error('Invalid credentials!');
     }
+    // Xử lý khi `authenWith` thuộc giá trị 1, 2, hoặc 3
+    if (authenWith >= 1 && authenWith <= 3) {
+        const existingAccounts = await Account.find({ email, authenWith: { $in: [1, 2, 3] } });
+        const existingAuthenWith = existingAccounts.map(acc => acc.authenWith);
+        // Nếu không có tài khoản với `authenWith` hiện tại, tạo tài khoản mới
+        if (!existingAuthenWith.includes(authenWith)) {
+            const newAccount = account ? await createAccountWithOldUserID(data) : await registerAccount(data);
+            const { accessToken, refreshToken } = await createAllToken(newAccount);
+            return { accessToken, refreshToken, accountData: newAccount };
+        }
+        // Nếu đã tồn tại tài khoản với `authenWith`, trả về token
+        const accountWithMailAuth = await Account.findOne({ email, authenWith });
+        const { accessToken, refreshToken } = await createAllToken(accountWithMailAuth);
+        return { accessToken, refreshToken, accountData: accountWithMailAuth }
+    }
+    throw new Error('Invalid credentials!');
 };
 
 export { registerService, loginService }

@@ -76,7 +76,8 @@ accountSchema.pre<IAccount>('save', async function (next) {
         // Tạo salt
         const salt = bcrypt.genSaltSync(10);
         // Hash password
-        this.password = await bcrypt.hash(this.password, salt);
+        if (this.authenWith === 0)
+            this.password = await bcrypt.hash(this.password, salt);
         next();
     } catch (error) {
         console.error(error)

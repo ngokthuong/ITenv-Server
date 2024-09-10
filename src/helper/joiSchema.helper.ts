@@ -16,7 +16,7 @@ const schema = Joi.object({
         'number.base': 'Authentication method must be a number',
         'any.required': 'Authentication method is required'
     }),
-    password: Joi.string().required(),
+    password: Joi.string().required().min(6),
 });
 
 export default schema;

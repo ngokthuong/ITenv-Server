@@ -31,6 +31,8 @@ export const registerController = asyncHandeler(async (req: any, res: any) => {
 
 export const loginController = asyncHandeler(async (req: any, res: any) => {
     try {
+        console.log('loginController body')
+        console.log(req.body)
         const { accessToken, refreshToken, accountData } = await loginService(req.body);
         // save refreshToken in cookie 
         res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 1000 })
@@ -50,6 +52,7 @@ export const loginController = asyncHandeler(async (req: any, res: any) => {
 
 
 export const githubOauthController = asyncHandeler(async (req: Request, res: Response, next) => {
+    console.log('body github')
     const { code } = req.body;
     console.log(code);
 
