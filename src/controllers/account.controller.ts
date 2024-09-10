@@ -16,6 +16,7 @@ export const registerController = asyncHandeler(async (req: any, res: any) => {
             message: "Missing inputs in signup"
         });
     }
+
     try {
         const result = await registerService(req.body);
         return res.status(200).json({
@@ -32,15 +33,10 @@ export const registerController = asyncHandeler(async (req: any, res: any) => {
 
 
 export const loginController = asyncHandeler(async (req: any, res: any) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({
-            success: false,
-            message: "Missing inputs in login"
-        });
-    }
+    const { email, password, authenWith } = req.body;
+
     try {
-        const { accessToken, refreshToken, accountData } = await loginService(email, password);
+        const { accessToken, refreshToken, accountData } = await loginService(email, password, authenWith);
         // save refreshToken in cookie 
         res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 1000 })
         return res.status(200).json({
@@ -66,7 +62,7 @@ export const loginController = asyncHandeler(async (req: any, res: any) => {
 //     })
 // });
 
-export const githubOauthController = asyncHandeler(async (req: Request, res: Response) => {
+export const githubOauthController = asyncHandeler(async (req: Request, res: Response, next) => {
     const { code } = req.body;
     console.log(code);
 
@@ -98,12 +94,25 @@ export const githubOauthController = asyncHandeler(async (req: Request, res: Res
             },
         });
         const emailData = await emailResponse.json();
+        console.log(emailData[0]);
+        if (emailData[0].email) {
+            userData.email = emailData[0].email;
+        }
+        userData.firstName = userData.login;
+        userData.lastName = userData.login;
+        userData.authenWith = 3;
+        const account = {
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            authenWith: userData.authenWith,
+        };
 
-        console.log('User Data:', userData);
-        console.log('Email Data:', emailData);
+        req.body = account;
 
-        // Respond to the client with user data and emails
-        res.status(200).json({ user: userData, emails: emailData });
+        registerController(req, res, next);
+
+        // res.status(200).json({ success: true, user: userData });
     } catch (error) {
         console.error('Error exchanging token or fetching user data:', error);
         res.status(500).json({ error: 'Internal Server Error' });

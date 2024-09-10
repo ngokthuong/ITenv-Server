@@ -4,7 +4,7 @@ import accountSchema from "./account";
 // Define interfaces for the documents
 interface IUser extends Document {
     _id: mongoose.Types.ObjectId;
-    account: mongoose.Schema.Types.ObjectId[];
+    account: mongoose.Types.ObjectId[];
     username?: string;
     dob?: Date;
     phoneNumber?: string;

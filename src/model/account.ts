@@ -4,6 +4,7 @@ import { func } from "joi";
 
 // Định nghĩa interface cho dữ liệu của Account
 interface IAccount extends Document {
+    _id: mongoose.Types.ObjectId;
     email: string;
     password: string;
     role: string;
@@ -13,8 +14,6 @@ interface IAccount extends Document {
     passwordChangeAt?: string;
     passwordResetToken?: string;
     passwordResetExpires?: string;
-    firstName: string;
-    lastName: string;
     user: mongoose.Types.ObjectId;
     isCorrectPassword(password: string): Promise<boolean>;
 }
@@ -58,12 +57,6 @@ const accountSchema: Schema<IAccount> = new Schema({
         type: String
     },
     passwordResetExpires: {
-        type: String
-    },
-    firstName: {
-        type: String
-    },
-    lastName: {
         type: String
     },
     user: {
