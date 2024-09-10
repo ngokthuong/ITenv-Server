@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import schema from "../helper/joiSchema.helper";
 import User from "../model/user";
 import Account from "../model/account";
+import axios from "axios";
 // use express-async-handler
 
 export const registerController = asyncHandeler(async (req: any, res: any) => {
@@ -64,3 +65,47 @@ export const loginController = asyncHandeler(async (req: any, res: any) => {
 //         rs: account ? account : "account notfound"
 //     })
 // });
+
+export const githubOauthController = asyncHandeler(async (req: Request, res: Response) => {
+    const { code } = req.body;
+    console.log(code);
+
+    try {
+        // Exchange the code for an access token
+        const tokenResponse = await axios.post(
+            'https://github.com/login/oauth/access_token',
+            {
+                client_id: process.env.GITHUB_OAUTH_CLIENT_ID,
+                client_secret: process.env.GITHUB_OAUTH_CLIENT_SECRET,
+                code,
+            },
+            { headers: { Accept: 'application/json' } },
+        );
+
+        const { access_token } = tokenResponse.data;
+
+        // Fetch user data
+        const userResponse = await fetch('https://api.github.com/user', {
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
+        });
+        const userData = await userResponse.json();
+
+        const emailResponse = await fetch('https://api.github.com/user/emails', {
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
+        });
+        const emailData = await emailResponse.json();
+
+        console.log('User Data:', userData);
+        console.log('Email Data:', emailData);
+
+        // Respond to the client with user data and emails
+        res.status(200).json({ user: userData, emails: emailData });
+    } catch (error) {
+        console.error('Error exchanging token or fetching user data:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
