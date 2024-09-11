@@ -2,18 +2,19 @@
 POST http://localhost:8080/api/account/register
 
 {
-    "email": "thuong@gmail.com",
-    "password": "1234567890",
+    "email": "waytnt17523@gmail.com",
+    "password": "yourPassword123",
+    "username": "thuong",
     "role": "user",
-    "isActive": true,   
+    "isActive": true,
     "isBlocked": false,
     "authenWith": 0,
-    "passwordChangeAt": "",
-    "passwordResetToken": "",
-    "passwordResetExpires": "",
+    "passwordChangeAt": "2024-09-09T00:00:00Z",
+    "passwordResetToken": "someRandomToken",
+    "passwordResetExpires": "2024-09-10T00:00:00Z",
     "firstName": "John",
     "lastName": "Doe",
-    "user":null
+    "user": null
 }
 ### Response of api register with authenWith = 0 ( email pass )
 {
@@ -21,25 +22,31 @@ POST http://localhost:8080/api/account/register
     "response": "Register is successfully. Please login with email and password"
 }
 
-### Request api register with authenWith = 1 2 hoặc 3 ( GG FB GIT  )
+### Request api register with authenWith = 0 1 2 3 ( GG FB GIT  )
 POST http://localhost:8080/api/account/register
 
 {
-    "email": "thuong@gmail.com",
-    "password": "1234567890",
+    "email": "waytnt17523@gmail.com",
+        "password": "yourPassword123",
     "role": "user",
-    "isActive": true,   
+    "isActive": true,
     "isBlocked": false,
-    "authenWith": 1,
-    "passwordChangeAt": "",
-    "passwordResetToken": "",
-    "passwordResetExpires": "",
-    "firstName": "John",
-    "lastName": "Doe",
-    "user":null
+    "authenWith": 0
 }
-### response api register with authenWith = 1 2 hoặc 3 ( GG FB GIT  )
+### response api register with authenWith = 0 1 2 3  ( GG FB GIT  )
 {
     "success": true,
-    "response": "Register with Google successfully"
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NmUxMDY0YjMxOTEwNjg2NTE0NmIxYTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTcyNjAyNDc0MiwiZXhwIjoxNzI2MjgzOTQyfQ.39TDWV7ZPfVB9Mq1hkDQYwbObS3P6HWctgxSOWlmU_I",
+    "dataResponse": {
+        "accountData": {
+            "email": "waytnt17523@gmail.com",
+            "isActive": true,
+            "isBlocked": false,
+            "authenWith": 0,
+            "createdAt": "2024-09-11T02:54:03.575Z",
+            "updatedAt": "2024-09-11T02:54:03.637Z",
+            "__v": 0
+        },
+        "userName": "thuong"
+    }
 }
