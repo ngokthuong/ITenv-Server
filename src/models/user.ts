@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 import accountSchema from "./account";
+import { number } from "joi";
 
 // Define interfaces for the documents
 interface IUser extends Document {
@@ -10,12 +11,12 @@ interface IUser extends Document {
     phoneNumber?: string;
     avatar?: string;
     posts: mongoose.Schema.Types.ObjectId[];
-    friends: mongoose.Schema.Types.ObjectId[];
-    friendRequests: mongoose.Schema.Types.ObjectId[];
     notifications: mongoose.Schema.Types.ObjectId[];
     submissions: mongoose.Schema.Types.ObjectId[];
     refreshToken: string;
     gender?: number;
+    status: number;
+    lastOnline: Date
 }
 
 // Define the schema
@@ -42,14 +43,6 @@ const userSchema = new Schema<IUser>({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Post'
     }],
-    friends: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
-    friendRequests: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
     notifications: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Notification'
@@ -63,6 +56,12 @@ const userSchema = new Schema<IUser>({
     },
     gender: {
         type: Number
+    },
+    status: {
+        type: Number
+    },
+    lastOnline: {
+        type: Date
     }
 }, { timestamps: true });
 

@@ -1,5 +1,4 @@
-import router from './account.routes'
-import accountRouter from './account.routes'
+import accountRouter from './auth.routes'
 import { Express } from 'express'
 import { notFound, errHandler } from '../middleware/handelError.mdw'
 

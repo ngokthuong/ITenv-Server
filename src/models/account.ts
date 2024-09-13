@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcrypt";
-import { func } from "joi";
 
 // Định nghĩa interface cho dữ liệu của Account
 interface IAccount extends Document {
@@ -92,7 +91,6 @@ accountSchema.methods = {
         return await bcrypt.compare(password, this.password)
     }
 }
-
 
 // Export model
 const Account = mongoose.model<IAccount>('Account', accountSchema);

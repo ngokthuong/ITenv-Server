@@ -1,20 +1,46 @@
 import asyncHandler from "express-async-handler";
-import { registerService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail } from '../services/index.services';
-import { Request, Response } from 'express';
+import { verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted } from '../services/index.services';
+import { NextFunction, Request, Response } from 'express';
 import schema from "../helper/joiSchema.helper";
-import axios from "axios";
-// use express-async-handler
+import { generateAndSendOTP, verifyOTP } from "../services/otp.service"
 
-export const registerController = asyncHandler(async (req: any, res: any) => {
+// use express-async-handler
+export const createAndSendOtp = asyncHandler(async (req: any, res: any) => {
     const { error } = schema.validate(req.body, { allowUnknown: true });
     if (error) {
         return res.status(400).json({
             success: false,
-            message: "Missing inputs in signup"
+            message: "Invalid credentials in sign up!"
         });
     }
+    // checkemail function 
+    if (await checkAccountExisted(req.body.email)) {
+        return res.status(409).json({
+            success: false,
+            message: 'This email is already in user!'
+        })
+    }
+    // create and sent otp 
     try {
-        const result = await registerService(req.body);
+        const resultOtp = await generateAndSendOTP(req.body.email);
+        return res.status(200).json({
+            success: true,
+            resultOtp: resultOtp
+        })
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to generate or send OTP',
+            error: error.message || 'Internal server error',
+        });
+    }
+});
+
+export const verifyOtp = asyncHandler(async (req: any, res: any) => {
+
+    try {
+        // verify and create account
+        const result = await verifyAndRegisterService(req.body);
         return res.status(200).json({
             success: result.success,
             message: result.message
@@ -26,6 +52,9 @@ export const registerController = asyncHandler(async (req: any, res: any) => {
         });
     }
 });
+
+
+// LOGIN ( missing isblocked )
 
 export const loginController = asyncHandler(async (req: any, res: any) => {
     try {
@@ -45,9 +74,6 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
     }
 });
 
-
-
-
 export const githubOauthController = asyncHandler(async (req: Request, res: Response, next) => {
     const { code } = req.body;
     try {
@@ -58,7 +84,7 @@ export const githubOauthController = asyncHandler(async (req: Request, res: Resp
 
         const dataResp = {
             email: userData.email,
-            username: userData.name,
+            username: userData.name || userData.login,
             authenWith: 3,
         };
 

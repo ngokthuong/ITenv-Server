@@ -1,25 +1,32 @@
-import Account from "../model/account";
-import User from "../model/user";
+import Account from "../models/account";
+import Otp from "../models/otp"
+import User from "../models/user";
 import { generateAccessToken, generateRefreshToken } from '../middleware/jwt.mdw'
+import { verifyOTP } from "../services/otp.service"
 import lodash from 'lodash'
 import axios from "axios";
 
-const registerService = async (body: any) => {
-    const { email } = body;
-    const account = await Account.findOne({ email });
-    if (account) {
-        throw new Error('The email has already been used.');
+const verifyAndRegisterService = async (body: any) => {
+    const { email, otp } = body
+    // verify OTP
+    const verifyOtp = await verifyOTP(email, otp)
+    if (!verifyOtp)
+        return {
+            success: false,
+            message: 'verify OTP is error'
+        }
+    const newAccount = await registerAccount(body);
+    if (newAccount) {
+        return {
+            success: true,
+            message: 'Register is successfully. Please login with email and password'
+        };
     } else {
-        // sign up a new account 
-        const newAccount = await registerAccount(body);
-        if (newAccount) {
-            return {
-                success: true,
-                message: 'Register is successfully. Please login with email and password'
-            };
+        return {
+            success: true,
+            message: 'Something went wrong'
         }
     }
-    throw new Error('Something went wrong');
 };
 
 const registerAccount = async (data: any) => {
@@ -33,7 +40,13 @@ const registerAccount = async (data: any) => {
     return await account.save();
 }
 
-const createAccountWithOldUserID = (data: any) => {
+const checkAccountExisted = async (email: string) => {
+    if (await Account.findOne({ email }))
+        return true;
+    return false;
+}
+
+const createAccountWithOAuth = (data: any) => {
     return new Promise(async (resolve, reject) => {
         try {
             const accountExist = await Account.findOne({ email: data.email });
@@ -65,7 +78,7 @@ const createAllToken = async (account: any) => {
     return { accessToken, refreshToken }
 }
 
-const dataResponseClient = async (account: any, user: any) => {
+const dataResponseClientWhenLogin = async (account: any, user: any) => {
     const accountData = await lodash.omit(account.toObject(), ['_id', 'role', 'password', 'passwordChangeAt', 'passwordResetToken', 'passwordResetExpires', 'user'])
     const { accessToken, refreshToken } = await createAllToken(account);
     const dataResponse = await { accountData, userName: user?.username || "no data" }
@@ -82,7 +95,7 @@ const loginService = async (data: any) => {
     // if else with account.authenWith ==0 and compare password
     if (account && authenWith === 0 && account.authenWith === 0) {
         if (await account.isCorrectPassword(password)) {
-            const { dataResponse, accessToken, refreshToken } = await dataResponseClient(account, user);
+            const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(account, user);
 
             return { accessToken, refreshToken, dataResponse };
         }
@@ -94,13 +107,13 @@ const loginService = async (data: any) => {
         const existingAuthenWith = existingAccounts.map(acc => acc.authenWith);
         // If there isn't an account with the specified authenWith, then create a new account with a new authenWith
         if (!existingAuthenWith.includes(authenWith)) {
-            const newAccount = account ? await createAccountWithOldUserID(data) : await registerAccount(data);
-            const { dataResponse, accessToken, refreshToken } = await dataResponseClient(newAccount, user);
+            const newAccount = account ? await createAccountWithOAuth(data) : await registerAccount(data);
+            const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(newAccount, user);
             return { accessToken, refreshToken, dataResponse };
         }
         // if account with authenWith is existed then return token and accountWithMailAuth
         const accountWithMailAuth = await Account.findOne({ email, authenWith });
-        const { dataResponse, accessToken, refreshToken } = await dataResponseClient(accountWithMailAuth, user);
+        const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(accountWithMailAuth, user);
         return { accessToken, refreshToken, dataResponse }
     }
     throw new Error('Invalid credentials!');
@@ -138,4 +151,4 @@ const fetchGithubUserEmail = async (accessToken: string) => {
     return emailData[0]?.email;
 };
 
-export { registerService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail }
+export { verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted }

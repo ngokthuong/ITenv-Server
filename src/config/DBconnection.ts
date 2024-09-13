@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { disconnect } from "mongoose";
 
 export const connection = async () => {
     try {
