@@ -54,17 +54,20 @@ export const verifyOtp = asyncHandler(async (req: any, res: any) => {
 });
 
 
-// LOGIN ( missing isblocked )
+// LOGIN (  )
 
 export const loginController = asyncHandler(async (req: any, res: any) => {
     try {
-        const { accessToken, refreshToken, dataResponse } = await loginService(req.body);
+        // const { accessToken, refreshToken, dataResponse } = await loginService(req.body);
+        const resultLoginService = await loginService(req.body);
+
         // save refreshToken in cookie 
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 1000 })
+        res.cookie('refreshToken', resultLoginService?.refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 1000 })
         return res.status(200).json({
-            success: true,
-            accessToken,
-            dataResponse
+            success: resultLoginService?.success,
+            message: resultLoginService?.message,
+            accessToken: resultLoginService?.accessToken,
+            dataResponse: resultLoginService?.dataResponse
         });
     } catch (error: any) {
         return res.status(401).json({

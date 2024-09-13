@@ -1,10 +1,11 @@
-import Account from "../models/account";
 import Otp from "../models/otp"
 import User from "../models/user";
+import Account from "../models/account";
 import { generateAccessToken, generateRefreshToken } from '../middleware/jwt.mdw'
 import { verifyOTP } from "../services/otp.service"
 import lodash from 'lodash'
 import axios from "axios";
+import message from "../models/message";
 
 const verifyAndRegisterService = async (body: any) => {
     const { email, otp } = body
@@ -29,7 +30,7 @@ const verifyAndRegisterService = async (body: any) => {
     }
 };
 
-const registerAccount = async (data: any) => {
+const registerAccount = async (data: any): Promise<object> => {
     // check email is existed 
     const account = await Account.create(data)
     const user = await User.create({
@@ -40,32 +41,34 @@ const registerAccount = async (data: any) => {
     return await account.save();
 }
 
-const checkAccountExisted = async (email: string) => {
+const checkAccountExisted = async (email: string): Promise<boolean> => {
     if (await Account.findOne({ email }))
         return true;
     return false;
 }
 
-const createAccountWithOAuth = (data: any) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const accountExist = await Account.findOne({ email: data.email });
-            if (accountExist) {
-                // Assign the UserID from the existing account to the data
-                data.user = accountExist.user;
-                const newAccount = await Account.create(data);
-                // find the corresponding user
-                const userExist = await User.findOne({ _id: newAccount.user });
-                if (userExist) {
-                    userExist.account.push(newAccount._id);
-                    await userExist.save();
-                }
-                resolve(newAccount);
+
+const createAccountWithOAuth = async (data: any) => {
+    try {
+        const accountExist = await Account.findOne({ email: data.email });
+        if (accountExist) {
+            // Assign the UserID from the existing account to the data
+            data.user = accountExist.user;
+            const newAccount = await Account.create(data);
+
+            // Find the corresponding user
+            const userExist = await User.findOne({ _id: newAccount.user });
+            if (userExist) {
+                userExist.account.push(newAccount._id);
+                await userExist.save();
             }
-        } catch (error: any) {
-            reject(new Error(`Failed to create new account with UserId: ${error.message}`));
+
+            return newAccount; // Return the newly created account
         }
-    });
+        return null; // In case accountExist does not exist, return null or handle this case as needed
+    } catch (error: any) {
+        throw new Error(`Failed to create new account with UserId: ${error.message}`);
+    }
 };
 
 const createAllToken = async (account: any) => {
@@ -86,37 +89,56 @@ const dataResponseClientWhenLogin = async (account: any, user: any) => {
 }
 
 const loginService = async (data: any) => {
-    const { email, authenWith, password } = data;
-    // find account with email
-    const account = await Account.findOne({ email });
-    console.log(account)
-    const user = await User.findById(account?.user);
-    console.log(user)
-    // if else with account.authenWith ==0 and compare password
-    if (account && authenWith === 0 && account.authenWith === 0) {
-        if (await account.isCorrectPassword(password)) {
-            const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(account, user);
+    try {
+        const { email, authenWith, password } = data;
+        // find account with email
+        const account = await Account.findOne({ email });
+        const user = await User.findById(account?.user);
+        // check isBlocked
+        if (await isBlocked(account))
+            return {
+                success: false,
+                message: 'Your account is blocked'
+            }
+        // if else with account.authenWith ==0 and compare password
+        if (account && authenWith === 0 && account.authenWith === 0) {
+            if (await account.isCorrectPassword(password)) {
+                const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(account, user);
+                return { accessToken, refreshToken, dataResponse };
+            }
+            return {
+                success: false,
+                message: 'The user has entered an incorrect password'
+            }
+        }
+        // if authen is [1||2||3] 
+        if (authenWith >= 1 && authenWith <= 3) {
+            const existingAccounts = await Account.find({ email, authenWith: { $in: [1, 2, 3] } });
+            const existingAuthenWith = existingAccounts.map(acc => acc.authenWith);
+            // If there isn't an account with the specified authenWith, then create a new account with a new authenWith
+            if (!existingAuthenWith.includes(authenWith)) {
+                const newAccount = account ? await createAccountWithOAuth(data) : await registerAccount(data);
+                const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(newAccount, user);
+                return { accessToken, refreshToken, dataResponse };
+            }
+            // if account with authenWith is existed then return token and accountWithMailAuth
+            const accountWithMailAuth = await Account.findOne({ email, authenWith });
+            const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(accountWithMailAuth, user);
+            return { accessToken, refreshToken, dataResponse }
+        }
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.message
+        }
+    }
 
-            return { accessToken, refreshToken, dataResponse };
-        }
-        throw new Error('Invalid credentials!');
-    }
-    // if authen is [1||2||3] 
-    if (authenWith >= 1 && authenWith <= 3) {
-        const existingAccounts = await Account.find({ email, authenWith: { $in: [1, 2, 3] } });
-        const existingAuthenWith = existingAccounts.map(acc => acc.authenWith);
-        // If there isn't an account with the specified authenWith, then create a new account with a new authenWith
-        if (!existingAuthenWith.includes(authenWith)) {
-            const newAccount = account ? await createAccountWithOAuth(data) : await registerAccount(data);
-            const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(newAccount, user);
-            return { accessToken, refreshToken, dataResponse };
-        }
-        // if account with authenWith is existed then return token and accountWithMailAuth
-        const accountWithMailAuth = await Account.findOne({ email, authenWith });
-        const { dataResponse, accessToken, refreshToken } = await dataResponseClientWhenLogin(accountWithMailAuth, user);
-        return { accessToken, refreshToken, dataResponse }
-    }
-    throw new Error('Invalid credentials!');
+};
+
+// check block user account 
+
+const isBlocked = async (account: any): Promise<boolean> => {
+    return account.isBlocked;
 };
 
 const exchangeGithubCodeForToken = async (code: string) => {

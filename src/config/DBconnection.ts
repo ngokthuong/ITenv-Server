@@ -10,6 +10,13 @@ export const connection = async () => {
         } else {
             console.log('Database connecting')
         }
+
+        // server error or server off
+        process.on('SIGINT', async () => {
+            await mongoose.disconnect();
+            console.log('Database connection is closed due to app termination');
+            process.exit(0);
+        });
     } catch (error) {
         console.log('Database connection is failed')
         // return error to client 

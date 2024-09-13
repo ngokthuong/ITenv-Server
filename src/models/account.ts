@@ -7,7 +7,6 @@ interface IAccount extends Document {
     email: string;
     password: string;
     role: string;
-    isActive: boolean;
     isBlocked: boolean;
     authenWith: number;
     passwordChangeAt?: string;
@@ -35,10 +34,6 @@ const accountSchema: Schema<IAccount> = new Schema({
     role: {
         type: String,
         default: 'user',
-    },
-    isActive: {
-        type: Boolean,
-        default: true
     },
     isBlocked: {
         type: Boolean,
