@@ -1,11 +1,10 @@
-import Otp from "../models/otp"
 import User from "../models/user";
 import Account from "../models/account";
 import { generateAccessToken, generateRefreshToken } from '../middleware/jwt.mdw'
 import { verifyOTP } from "../services/otp.service"
 import lodash from 'lodash'
 import axios from "axios";
-import message from "../models/message";
+import jwt from 'jsonwebtoken'
 
 const verifyAndRegisterService = async (body: any) => {
     const { email, otp } = body
@@ -73,16 +72,16 @@ const createAccountWithOAuth = async (data: any) => {
 
 const createAllToken = async (account: any) => {
     // create accesstoken 
-    const accessToken = generateAccessToken(account._id.toString(), account.role);
+    const accessToken = generateAccessToken(account._id.toString(), account.role, account.user.toString());
     // create refresh token 
     const refreshToken = generateRefreshToken(account._id.toString());
     // save refreshToken in Database 
-    await User.findByIdAndUpdate(account.user, { refreshToken }, { new: true })
+    await Account.findByIdAndUpdate(account._id, { refreshToken }, { new: true })
     return { accessToken, refreshToken }
 }
 
 const dataResponseClientWhenLogin = async (account: any, user: any) => {
-    const accountData = await lodash.omit(account.toObject(), ['_id', 'role', 'password', 'passwordChangeAt', 'passwordResetToken', 'passwordResetExpires', 'user'])
+    const accountData = await lodash.omit(account.toObject(), ['_id', 'role', 'password', 'passwordChangeAt', 'passwordResetToken', 'passwordResetExpires', 'refreshToken', 'user'])
     const { accessToken, refreshToken } = await createAllToken(account);
     const dataResponse = await { accountData, userName: user?.username || "no data" }
     return { dataResponse, accessToken, refreshToken }
@@ -136,7 +135,6 @@ const loginService = async (data: any) => {
 };
 
 // check block user account 
-
 const isBlocked = async (account: any): Promise<boolean> => {
     return account.isBlocked;
 };
@@ -171,6 +169,36 @@ const fetchGithubUserEmail = async (accessToken: string) => {
     });
     const emailData = await emailResponse.json();
     return emailData[0]?.email;
+};
+
+// REFRESH TOKEN
+export const refreshAccessTokenService = async (refreshToken: string) => {
+    try {
+        // Verify the refresh token
+        jwt.verify(refreshToken, process.env.JWT_SECRET as string, async (err: any, decode: any) => {
+            if (err)
+                return {
+                    success: false,
+                    newAccessToken: 'null',
+                    message: 'Invalid refresh token'
+                }
+            const account = await Account.findOne({
+                _id: decode._id,
+                refreshToken: refreshToken
+            });
+            return {
+                success: account ? true : false,
+                newAccessToken: account ? generateAccessToken(account._id.toString(), account.role, account.user.toString()) : 'refreshToken invalid',
+                message: account ? 'refreshToken is created' : 'refreshToken invalid'
+            }
+        });
+    } catch (error: any) {
+        return {
+            success: false,
+            newAccessToken: 'null',
+            message: error.message
+        }
+    }
 };
 
 export { verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted }

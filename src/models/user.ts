@@ -13,7 +13,6 @@ interface IUser extends Document {
     posts: mongoose.Schema.Types.ObjectId[];
     notifications: mongoose.Schema.Types.ObjectId[];
     submissions: mongoose.Schema.Types.ObjectId[];
-    refreshToken: string;
     gender?: number;
     status: number;
     lastOnline: Date
@@ -51,9 +50,7 @@ const userSchema = new Schema<IUser>({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Submission'
     }],
-    refreshToken: {
-        type: String
-    },
+
     gender: {
         type: Number
     },

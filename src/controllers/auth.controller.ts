@@ -1,10 +1,11 @@
 import asyncHandler from "express-async-handler";
-import { verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted } from '../services/index.services';
+import { refreshAccessTokenService, verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted } from '../services/index.services';
 import { NextFunction, Request, Response } from 'express';
 import schema from "../helper/joiSchema.helper";
-import { generateAndSendOTP, verifyOTP } from "../services/otp.service"
+import { generateAndSendOTP } from "../services/otp.service"
+import message from "../models/message";
 
-// use express-async-handler
+// OTP
 export const createAndSendOtp = asyncHandler(async (req: any, res: any) => {
     const { error } = schema.validate(req.body, { allowUnknown: true });
     if (error) {
@@ -54,8 +55,7 @@ export const verifyOtp = asyncHandler(async (req: any, res: any) => {
 });
 
 
-// LOGIN (  )
-
+// LOGIN + CREATE TOKEN
 export const loginController = asyncHandler(async (req: any, res: any) => {
     try {
         // const { accessToken, refreshToken, dataResponse } = await loginService(req.body);
@@ -77,6 +77,7 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
     }
 });
 
+// LOGIN GITHUB
 export const githubOauthController = asyncHandler(async (req: Request, res: Response, next) => {
     const { code } = req.body;
     try {
@@ -95,5 +96,31 @@ export const githubOauthController = asyncHandler(async (req: Request, res: Resp
         loginController(req, res, next);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// CREATE NEW ACCESSTOKEN WITH REFRESH TOKEN 
+export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
+    // Get the token from cookies
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+        return res.status(400).json({
+            success: false,
+            message: 'No refresh token in cookie'
+        });
+    }
+    try {
+        const result = await refreshAccessTokenService(refreshToken);
+        return res.status(200).json({
+            success: result?.success,
+            message: result?.message,
+            newAccessToken: result?.newAccessToken
+        }
+        );
+    } catch (error: any) {
+        return res.status(401).json({
+            success: false,
+            message: error.message
+        });
     }
 });

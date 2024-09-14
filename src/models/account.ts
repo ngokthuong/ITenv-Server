@@ -12,6 +12,7 @@ interface IAccount extends Document {
     passwordChangeAt?: string;
     passwordResetToken?: string;
     passwordResetExpires?: string;
+    refreshToken: string;
     user: mongoose.Types.ObjectId;
     isCorrectPassword(password: string): Promise<boolean>;
 }
@@ -51,6 +52,9 @@ const accountSchema: Schema<IAccount> = new Schema({
         type: String
     },
     passwordResetExpires: {
+        type: String
+    },
+    refreshToken: {
         type: String
     },
     user: {
