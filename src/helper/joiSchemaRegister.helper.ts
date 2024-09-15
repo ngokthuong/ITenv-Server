@@ -6,8 +6,9 @@ const schema = Joi.object({
     username: Joi.string().required().messages({
         'any.required': 'username is required'
     }),
-    authenWith: Joi.number().integer().required().messages({
+    authenWith: Joi.number().valid(0).required().messages({
         'number.base': 'Authentication method must be a number',
+        'any.only': 'Authentication method must be 0',
         'any.required': 'Authentication method is required'
     }),
     password: Joi.string().required().min(6),

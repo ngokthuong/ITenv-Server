@@ -94,7 +94,7 @@ const loginService = async (data: any) => {
         const account = await Account.findOne({ email });
         const user = await User.findById(account?.user);
         // check isBlocked
-        if (await isBlocked(account))
+        if (await accIsBlocked(account))
             return {
                 success: false,
                 message: 'Your account is blocked'
@@ -128,14 +128,14 @@ const loginService = async (data: any) => {
     } catch (error: any) {
         return {
             success: false,
-            message: error.message
+            message: 'invalid credential'
         }
     }
 
 };
 
 // check block user account 
-const isBlocked = async (account: any): Promise<boolean> => {
+const accIsBlocked = async (account: any): Promise<boolean> => {
     return account.isBlocked;
 };
 

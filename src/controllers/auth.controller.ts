@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { refreshAccessTokenService, verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted } from '../services/index.services';
 import { NextFunction, Request, Response } from 'express';
-import schema from "../helper/joiSchema.helper";
+import schema from "../helper/joiSchemaRegister.helper";
 import { generateAndSendOTP } from "../services/otp.service"
 import message from "../models/message";
 

@@ -1,52 +1,131 @@
-### Request api register with authenWith = 0 ( email pass )
+### API REGISTER
+# Request api register with authenWith = 0 ( email pass )
 POST http://localhost:8080/api/account/register
-
 {
     "email": "waytnt17523@gmail.com",
-    "password": "yourPassword123",
-    "username": "thuong",
-    "role": "user",
-    "isActive": true,
-    "isBlocked": false,
-    "authenWith": 0,
-    "passwordChangeAt": "2024-09-09T00:00:00Z",
-    "passwordResetToken": "someRandomToken",
-    "passwordResetExpires": "2024-09-10T00:00:00Z",
-    "firstName": "John",
-    "lastName": "Doe",
-    "user": null
-}
-### Response of api register with authenWith = 0 ( email pass )
-{
-    "success": true,
-    "response": "Register is successfully. Please login with email and password"
-}
-
-### Request api register with authenWith = 0 1 2 3 ( GG FB GIT  )
-POST http://localhost:8080/api/account/register
-
-{
-    "email": "waytnt17523@gmail.com",
-        "password": "yourPassword123",
-    "role": "user",
-    "isActive": true,
-    "isBlocked": false,
+    "password": "1234567890",
+    "username": "ngok thuwng",
     "authenWith": 0
 }
-### response api register with authenWith = 0 1 2 3  ( GG FB GIT  )
+### Response of api register with authenWith = 0 ( email pass )
+###1 true
 {
     "success": true,
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NmUxMDY0YjMxOTEwNjg2NTE0NmIxYTgiLCJyb2xlIjoidXNlciIsImlhdCI6MTcyNjAyNDc0MiwiZXhwIjoxNzI2MjgzOTQyfQ.39TDWV7ZPfVB9Mq1hkDQYwbObS3P6HWctgxSOWlmU_I",
+    "resultOtp": "759606"
+}
+###2 false if email is used
+{
+    "success": false,
+    "message": "This email is already in user!"
+}
+###3 flase if invalid credentials
+{
+    "success": false,
+    "message": "Invalid credentials in sign up!"
+}
+
+### request verify OTP with api verify-signup
+POST http://localhost:8080/api/account/verify-signup
+{
+    "email": "waytnt17523@gmail.com",
+    "password": "1234567890",
+    "username": "ngok thuwng",
+    "otp":"397339",
+    "authenWith": 0
+}
+
+### response verify OTP with api verify-signup
+### true
+{
+    "success": true,
+    "message": "Register is successfully. Please login with email and password"
+}
+### flase
+{
+    "success": false,
+    "message": "Cannot read properties of undefined (reading 'isCorrectOtp')"
+}
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+### API LOGIN 
+### Request api login with authenWith =  1 2 3 ( GG FB GIT  )
+
+POST http://localhost:8080/api/account/login
+{
+    "email": "thieungao123@gmail.com",
+    "username": "Thiu ngao",
+    "authenWith": 1
+}
+### response api register with authenWith = 1 2 3  ( GG FB GIT  )
+### true
+{
+    "accessToken": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NmU3MDdiZTNkZWRjYjUyZTQyN2VmMzgiLCJyb2xlIjoidXNlciIsInVzZXIiOiI2NmU3MDdiZTNkZWRjYjUyZTQyN2VmM2EiLCJpYXQiOjE3MjY0MTY4ODMsImV4cCI6MTcyNjQxNjg5M30.2iea6vM60Mzhs9udRDw9VK-TKMUHukIa4Qb4P3lU8QY",
     "dataResponse": {
         "accountData": {
-            "email": "waytnt17523@gmail.com",
-            "isActive": true,
+            "email": "thieungao123@gmail.com",
             "isBlocked": false,
-            "authenWith": 0,
-            "createdAt": "2024-09-11T02:54:03.575Z",
-            "updatedAt": "2024-09-11T02:54:03.637Z",
+            "authenWith": 1,
+            "createdAt": "2024-09-15T16:13:50.708Z",
+            "updatedAt": "2024-09-15T16:14:40.064Z",
             "__v": 0
         },
-        "userName": "thuong"
+        "userName": "Thiu ngao"
     }
 }
+### flase 1
+{
+    "success": false,
+    "message": "invalid credential"
+}
+### false 2
+{
+    "success": false,
+    "message": "Your account is blocked"
+}
+### false 3
+{
+    "success": false,
+    "message": "The user has entered an incorrect password"
+}
+##############################################################################################################################
+### request API LOGIN authenWith 0
+POST http://localhost:8080/api/account/login
+{
+    "email": "trinhngocthuong17523@gmail.com",
+    "password": "1234567890",
+    "username": "ngok thuwng",
+    "authenWith": 0
+}
+
+Authorization: Bearer your_token_here
+
+### response api login authenWith 0
+{
+    "accessToken": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NmU1NjE4MGUyMDkzMDkyZWNjODhhNmMiLCJyb2xlIjoidXNlciIsInVzZXIiOiI2NmU1NjE4MGUyMDkzMDkyZWNjODhhNmUiLCJpYXQiOjE3MjY0MTUyNzAsImV4cCI6MTcyNjQxNTI4MH0.NhaXNeXoPPHLd9npgncj3d0gYYJrx84YJs-GsdL8pG4",
+    "dataResponse": {
+        "accountData": {
+            "email": "trinhngocthuong17523@gmail.com",
+            "isBlocked": false,
+            "authenWith": 0,
+            "createdAt": "2024-09-14T10:12:16.204Z",
+            "updatedAt": "2024-09-15T15:45:28.331Z",
+            "__v": 0
+        },
+        "userName": "ngok thuwng"
+    }
+}
+##############################################################################################################################
+### API VERIFYACCESSTOKEN 
+
+### API REFRESHACCESSTOKEN 
+POST http://localhost:8080/api/account/refresh-accessToken
+
+Authorization: Bearer your_token_here
+
+
+
