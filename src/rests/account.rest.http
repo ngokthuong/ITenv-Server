@@ -106,7 +106,7 @@ Authorization: Bearer your_token_here
 
 ### response api login authenWith 0
 {
-    "accessToken": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NmU1NjE4MGUyMDkzMDkyZWNjODhhNmMiLCJyb2xlIjoidXNlciIsInVzZXIiOiI2NmU1NjE4MGUyMDkzMDkyZWNjODhhNmUiLCJpYXQiOjE3MjY0MTUyNzAsImV4cCI6MTcyNjQxNTI4MH0.NhaXNeXoPPHLd9npgncj3d0gYYJrx84YJs-GsdL8pG4",
+    "accessToken": "Bearer access Token",
     "dataResponse": {
         "accountData": {
             "email": "trinhngocthuong17523@gmail.com",
