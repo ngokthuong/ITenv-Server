@@ -1,9 +1,17 @@
 import asyncHandler from "express-async-handler";
-import { refreshAccessTokenService, verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted } from '../services/index.services';
+import { refreshAccessTokenService, verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted, logoutService } from '../services/index.services';
 import { NextFunction, Request, Response } from 'express';
 import schema from "../helper/joiSchemaRegister.helper";
 import { generateAndSendOTP } from "../services/otp.service"
 import message from "../models/message";
+import account from "../models/account";
+import { addRefreshTokenToCookie, clearRefreshTokenInCookie } from "../middleware/cookie.mdw";
+
+interface RefreshTokenResult {
+    success: boolean;
+    newAccessToken: string;
+    message: string;
+}
 
 // OTP
 export const createAndSendOtp = asyncHandler(async (req: any, res: any) => {
@@ -25,8 +33,8 @@ export const createAndSendOtp = asyncHandler(async (req: any, res: any) => {
     try {
         const resultOtp = await generateAndSendOTP(req.body.email);
         return res.status(200).json({
-            success: true,
-            resultOtp: resultOtp
+            success: resultOtp.success,
+            message: resultOtp.message
         })
     } catch (error: any) {
         return res.status(500).json({
@@ -62,7 +70,14 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
         const resultLoginService = await loginService(req.body);
 
         // save refreshToken in cookie 
-        res.cookie('refreshToken', resultLoginService?.refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 1000 })
+        if (resultLoginService?.refreshToken)
+            addRefreshTokenToCookie(res, resultLoginService?.refreshToken);
+        else {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to generate refresh token'
+            });
+        }
         return res.status(200).json({
             success: resultLoginService?.success,
             message: resultLoginService?.message,
@@ -85,19 +100,35 @@ export const githubOauthController = asyncHandler(async (req: Request, res: Resp
         const userData = await fetchGithubUserData(accessToken);
         const email = await fetchGithubUserEmail(accessToken);
         userData.email = email || userData.email;
-
         const dataResp = {
             email: userData.email,
             username: userData.name || userData.login,
             authenWith: 3,
         };
-
         req.body = dataResp;
         loginController(req, res, next);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+// LOGOUT 
+export const logoutController = asyncHandler(async (req: any, res: any) => {
+    const cookie = req.cookies
+    if (!cookie || !cookie.refreshToken)
+        return res.status(400).json({
+            success: false,
+            message: 'No refresh Token in cookies'
+        })
+    const result = await logoutService(cookie.refreshToken);
+    //    delete refresh token in cookie
+    clearRefreshTokenInCookie(res);
+    return res.status(200).json({
+        success: (await result).success,
+        message: (await result).message
+    });
+})
+
 
 // CREATE NEW ACCESSTOKEN WITH REFRESH TOKEN 
 export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
@@ -112,15 +143,15 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
     try {
         const result = await refreshAccessTokenService(refreshToken);
         return res.status(200).json({
-            success: result?.success,
-            message: result?.message,
+            success: await result?.success,
+            message: await result?.message,
             newAccessToken: result?.newAccessToken
         }
         );
-    } catch (error: any) {
+    } catch (error) {
         return res.status(401).json({
             success: false,
-            message: error.message
+            message: await (error as Error).message
         });
     }
 });

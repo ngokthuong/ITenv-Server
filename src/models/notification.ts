@@ -1,7 +1,15 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-// Declare the Schema of the Mongo model
-var notificationSchema = new mongoose.Schema({
+export interface INotification extends Document {
+    title: string;
+    content: string;
+    isSeen: boolean;
+    postedBy: mongoose.Types.ObjectId;
+    postAt: Date;
+    notificationType?: string;
+}
+
+const notificationSchema: Schema<INotification> = new mongoose.Schema({
     title: {
         type: String,
         required: true
@@ -10,7 +18,7 @@ var notificationSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    iSeen: {
+    isSeen: {
         type: Boolean,
         default: false
     },
@@ -28,5 +36,4 @@ var notificationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-//Export the model
-export default mongoose.model('Notification', notificationSchema);
+export default mongoose.model<INotification>('Notification', notificationSchema);

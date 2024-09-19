@@ -1,17 +1,26 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-// Declare the Schema of the Mongo model
-var messageSchema = new mongoose.Schema({
+export interface IMessage extends Document {
+    conversation: mongoose.Types.ObjectId;
+    sender: mongoose.Types.ObjectId;
+    isSeenBy: mongoose.Types.ObjectId[];
+    content: string;
+    sentAt: Date;
+    isRecalled: boolean;
+    isDeleted: boolean;
+}
+
+const messageSchema: Schema<IMessage> = new mongoose.Schema({
     conversation: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Conversation',
-        require: true,
+        required: true,
         unique: true
     },
-    serder: {
+    sender: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        require: true,
+        required: true,
         unique: true,
     },
     isSeenBy: [{
@@ -24,7 +33,7 @@ var messageSchema = new mongoose.Schema({
     },
     sentAt: {
         type: Date,
-        require: true,
+        required: true,
         default: Date.now
     },
     isRecalled: {
@@ -35,7 +44,7 @@ var messageSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
-});
+}, { timestamps: true });
 
-//Export the model
-export default mongoose.model('Message', messageSchema);
+const Message = mongoose.model<IMessage>('Message', messageSchema);
+export default Message;

@@ -92,5 +92,4 @@ accountSchema.methods = {
 }
 
 // Export model
-const Account = mongoose.model<IAccount>('Account', accountSchema);
-export default Account;
+export default mongoose.model<IAccount>('Account', accountSchema);

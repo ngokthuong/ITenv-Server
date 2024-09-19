@@ -1,33 +1,48 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const codeSchema = new mongoose.Schema({
+interface ICode {
+    language: string;
+    content: string;
+}
+
+export interface ISubmission extends Document {
+    submitBy: mongoose.Types.ObjectId;
+    problem: mongoose.Types.ObjectId;
+    code: ICode;
+    score: number;
+    isAccepted: boolean;
+    submitAt: Date;
+}
+
+const codeSchema: Schema<ICode> = new mongoose.Schema({
     language: {
         type: String,
-        required: true // Bắt buộc phải có giá trị
+        required: true
     },
     content: {
         type: String
     }
 });
-// Declare the Schema of the Mongo model
-var submissionSchema = new mongoose.Schema({
+
+const submissionSchema: Schema<ISubmission> = new mongoose.Schema({
     submitBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        require: true
+        required: true
     },
     problem: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        require: true
+        ref: 'Problem',
+        required: true
     },
     code: {
-        type: codeSchema
+        type: codeSchema,
+        required: true
     },
     score: {
         type: Number
     },
-    isAcceped: {
+    isAccepted: {
         type: Boolean
     },
     submitAt: {
@@ -36,5 +51,4 @@ var submissionSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-//Export the model
-export default mongoose.model('Submission', submissionSchema);
+export default mongoose.model<ISubmission>('Submission', submissionSchema);

@@ -1,8 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
-import accountSchema from "./account";
-import { number } from "joi";
 
-// Define interfaces for the documents
 interface IUser extends Document {
     _id: mongoose.Types.ObjectId;
     account: mongoose.Types.ObjectId[];
@@ -18,7 +15,6 @@ interface IUser extends Document {
     lastOnline: Date
 }
 
-// Define the schema
 const userSchema = new Schema<IUser>({
     account: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -62,7 +58,4 @@ const userSchema = new Schema<IUser>({
     }
 }, { timestamps: true });
 
-// Export the model
-const User = mongoose.model<IUser>('User', userSchema);
-
-export default User;
+export default mongoose.model<IUser>('User', userSchema);

@@ -1,7 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-// Declare the Schema of the Mongo model
-var conversationSchema = new mongoose.Schema({
+// Định nghĩa interface cho Conversation
+export interface IConversation extends Document {
+    participants: mongoose.Types.ObjectId[];
+    messages: mongoose.Types.ObjectId[];
+    createdAt?: Date;
+    isGroupChat?: boolean;
+    groupName?: string;
+}
+
+// Khai báo schema của Conversation
+const conversationSchema: Schema<IConversation> = new mongoose.Schema({
     participants: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // Tham chiếu đến User
@@ -9,7 +18,7 @@ var conversationSchema = new mongoose.Schema({
     }],
     messages: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Message', // Tham chiếu đến User
+        ref: 'Message', // Tham chiếu đến Message
         required: true
     }],
     createdAt: {
@@ -25,5 +34,4 @@ var conversationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-//Export the model
-module.exports = mongoose.model('Conversation', conversationSchema);
+export default mongoose.model<IConversation>('Conversation', conversationSchema);

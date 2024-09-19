@@ -1,15 +1,31 @@
-import mongoose from "mongoose";
-// Declare the Schema of the Mongo model
-var postSchema = new mongoose.Schema({
+import mongoose, { Document, Schema } from "mongoose";
+
+export interface IPost extends Document {
+    postBy: mongoose.Types.ObjectId;
+    title: string;
+    content: string;
+    view: number;
+    vote: number;
+    comment: mongoose.Types.ObjectId[];
+    postAt: Date;
+    editAt?: Date;
+    isAnonymous: boolean;
+    status: boolean;
+}
+
+const postSchema: Schema<IPost> = new mongoose.Schema({
     postBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
     title: {
-        type: String
+        type: String,
+        required: true
     },
     content: {
-        type: String
+        type: String,
+        required: true
     },
     view: {
         type: Number,
@@ -40,5 +56,4 @@ var postSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-//Export the model
-export default mongoose.model('Post', postSchema);
+export default mongoose.model<IPost>('Post', postSchema);

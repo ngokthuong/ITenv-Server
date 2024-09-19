@@ -7,7 +7,7 @@ function generateOTP() {
     return otpGenerator.generate(6, { digits: true, lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false });
 }
 
-export const generateAndSendOTP = async (email: string): Promise<string> => {
+export const generateAndSendOTP = async (email: string) => {
     try {
         const otp = generateOTP(); // Generate a 6-digit OTP
         console.log('otp: ' + otp)
@@ -27,9 +27,15 @@ export const generateAndSendOTP = async (email: string): Promise<string> => {
             <p>Thank you!</p>
             </body>`,
         });
-        return otp;
+        return {
+            success: true,
+            message: "OTP has been sent."
+        }
     } catch (error: any) {
-        return error.message
+        return {
+            success: false,
+            message: error.message
+        }
     }
 };
 

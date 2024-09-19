@@ -5,6 +5,7 @@ import { verifyOTP } from "../services/otp.service"
 import lodash from 'lodash'
 import axios from "axios";
 import jwt from 'jsonwebtoken'
+import { Err } from "joi";
 
 const verifyAndRegisterService = async (body: any) => {
     const { email, otp } = body
@@ -171,16 +172,30 @@ const fetchGithubUserEmail = async (accessToken: string) => {
     return emailData[0]?.email;
 };
 
+// LOGOUT 
+export const logoutService = async (refreshToken: string) => {
+    try {
+        await Account.findOneAndUpdate({ refreshToken: refreshToken }, { refreshToken: '' }, { new: true })
+        return {
+            success: true,
+            message: "logout is successully"
+        }
+    } catch (err) {
+        return {
+            success: false,
+            message: (err as Error).message
+        }
+    }
+}
 // REFRESH TOKEN
 export const refreshAccessTokenService = async (refreshToken: string) => {
     try {
         // Verify the refresh token
-        jwt.verify(refreshToken, process.env.JWT_SECRET as string, async (err: any, decode: any) => {
+        return await jwt.verify(refreshToken, process.env.JWT_SECRET as string, async (err: any, decode: any) => {
             if (err)
                 return {
                     success: false,
-                    newAccessToken: 'null',
-                    message: 'Invalid refresh token'
+                    message: 'Refresh token expired'
                 }
             const account = await Account.findOne({
                 _id: decode._id,
@@ -188,8 +203,8 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
             });
             return {
                 success: account ? true : false,
-                newAccessToken: account ? generateAccessToken(account._id.toString(), account.role, account.user.toString()) : 'refreshToken invalid',
-                message: account ? 'refreshToken is created' : 'refreshToken invalid'
+                newAccessToken: account ? await generateAccessToken(account._id.toString(), account.role, account.user.toString()) : 'refreshToken invalid',
+                message: account ? 'New access token is created' : 'refreshToken invalid'
             }
         });
     } catch (error: any) {

@@ -1,20 +1,28 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-// Declare the Schema of the Mongo model
-var friendSchema = new mongoose.Schema({
+export interface IFriend extends Document {
+    user1: mongoose.Types.ObjectId;
+    user2: mongoose.Types.ObjectId;
+    status: 'PENDING' | 'ACCEPT' | 'BLOCKED';
+    createdAt?: Date;
+    acceptedAt?: Date;
+}
 
+const friendSchema: Schema<IFriend> = new mongoose.Schema({
     user1: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        required: true
     },
     user2: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        required: true
     },
     status: {
         type: String,
-        enum: ['PENDING', 'ACCEPT', 'BLOCKED'], // Chỉ cho phép 3 giá trị này
-        default: 'PENDING' // Giá trị mặc định khi không truyền vào
+        enum: ['PENDING', 'ACCEPT', 'BLOCKED'],
+        default: 'PENDING'
     },
     createdAt: {
         type: Date,
@@ -24,7 +32,6 @@ var friendSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-});
+}, { timestamps: true });
 
-//Export the model
-export default mongoose.model('Friend', friendSchema);
+export default mongoose.model<IFriend>('Friend', friendSchema);
