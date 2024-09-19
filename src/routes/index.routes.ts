@@ -10,5 +10,4 @@ const initRoutes = (app: Express) => {
     app.use(errHandler)
 }
 
-
 export default initRoutes

@@ -43,3 +43,8 @@ const listener = server.listen(PORT, () => {
     }
 });
 
+
+
+
+// POST, PUT ( Body )
+// GET DELETE ( Query )

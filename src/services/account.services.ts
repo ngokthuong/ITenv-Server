@@ -17,16 +17,9 @@ const verifyAndRegisterService = async (body: any) => {
             message: 'verify OTP is error'
         }
     const newAccount = await registerAccount(body);
-    if (newAccount) {
-        return {
-            success: true,
-            message: 'Register is successfully. Please login with email and password'
-        };
-    } else {
-        return {
-            success: true,
-            message: 'Something went wrong'
-        }
+    return {
+        success: newAccount ? true : false,
+        message: newAccount ? 'Register is successfully. Please login with email and password' : 'Something went wrong'
     }
 };
 
@@ -62,10 +55,9 @@ const createAccountWithOAuth = async (data: any) => {
                 userExist.account.push(newAccount._id);
                 await userExist.save();
             }
-
-            return newAccount; // Return the newly created account
+            return newAccount;
         }
-        return null; // In case accountExist does not exist, return null or handle this case as needed
+        return null;
     } catch (error: any) {
         throw new Error(`Failed to create new account with UserId: ${error.message}`);
     }
@@ -216,4 +208,8 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
     }
 };
 
+// FORGOT PASSWORD 
+export const forgotPassService = async () => {
+
+}
 export { verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted }

@@ -155,3 +155,14 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
         });
     }
 });
+
+// FORGOT PASSWORD -> CHANGE PASSWORK OF USER
+const forgotPassController = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.query;
+    if (!email)
+        throw new Error('missing email')
+    const acc = account.findOne({ email })
+    if (!acc)
+        throw new Error('user not found')
+
+})
