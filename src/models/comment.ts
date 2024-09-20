@@ -1,3 +1,4 @@
+import { required } from "joi";
 import mongoose from "mongoose";
 
 interface IComment extends Document {
@@ -15,7 +16,7 @@ var commentSchema = new mongoose.Schema({
     commentBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        require: true
+        required: true
     },
     vote: {
         type: Number,
@@ -34,6 +35,4 @@ var commentSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-
-//Export the model
 export default mongoose.model<IComment>('Comment', commentSchema);

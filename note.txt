@@ -5,3 +5,8 @@ middleware in framework express
     + cookie-parser >> phân tích các cookie từ yêu cầu HTTP
     + compression >> nén giảm kích thước các phản hồi HTTP trước khi gửi về cho client.
     + cors >> cơ chế bảo mật cho phép hoặc chặn các yêu cầu tài nguyên từ các domain khác nhau
+
+
+***
+- UPdate ko validate ( Bật runValidators: true )
+- update OTP

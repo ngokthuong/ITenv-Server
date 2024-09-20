@@ -5,7 +5,12 @@ import { verifyOTP } from "../services/otp.service"
 import lodash from 'lodash'
 import axios from "axios";
 import jwt from 'jsonwebtoken'
-import { Err } from "joi";
+import { date, Err } from "joi";
+import { sendEmail } from "../utils/sendEmail.utils";
+import crypto from 'crypto';
+import mongoose from "mongoose";
+import moment from "moment";
+
 
 const verifyAndRegisterService = async (body: any) => {
     const { email, otp } = body
@@ -209,7 +214,55 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
 };
 
 // FORGOT PASSWORD 
-export const forgotPassService = async () => {
+export const forgotPassService = async (email: string) => {
+    try {
+        const acc = await Account.findOne({ email })
+        if (!acc)
+            throw new Error('user not found')
+        const resetToken = await acc.createPassChangeToken();
+        await acc.save()
+        // send mail
+        await sendEmail({
+            to: email,
+            subject: 'Email verification code',
+            message: `<h4>Hi</h4>
+        <body>
+        <p>Please use the folowing resetToken to access the form: <a href=${process.env.URL_CLIENT_FGPASS}/api/account/forgot-pass/${resetToken}>Click here</a> .</p>
+        <p>Do not share this resetToken with anyone.</P>
+        <p>Thank you!</p>
+        </body>`,
+        });
 
+        return {
+            success: true,
+            message: "resetToken has been sent."
+        }
+    } catch (error) {
+        return {
+            success: false,
+            message: (error as Error).message
+        }
+    }
+}
+
+// RESET PASS SERVICE 
+export const resetPassService = async (req: any) => {
+    const { password, token } = req.body;
+    const hashToken = crypto.createHash('sha256').update(token).digest('hex');
+    const account1 = await Account.findOne({
+        passwordResetToken: hashToken,
+        passwordResetExpires: { $gt: Date.now() }
+    });
+    if (!account1)
+        throw new Error('Invalid reset token')
+    account1.password = password
+    account1.passwordResetToken = undefined
+    const currentDate = new Date(Date.now())
+    var myDate = new Date("2016-05-18T16:00:00Z");
+
+    account1.passwordChangeAt = myDate
+    account1.passwordResetExpires = undefined
+    await account1.save()
+    return account1;
 }
 export { verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted }

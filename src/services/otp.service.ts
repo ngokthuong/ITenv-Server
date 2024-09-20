@@ -10,7 +10,7 @@ function generateOTP() {
 export const generateAndSendOTP = async (email: string) => {
     try {
         const otp = generateOTP(); // Generate a 6-digit OTP
-        console.log('otp: ' + otp)
+        // if(await Otp.findOneAndUpdate({ email }))
         const newOTP = new Otp({
             email,
             otp,
@@ -26,7 +26,7 @@ export const generateAndSendOTP = async (email: string) => {
             <p>Do not share this OTP with anyone.</P>
             <p>Thank you!</p>
             </body>`,
-        });
+        })
         return {
             success: true,
             message: "OTP has been sent."
@@ -38,6 +38,7 @@ export const generateAndSendOTP = async (email: string) => {
         }
     }
 };
+
 
 export const verifyOTP = async (email: string, otp: string): Promise<boolean> => {
     const existingOTP = await Otp.find({ email });

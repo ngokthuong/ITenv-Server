@@ -1,5 +1,8 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Date, Document, Schema } from "mongoose";
 import bcrypt from "bcrypt";
+import crypto from 'crypto';
+import { date } from "joi";
+
 
 // Định nghĩa interface cho dữ liệu của Account
 interface IAccount extends Document {
@@ -9,12 +12,13 @@ interface IAccount extends Document {
     role: string;
     isBlocked: boolean;
     authenWith: number;
-    passwordChangeAt?: string;
+    passwordChangeAt?: Date;
     passwordResetToken?: string;
-    passwordResetExpires?: string;
+    passwordResetExpires?: Date;
     refreshToken: string;
     user: mongoose.Types.ObjectId;
     isCorrectPassword(password: string): Promise<boolean>;
+    createPassChangeToken(): Promise<string>;
 }
 
 // Định nghĩa Schema của Mongo model
@@ -46,13 +50,15 @@ const accountSchema: Schema<IAccount> = new Schema({
         max: 3
     },
     passwordChangeAt: {
-        type: String
+        type: new Date(),
+        default: Date.now
     },
     passwordResetToken: {
         type: String
     },
     passwordResetExpires: {
-        type: String
+        type: Date,
+        default: Date.now
     },
     refreshToken: {
         type: String
@@ -88,8 +94,13 @@ accountSchema.methods = {
     // use compare function to compare password user wirted and pass in db 
     isCorrectPassword: async function (password: string) {
         return await bcrypt.compare(password, this.password)
+    },
+    createPassChangeToken: async function () {
+        const resetToken = crypto.randomBytes(32).toString('hex')
+        this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        this.passwordResetExpires = Date.now() + 15 * 60 * 1000
+        return resetToken
     }
 }
 
-// Export model
 export default mongoose.model<IAccount>('Account', accountSchema);

@@ -1,11 +1,10 @@
 import asyncHandler from "express-async-handler";
-import { refreshAccessTokenService, verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted, logoutService } from '../services/index.services';
+import { refreshAccessTokenService, verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted, logoutService, forgotPassService } from '../services/index.services';
 import { NextFunction, Request, Response } from 'express';
 import schema from "../helper/joiSchemaRegister.helper";
 import { generateAndSendOTP } from "../services/otp.service"
-import message from "../models/message";
-import account from "../models/account";
 import { addRefreshTokenToCookie, clearRefreshTokenInCookie } from "../middleware/cookie.mdw";
+
 
 interface RefreshTokenResult {
     success: boolean;
@@ -157,12 +156,17 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
 });
 
 // FORGOT PASSWORD -> CHANGE PASSWORK OF USER
-const forgotPassController = asyncHandler(async (req: Request, res: Response) => {
+export const forgotPassController = asyncHandler(async (req: any, res: any) => {
     const { email } = req.query;
     if (!email)
         throw new Error('missing email')
-    const acc = account.findOne({ email })
-    if (!acc)
-        throw new Error('user not found')
+    const result = forgotPassService(email as string);
+    return res.status(200).json({
+        success: (await result).success,
+        message: (await result).message
+    })
+})
+
+export const resetPassController = asyncHandler(async (req: any, res: any) => {
 
 })
