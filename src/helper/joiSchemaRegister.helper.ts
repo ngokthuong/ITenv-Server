@@ -1,7 +1,7 @@
 import Joi from 'joi'
 
 // Định nghĩa schema Joi chỉ bao gồm các trường cần xác thực
-const schema = Joi.object({
+export const schema = Joi.object({
     email: Joi.string().pattern(new RegExp('gmail.com$')).required(),
     username: Joi.string().required().messages({
         'any.required': 'username is required'
@@ -14,5 +14,8 @@ const schema = Joi.object({
     password: Joi.string().required().min(6),
 });
 
-export default schema;
+export const passwordResetPass = Joi.object({
+    newPassword: Joi.string().min(6).required(),
+    token: Joi.string().required()
+});
 

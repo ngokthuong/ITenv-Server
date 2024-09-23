@@ -10,6 +10,7 @@ import { sendEmail } from "../utils/sendEmail.utils";
 import crypto from 'crypto';
 import mongoose from "mongoose";
 import moment from "moment";
+import { passwordResetPass } from "../helper/joiSchemaRegister.helper";
 
 
 const verifyAndRegisterService = async (body: any) => {
@@ -92,7 +93,7 @@ const loginService = async (data: any) => {
         const account = await Account.findOne({ email });
         const user = await User.findById(account?.user);
         // check isBlocked
-        if (await accIsBlocked(account))
+        if (account && await accIsBlocked(account))
             return {
                 success: false,
                 message: 'Your account is blocked'
@@ -216,23 +217,25 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
 // FORGOT PASSWORD 
 export const forgotPassService = async (email: string) => {
     try {
-        const acc = await Account.findOne({ email })
-        if (!acc)
-            throw new Error('user not found')
-        const resetToken = await acc.createPassChangeToken();
-        await acc.save()
+        const account = await Account.findOne({ email })
+        if (!account)
+            return {
+                success: false,
+                message: "Account is not existed"
+            }
+        const resetToken = await account.createPassChangeToken();
+        await account.save()
         // send mail
         await sendEmail({
             to: email,
             subject: 'Email verification code',
             message: `<h4>Hi</h4>
         <body>
-        <p>Please use the folowing resetToken to access the form: <a href=${process.env.URL_CLIENT_FGPASS}/api/account/forgot-pass/${resetToken}>Click here</a> .</p>
+        <p>Please use the folowing resetToken to access the form: <a href=${process.env.URL_CLIENT_FGPASS}/api/account/reset-pass/${resetToken}>Click here</a> .</p>
         <p>Do not share this resetToken with anyone.</P>
         <p>Thank you!</p>
         </body>`,
         });
-
         return {
             success: true,
             message: "resetToken has been sent."
@@ -248,6 +251,15 @@ export const forgotPassService = async (email: string) => {
 // RESET PASS SERVICE 
 export const resetPassService = async (req: any) => {
     const { password, token } = req.body;
+    const { error } = passwordResetPass.validate({
+        newPassword: req.body.password,
+        token: req.body.token
+    });
+    if (error)
+        return {
+            success: false,
+            message: "Validation failed: Please provide valid input"
+        };
     const hashToken = crypto.createHash('sha256').update(token).digest('hex');
     const account1 = await Account.findOne({
         passwordResetToken: hashToken,
@@ -257,12 +269,12 @@ export const resetPassService = async (req: any) => {
         throw new Error('Invalid reset token')
     account1.password = password
     account1.passwordResetToken = undefined
-    const currentDate = new Date(Date.now())
-    var myDate = new Date("2016-05-18T16:00:00Z");
-
-    account1.passwordChangeAt = myDate
-    account1.passwordResetExpires = undefined
+    account1.passwordChangeAt = new Date(Date.now());
+    account1.passwordResetExpires = undefined;
     await account1.save()
-    return account1;
+    return {
+        success: true,
+        message: "Reset password is successfully."
+    }
 }
 export { verifyAndRegisterService, loginService, exchangeGithubCodeForToken, fetchGithubUserData, fetchGithubUserEmail, checkAccountExisted }

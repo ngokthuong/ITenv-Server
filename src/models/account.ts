@@ -1,7 +1,6 @@
-import mongoose, { Date, Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import crypto from 'crypto';
-import { date } from "joi";
 
 
 // Định nghĩa interface cho dữ liệu của Account
@@ -50,7 +49,7 @@ const accountSchema: Schema<IAccount> = new Schema({
         max: 3
     },
     passwordChangeAt: {
-        type: new Date(),
+        type: Date,
         default: Date.now
     },
     passwordResetToken: {
@@ -78,7 +77,7 @@ accountSchema.pre<IAccount>('save', async function (next) {
             next()
         }
         // Tạo salt
-        const salt = bcrypt.genSaltSync(10);
+        const salt = await bcrypt.genSaltSync(10);
         // Hash password
         if (this.authenWith === 0)
             this.password = await bcrypt.hash(this.password, salt);
@@ -96,9 +95,9 @@ accountSchema.methods = {
         return await bcrypt.compare(password, this.password)
     },
     createPassChangeToken: async function () {
-        const resetToken = crypto.randomBytes(32).toString('hex')
-        this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-        this.passwordResetExpires = Date.now() + 15 * 60 * 1000
+        const resetToken = await crypto.randomBytes(32).toString('hex')
+        this.passwordResetToken = await crypto.createHash('sha256').update(resetToken).digest('hex');
+        this.passwordResetExpires = await Date.now() + 15 * 60 * 1000
         return resetToken
     }
 }
