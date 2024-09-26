@@ -1,7 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import { result } from '../services/leetcode.service';
-import Problem from '../models/problem';
+import Problem, { IProblem } from '../models/problem';
 import pLimit from 'p-limit';
+import { ResponseType } from '../types/ResponseTypes';
 
 export const insertProblems = asyncHandler(async (req: any, res: any) => {
   try {
@@ -21,6 +22,13 @@ export const insertProblems = asyncHandler(async (req: any, res: any) => {
           problemsetQuestionList: questionList(
             categorySlug: $categorySlug
             limit: $limit
+<<<<<<< Tabnine <<<<<<<
+    const allTags = Array.from(//+
+      new Set(//+
+        (data?.data as { tags: string[] }[]).flatMap((item) => item.tags) || []//+
+      )//+
+    );//+
+>>>>>>> Tabnine >>>>>>>// {"conversationId":"37b99541-e8f8-46c3-8533-b8119672cd86","source":"instruct"}
             skip: $skip
             filters: $filters
           ) {
@@ -88,7 +96,6 @@ export const insertProblems = asyncHandler(async (req: any, res: any) => {
           const questions = await fetchProblems(skip);
           for (const question of questions) {
             const codeEditorData = await fetchEditorData(question.titleSlug);
-            console.log(question, codeEditorData);
             await Problem.create({
               title: question.title,
               slug: question.titleSlug,
@@ -102,13 +109,35 @@ export const insertProblems = asyncHandler(async (req: any, res: any) => {
         }),
       );
     }
-    
+
     await Promise.all(tasks);
 
     // Send the response after all tasks have completed
     res.status(200).json({ message: 'success' });
   } catch (error) {
     console.error('Error fetching data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+export const getProblems = asyncHandler(async (req: any, res: any) => {
+  const page = parseInt(req.query.page || 1);
+  const limit = parseInt(req.query.limit || 10);
+  var skip = (page - 1) * limit;
+
+  try {
+    const problems = await Problem.find({})
+      .skip(skip)
+      .limit(limit)
+      .select('_id title level slug tags acceptance submitBy vote comment postAt createdAt');
+    var count = await Problem.countDocuments({});
+
+    let response: ResponseType<IProblem[]> = {
+      total: count,
+      data: problems,
+      success: true,
+    };
+    res.status(200).json(response);
+  } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
