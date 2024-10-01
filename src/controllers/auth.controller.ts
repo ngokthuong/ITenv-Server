@@ -75,9 +75,14 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
   try {
     // const { accessToken, refreshToken, dataResponse } = await loginService(req.body);
     const resultLoginService = await loginService(req.body);
-
-    // save refreshToken in cookie
+    if (resultLoginService?.success === false) {
+      return res.status(404).json({
+        success: resultLoginService?.success,
+        message: resultLoginService?.message,
+      });
+    }
     if (resultLoginService?.refreshToken)
+      // save refreshToken in cookie
       addRefreshTokenToCookie(res, resultLoginService?.refreshToken);
     else {
       return res.status(500).json({
@@ -88,8 +93,10 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
     return res.status(200).json({
       success: resultLoginService?.success,
       message: resultLoginService?.message,
-      accessToken: resultLoginService?.accessToken,
-      dataResponse: resultLoginService?.dataResponse,
+      data: {
+        token: resultLoginService?.accessToken,
+        userData: resultLoginService?.dataResponse,
+      },
     });
   } catch (error: any) {
     return res.status(401).json({
@@ -137,8 +144,9 @@ export const googleOauthController = asyncHandler(
         return;
       }
       const googleProfile = await googleResponse.json();
+      console.log(googleProfile);
       const { name, email } = googleProfile;
-      const dataResp = { name, email, authenWith: 1 };
+      const dataResp = { username: name, email, authenWith: 1 };
       req.body = dataResp;
       loginController(req, res, next);
     } catch (error) {

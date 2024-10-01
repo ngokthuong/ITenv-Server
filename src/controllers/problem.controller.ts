@@ -7,7 +7,7 @@ import { ResponseType } from '../types/ResponseTypes';
 export const insertProblems = asyncHandler(async (req: any, res: any) => {
   try {
     const total = 3298;
-    const limit = pLimit(50); // Limit the number of concurrent requests
+    const limit = pLimit(40); // Limit the number of concurrent requests
 
     const fetchProblems = async (skip: number) => {
       const variables = {
@@ -22,13 +22,7 @@ export const insertProblems = asyncHandler(async (req: any, res: any) => {
           problemsetQuestionList: questionList(
             categorySlug: $categorySlug
             limit: $limit
-<<<<<<< Tabnine <<<<<<<
-    const allTags = Array.from(//+
-      new Set(//+
-        (data?.data as { tags: string[] }[]).flatMap((item) => item.tags) || []//+
-      )//+
-    );//+
->>>>>>> Tabnine >>>>>>>// {"conversationId":"37b99541-e8f8-46c3-8533-b8119672cd86","source":"instruct"}
+
             skip: $skip
             filters: $filters
           ) {
@@ -95,16 +89,20 @@ export const insertProblems = asyncHandler(async (req: any, res: any) => {
         limit(async () => {
           const questions = await fetchProblems(skip);
           for (const question of questions) {
-            const codeEditorData = await fetchEditorData(question.titleSlug);
-            await Problem.create({
-              title: question.title,
-              slug: question.titleSlug,
-              content: question.content,
-              level: question.difficulty,
-              hints: question.hints,
-              tags: question.topicTags.map((t: any) => t.name),
-              initialCode: codeEditorData,
-            });
+            if (question) {
+              const codeEditorData = await fetchEditorData(question.titleSlug);
+              !question.paidOnly &&
+                (await Problem.create({
+                  title: question.title,
+                  slug: question.titleSlug,
+                  content: question.content,
+                  level: question.difficulty,
+                  hints: question.hints,
+                  status: question.status,
+                  tags: question.topicTags.map((t: any) => t.name),
+                  initialCode: codeEditorData,
+                }));
+            }
           }
         }),
       );
@@ -134,6 +132,23 @@ export const getProblems = asyncHandler(async (req: any, res: any) => {
     let response: ResponseType<IProblem[]> = {
       total: count,
       data: problems,
+      success: true,
+    };
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+export const getSingleProblem = asyncHandler(async (req: any, res: any) => {
+  const { slug } = req.params;
+  try {
+    const problem = await Problem.findOne({ slug: slug });
+    if (!problem) {
+      return res.status(404).json({ message: 'Problem not found' });
+    }
+    let response: ResponseType<IProblem> = {
+      data: problem,
       success: true,
     };
     res.status(200).json(response);
