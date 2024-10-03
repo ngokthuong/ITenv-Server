@@ -1,120 +1,140 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
 
 interface IInitialCode {
-    language: string;
-    content: string;
+  lang?: string;
+  langSlug?: string;
+  code?: string;
 }
 
 interface ITestCase {
-    input: {
-        name: string;
-        value: string;
-    }[];
-    output: string[];
+  input: {
+    name: string;
+    value: string;
+  }[];
+  output: string[];
 }
 
 export interface IProblem extends Document {
-    title: string;
-    content: string;
-    level: string;
-    tags: string[];
-    acceptance: mongoose.Types.ObjectId[];
-    submitBy: mongoose.Types.ObjectId[];
-    hint: string[];
-    initialCode: IInitialCode;
-    testCase: ITestCase;
-    vote: number;
-    comment: mongoose.Types.ObjectId[];
-    postAt: Date;
-    editAt?: Date;
-    status: boolean;
+  title: string;
+  slug: string;
+  content: string;
+  level: string;
+  tags: string[];
+  acceptance?: mongoose.Types.ObjectId[];
+  submitBy?: mongoose.Types.ObjectId[];
+  hint: string[];
+  initialCode: IInitialCode[];
+  testCase?: ITestCase;
+  vote?: number;
+  comment?: mongoose.Types.ObjectId[];
+  postAt: Date;
+  editAt?: Date;
+  status: boolean;
 }
 
 const initialCodeSchema: Schema<IInitialCode> = new mongoose.Schema({
-    language: {
-        type: String,
-        required: true
-    },
-    content: {
-        type: String,
-        required: true
-    }
+  lang: {
+    type: String,
+    required: true,
+  },
+  langSlug: {
+    type: String,
+    required: true,
+  },
+  code: {
+    type: String,
+    required: false,
+  },
 });
 
 const testCaseSchema: Schema<ITestCase> = new mongoose.Schema({
-    input: [
-        {
-            name: {
-                type: String,
-                required: true
-            },
-            value: {
-                type: String,
-                required: true
-            }
-        }
-    ],
-    output: {
-        type: [String],
-        required: true
-    }
+  input: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      value: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
+  output: {
+    type: [String],
+    required: true,
+  },
 });
 
-const problemSchema: Schema<IProblem> = new mongoose.Schema({
+const problemSchema: Schema<IProblem> = new mongoose.Schema(
+  {
     title: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+    },
+    slug: {
+      type: String,
+      required: true,
     },
     content: {
-        type: String,
-        required: true
+      type: String,
+      required: false,
     },
     level: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     tags: {
-        type: [String],
-        required: true
+      type: [String],
+      required: true,
     },
-    acceptance: [{
+    acceptance: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
-    submitBy: [{
+        ref: 'User',
+      },
+    ],
+    submitBy: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
+        ref: 'User',
+      },
+    ],
     hint: {
-        type: [String]
+      type: [String],
     },
-    initialCode: {
+    initialCode: [
+      {
         type: initialCodeSchema,
-        required: true
-    },
+        required: false,
+      },
+    ],
     testCase: {
-        type: testCaseSchema,
-        required: true
+      type: testCaseSchema,
+      required: false,
     },
     vote: {
-        type: Number,
-        default: 0
+      type: Number,
+      default: 0,
     },
-    comment: [{
+    comment: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Comment'
-    }],
+        ref: 'Comment',
+      },
+    ],
     postAt: {
-        type: Date,
-        default: Date.now
+      type: Date,
+      default: Date.now,
     },
     editAt: {
-        type: Date
+      type: Date,
     },
     status: {
-        type: Boolean,
-        default: true
-    }
-}, { timestamps: true });
+      type: Boolean,
+    },
+  },
+  { timestamps: true },
+);
 
 export default mongoose.model<IProblem>('Problem', problemSchema);
