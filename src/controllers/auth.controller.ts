@@ -75,8 +75,9 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
   try {
     // const { accessToken, refreshToken, dataResponse } = await loginService(req.body);
     const resultLoginService = await loginService(req.body);
+    console.log(resultLoginService);
     if (resultLoginService?.success === false) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: resultLoginService?.success,
         message: resultLoginService?.message,
       });
@@ -85,7 +86,7 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
       // save refreshToken in cookie
       addRefreshTokenToCookie(res, resultLoginService?.refreshToken);
     else {
-      return res.status(500).json({
+      return res.status(200).json({
         success: false,
         message: 'Failed to generate refresh token',
       });
@@ -144,7 +145,6 @@ export const googleOauthController = asyncHandler(
         return;
       }
       const googleProfile = await googleResponse.json();
-      console.log(googleProfile);
       const { name, email } = googleProfile;
       const dataResp = { username: name, email, authenWith: 1 };
       req.body = dataResp;

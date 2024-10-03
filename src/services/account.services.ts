@@ -33,7 +33,6 @@ const verifyAndRegisterService = async (body: any) => {
 
 const registerAccount = async (data: any): Promise<object> => {
   // check email is existed
-  console.log(data);
   const account = await Account.create(data);
   const user = await User.create({
     username: data.username,
@@ -181,7 +180,6 @@ const loginService = async (data: any) => {
 
     // if authen is [1||2||3]
     if (authenWith >= 1 && authenWith <= 3) {
-      console.log(data);
       const existingAccounts = await Account.find({ email, authenWith: { $in: [1, 2, 3] } });
       const existingAuthenWith = existingAccounts.map((acc) => acc.authenWith);
       // If there isn't an account with the specified authenWith, then create a new account with a new authenWith
@@ -193,7 +191,13 @@ const loginService = async (data: any) => {
           newAccount,
           user,
         );
-        return { accessToken, refreshToken, dataResponse };
+        return {
+          accessToken,
+          refreshToken,
+          dataResponse,
+          success: true,
+          message: 'Login successfully',
+        };
       }
       // if account with authenWith is existed then return token and accountWithMailAuth
       const accountWithMailAuth = await Account.findOne({ email, authenWith });
@@ -201,7 +205,13 @@ const loginService = async (data: any) => {
         accountWithMailAuth,
         user,
       );
-      return { accessToken, refreshToken, dataResponse };
+      return {
+        accessToken,
+        refreshToken,
+        dataResponse,
+        success: true,
+        message: 'Login successfully',
+      };
     }
   } catch (error: any) {
     return {

@@ -11,7 +11,6 @@ interface AuthRequest extends Request {
   user?: { _id: string; role: string; user: string };
 }
 export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
-  console.log(req.user);
   const user = await User.findById(req?.user?.user).populate({
     path: 'account',
     select: 'role isBlocked email', // Populate account fields
@@ -40,4 +39,35 @@ export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Respons
     res.status(404);
     throw new Error('User not found');
   }
+});
+export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { page = 1, limit = 10, search = '' } = req.query;
+
+  const pageNumber = Number(page) || 1;
+  const limitNumber = Number(limit) || 10;
+
+  const searchQuery = search
+    ? {
+        $or: [
+          { username: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+        ],
+      }
+    : {};
+
+  const users = await User.find(searchQuery)
+    .populate({
+      path: 'account',
+      select: 'role isBlocked email',
+    })
+    .skip((pageNumber - 1) * limitNumber)
+    .limit(limitNumber);
+
+  const total = await User.countDocuments(searchQuery);
+
+  res.json({
+    success: true,
+    total,
+    data: users,
+  });
 });
