@@ -12,9 +12,8 @@ export const result = async (operationName: string, graphqlQuery: string, variab
       headers: {
         'Content-Type': 'application/json',
         'x-csrftoken': process.env.CSRF_TOKEN || '',
-        Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION || ''}; csrftoken=${
-          process.env.CSRF_TOKEN || ''
-        }`,
+        Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION || ''}; csrftoken=${process.env.CSRF_TOKEN || ''
+          }`,
       },
     },
   );

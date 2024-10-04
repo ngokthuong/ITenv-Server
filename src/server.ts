@@ -7,6 +7,8 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import { connection, setupSocket } from './config';
 import initRoutes from './routes/index.routes';
+import { logEvents } from './helper/logEvents';
+import { errHandler } from './middlewares/handelError.mdw';
 dotenv.config();
 
 const app = express();
@@ -17,6 +19,8 @@ app.use(
     credentials: true,
   }),
 );
+
+
 //  nén các phản hồi HTTP từ server trước khi gửi chúng về cho client.
 app.use(compression());
 // phân tích các cookie gửi từ client trong yêu cầu HTTP.
@@ -28,13 +32,19 @@ app.use(express.json());
 // Nếu client push lên ko phải là string, json mà là mảng ... thì nó có thể convert qua json rồi đọc
 app.use(express.urlencoded({ extended: true }));
 connection();
-
 initRoutes(app);
-
 const server = http.createServer(app);
 setupSocket(server);
 
-// // create routes
+app.use(async (err: any, req: any, res: any, next: any) => {
+  await logEvents(err.message);
+  res.status(err.status || 500);
+  res.json({
+    status: err.status || 500,
+    message: err.message,
+  });
+});
+// create routes
 const PORT = process.env.PORT || 7777;
 
 const listener = server.listen(PORT, () => {

@@ -10,19 +10,20 @@ import {
   resetPassController,
   googleOauthController,
 } from '../controllers/auth.controller';
-import { verifyAccessToken } from '../middleware/verifyToken.mdw';
+import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
+import { ApiAuth } from '../enums/apiAuth.enum';
 
 const router = Router();
 
-router.post('/register', createAndSendOtp);
-router.post('/verify-signup', verifyOtp);
-router.post('/login', loginController);
-router.post('/github-oauth', githubOauthController);
-router.post('/google-oauth', googleOauthController);
-router.post('/facebook-oauth');
-router.post('/refresh-accessToken', refreshAccessToken);
-router.post('/logout', verifyAccessToken, logoutController);
-router.post('/forgot-pass', forgotPassController);
-router.post('/reset-pass', resetPassController);
+router.post(ApiAuth.REGISTER, createAndSendOtp);
+router.post(ApiAuth.VERIFY_SIGNUP, verifyOtp);
+router.post(ApiAuth.LOGIN, loginController);
+router.post(ApiAuth.GITHUB_OAUTH, githubOauthController);
+router.post(ApiAuth.GOOGLE_OAUTH, googleOauthController);
+router.post(ApiAuth.FACEBOOK_OAUTH,);
+router.post(ApiAuth.REFRESH_ACCESS_TOKEN, refreshAccessToken);
+router.post(ApiAuth.LOGOUT, verifyAccessToken, logoutController);
+router.post(ApiAuth.FORGOT_PASS, forgotPassController);
+router.post(ApiAuth.RESET_PASS, resetPassController);
 
 export default router;

@@ -10,11 +10,11 @@ import {
   logoutService,
   forgotPassService,
   resetPassService,
-} from '../services/index.services';
+} from '../services/index.service';
 import { NextFunction, Request, Response } from 'express';
 import { schema } from '../helper/joiSchemaRegister.helper';
 import { generateAndSendOTP } from '../services/otp.service';
-import { addRefreshTokenToCookie, clearRefreshTokenInCookie } from '../middleware/cookie.mdw';
+import { addRefreshTokenToCookie, clearRefreshTokenInCookie } from '../middlewares/cookie.mdw';
 
 interface RefreshTokenResult {
   success: boolean;
@@ -71,11 +71,10 @@ export const verifyOtp = asyncHandler(async (req: any, res: any) => {
 });
 
 // LOGIN + CREATE TOKEN
-export const loginController = asyncHandler(async (req: any, res: any) => {
+export const loginController = asyncHandler(async (req: any, res: any, next) => {
   try {
     // const { accessToken, refreshToken, dataResponse } = await loginService(req.body);
     const resultLoginService = await loginService(req.body);
-    console.log(resultLoginService);
     if (resultLoginService?.success === false) {
       return res.status(200).json({
         success: resultLoginService?.success,
@@ -92,6 +91,7 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
       });
     }
     return res.status(200).json({
+
       success: resultLoginService?.success,
       message: resultLoginService?.message,
       data: {
@@ -104,6 +104,7 @@ export const loginController = asyncHandler(async (req: any, res: any) => {
       success: false,
       message: error.message,
     });
+
   }
 });
 

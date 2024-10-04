@@ -1,17 +1,13 @@
 import User from '../models/user';
 import Account from '../models/account';
-import { generateAccessToken, generateRefreshToken } from '../middleware/jwt.mdw';
-import { verifyOTP } from '../services/otp.service';
+import { generateAccessToken, generateRefreshToken } from '../middlewares/jwt.mdw';
+import { verifyOTP } from './otp.service';
 import lodash from 'lodash';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
-import { date, Err } from 'joi';
 import { sendEmail } from '../utils/sendEmail.utils';
 import crypto from 'crypto';
-import mongoose from 'mongoose';
-import moment from 'moment';
 import { passwordResetPass } from '../helper/joiSchemaRegister.helper';
-import Message from '../models/message';
 
 const verifyAndRegisterService = async (body: any) => {
   const { email, otp } = body;
@@ -298,10 +294,10 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
           success: account ? true : false,
           newAccessToken: account
             ? await generateAccessToken(
-                account._id.toString(),
-                account.role,
-                account.user.toString(),
-              )
+              account._id.toString(),
+              account.role,
+              account.user.toString(),
+            )
             : 'refreshToken invalid',
           message: account ? 'New access token is created' : 'refreshToken invalid',
         };

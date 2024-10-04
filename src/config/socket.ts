@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
 import { Server as SocketServer } from 'socket.io';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { CustomJwtPayload } from '../middleware/verifyToken.mdw';
+import { CustomJwtPayload } from '../middlewares/verifyToken.mdw';
 import User from '../models/user';
 
 export const setupSocket = (server: any) => {
@@ -37,9 +37,9 @@ export const setupSocket = (server: any) => {
       socket.disconnect(true);
     }
 
-    
 
-   
+
+
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${user._id}`);
       await User.findByIdAndUpdate(user._id, { status: 0, lastOnline: new Date() });

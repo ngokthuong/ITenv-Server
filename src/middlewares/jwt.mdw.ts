@@ -6,7 +6,6 @@ export const generateAccessToken = (accId: string, role: string, userId: string)
         process.env.JWT_SECRET as string,
         { expiresIn: '7d' }
     );
-    // return `Bearer ${token}`;
 }
 
 export const generateRefreshToken = (accId: string): string => {
