@@ -36,8 +36,8 @@ export const setupSocket = (server: any) => {
       console.error('Error updating socket ID:', err);
       socket.disconnect(true);
     }
-
     
+
 
    
     socket.on('disconnect', async () => {

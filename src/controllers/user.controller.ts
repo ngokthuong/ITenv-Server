@@ -6,10 +6,8 @@ import User from '../models/user';
 import Account from '../models/account';
 import { generate } from 'otp-generator';
 import { generateAccessToken } from '../middleware/jwt.mdw';
+import { AuthRequest } from '../types/AuthRequest.type';
 
-interface AuthRequest extends Request {
-  user?: { _id: string; role: string; user: string };
-}
 export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
   const user = await User.findById(req?.user?.user).populate({
     path: 'account',
@@ -41,24 +39,22 @@ export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Respons
   }
 });
 export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { page = 1, limit = 10, search = '' } = req.query;
+  const { page = 1, limit = 10, q = '' } = req.query;
 
   const pageNumber = Number(page) || 1;
   const limitNumber = Number(limit) || 10;
 
-  const searchQuery = search
+  const searchQuery = q
     ? {
-        $or: [
-          { username: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-        ],
+        $or: [{ username: { $regex: q, $options: 'i' } }, { email: { $regex: q, $options: 'i' } }],
       }
     : {};
 
   const users = await User.find(searchQuery)
     .populate({
       path: 'account',
-      select: 'role isBlocked email',
+      select: 'email',
+      options: { limit: 1 },
     })
     .skip((pageNumber - 1) * limitNumber)
     .limit(limitNumber);
