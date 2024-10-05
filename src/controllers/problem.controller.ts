@@ -2,7 +2,7 @@ import asyncHandler from 'express-async-handler';
 import { result } from '../services/leetcode.service';
 import Problem, { IProblem } from '../models/problem';
 import pLimit from 'p-limit';
-import { ResponseType } from '../types/ResponseTypes';
+import { ResponseType } from '../types/Response.type';
 
 export const insertProblems = asyncHandler(async (req: any, res: any) => {
   try {

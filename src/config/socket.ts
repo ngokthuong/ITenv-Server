@@ -36,10 +36,10 @@ export const setupSocket = (server: any) => {
       console.error('Error updating socket ID:', err);
       socket.disconnect(true);
     }
+    
 
 
-
-
+   
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${user._id}`);
       await User.findByIdAndUpdate(user._id, { status: 0, lastOnline: new Date() });

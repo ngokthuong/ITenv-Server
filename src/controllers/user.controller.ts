@@ -83,7 +83,7 @@ export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Respons
 // });
 
 export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { page = 1, limit = 10, search = '' } = req.query;
+  const { page = 1, limit = 10, q = '' } = req.query;
 
   const pageNumber = Number(page) || 1;
   const limitNumber = Number(limit) || 10;

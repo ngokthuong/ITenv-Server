@@ -10,7 +10,9 @@ const initRoutes = (app: Express) => {
   app.use('/api/account', accountRouter);
   app.use('/api/problem', problemRouter);
   app.use('/api/user', userRouter);
-  //  don't find api
+  app.use('/api/post', postRouter);
+  app.use('/api/storage/upload', uploadRouter);
+  //  ko tim dc api
   app.use(notFound);
   app.use(errHandler);
 };
