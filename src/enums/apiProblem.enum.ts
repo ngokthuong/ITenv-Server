@@ -1,5 +1,5 @@
 export enum ApiProblem {
-    INSERT_PROBLEMS = '/api/insert',
-    GET_PROBLEMS = '/api',
-    GET_SINGLE_PROBLEM = '/api/:slug',
+  INSERT_PROBLEMS = '/insert',
+  GET_PROBLEMS = '',
+  GET_SINGLE_PROBLEM = '/:slug',
 }

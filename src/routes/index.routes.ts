@@ -4,7 +4,8 @@ import userRouter from './user.routes';
 import { Express } from 'express';
 import { notFound, errHandler } from '../middlewares/handelError.mdw';
 import { logEvents } from '../helper/logEvents';
-
+import postRouter from './post.routes';
+import uploadRouter from './upload.routes';
 const initRoutes = (app: Express) => {
   // API
   app.use('/api/account', accountRouter);

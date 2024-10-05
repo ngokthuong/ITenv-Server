@@ -89,7 +89,7 @@ export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) =
   const limitNumber = Number(limit) || 10;
 
   try {
-    const { total, users } = await getAllUsersService(pageNumber, limitNumber, search.toString());
+    const { total, users } = await getAllUsersService(pageNumber, limitNumber, q.toString());
 
     res.json({
       success: true,

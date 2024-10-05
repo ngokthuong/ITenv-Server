@@ -1,6 +1,6 @@
 import Router from 'express';
-import { verifyAccessToken } from '../middleware/verifyToken.mdw';
 import { createPostController } from '../controllers/post.controller';
+import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 
 const router = Router();
 
