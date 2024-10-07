@@ -1,4 +1,15 @@
 04-10-2024	41:19:12----------errhandler: - Expected double-quoted property name in JSON at position 34
 04-10-2024	44:19:12----------errhandler: - Expected double-quoted property name in JSON at position 34
 04-10-2024	21:21:12----------errhandler: /api/account/login --- POST --- Expected double-quoted property name in JSON at position 34
-    
+    05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
+05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
+05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
+05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
+05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
+05-10-2024	46:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
+05-10-2024	29:06:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'forEach')
+05-10-2024	02:07:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'forEach')
+06-10-2024	48:38:12----errhandler: /api/post/delete-image --- POST --- Route /api/post/delete-image is not found
+06-10-2024	12:43:12----errhandler: /api/storage/upload/image --- POST --- Request Timeout
+07-10-2024	19:39:17----errhandler: /api/post --- GET --- Schema hasn't been registered for model "Comment".
+Use mongoose.model(name, schema)
