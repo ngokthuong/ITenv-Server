@@ -13,7 +13,7 @@ import {
 } from '../services/index.service';
 import { NextFunction, Request, Response } from 'express';
 import { schema } from '../helper/joiSchemaRegister.helper';
-import { generateAndSendOTP } from '../services/otp.service';
+import { generateAndSendOTP, verifyOtpService } from '../services/otp.service';
 import { addRefreshTokenToCookie, clearRefreshTokenInCookie } from '../middlewares/cookie.mdw';
 
 interface RefreshTokenResult {
@@ -54,7 +54,7 @@ export const createAndSendOtp = asyncHandler(async (req: any, res: any) => {
   }
 });
 
-export const verifyOtp = asyncHandler(async (req: any, res: any) => {
+export const verifyAndRegisterController = asyncHandler(async (req: any, res: any) => {
   try {
     // verify and create account
     const result = await verifyAndRegisterService(req.body);
@@ -69,6 +69,8 @@ export const verifyOtp = asyncHandler(async (req: any, res: any) => {
     });
   }
 });
+
+
 
 // LOGIN + CREATE TOKEN
 export const loginController = asyncHandler(async (req: any, res: any, next) => {
@@ -201,12 +203,27 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
 export const forgotPassController = asyncHandler(async (req: any, res: any) => {
   const { email } = req.body;
   if (!email) throw new Error('missing email');
-  const result = forgotPassService(email as string);
+  const result = forgotPassService(email.toString());
   return res.status(200).json({
     success: (await result).success,
     message: (await result).message,
   });
 });
+
+export const verifyOtpController = asyncHandler(async (req: any, res: any) => {
+  try {
+    const result = await verifyOtpService(req.body.email, req.body.otp);
+    return res.status(200).json({
+      success: result.success,
+      message: result.message,
+    });
+  } catch (error: any) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+})
 
 export const resetPassController = asyncHandler(async (req: any, res: any) => {
   const result = await resetPassService(req);
@@ -215,3 +232,4 @@ export const resetPassController = asyncHandler(async (req: any, res: any) => {
     message: (await result).message,
   });
 });
+

@@ -132,6 +132,7 @@ export const insertProblems = asyncHandler(async (req: any, res: any) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 export const getProblems = asyncHandler(async (req: any, res: any) => {
   const page = parseInt(req.query.page || 1);
   const limit = parseInt(req.query.limit || 10);

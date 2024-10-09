@@ -1,46 +1,60 @@
-import { required } from 'joi';
-import mongoose from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 interface IComment extends Document {
   _id: mongoose.Types.ObjectId;
   commentBy: mongoose.Types.ObjectId;
-  vote: mongoose.Types.ObjectId;
+  parentComment?: mongoose.Types.ObjectId;
   isAccepted: boolean;
+  vote: mongoose.Types.ObjectId[];
   commentedAt: Date;
-  editedAt: Date;
-  parentComment: mongoose.Types.ObjectId;
+  editedAt?: Date;
+  notificationId: mongoose.Types.ObjectId;
+  postId: mongoose.Types.ObjectId;
+  problemId: mongoose.Types.ObjectId;
 }
 
-// Declare the Schema of the Mongo model
-var commentSchema = new mongoose.Schema(
+const commentSchema: Schema<IComment> = new mongoose.Schema(
   {
     commentBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: true
     },
-    vote: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
+    vote: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+    ],
     isAccepted: {
       type: Boolean,
-      required: false,
+      default: false
     },
     commentedAt: {
       type: Date,
-      default: Date.now,
+      default: Date.now
     },
     editedAt: {
-      type: Date,
+      type: Date
     },
     parentComment: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Comment',
+      ref: 'Comment'
+    },
+    notificationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Notification'
+    },
+    postId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Post'
+    },
+    problemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Problem'
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export default mongoose.model<IComment>('Comment', commentSchema);
