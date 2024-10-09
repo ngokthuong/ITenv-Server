@@ -1,6 +1,7 @@
 import Otp from '../models/otp';
 import otpGenerator from 'otp-generator';
 import { sendEmail } from '../utils/sendEmail.utils'
+import { any } from 'joi';
 
 // Tạo OTP mới
 function generateOTP() {
@@ -40,10 +41,24 @@ export const generateAndSendOTP = async (email: string) => {
 };
 
 
-export const verifyOTP = async (email: string, otp: string): Promise<boolean> => {
-    const existingOTP = await Otp.find({ email });
-    const lastOtp = existingOTP[existingOTP.length - 1]
-    if (await lastOtp.isCorrectOtp(otp))
-        return true;
-    return false
+export const verifyOtpService = async (email: string, otp: string) => {
+    try {
+        const existingOTP = await Otp.find({ email });
+        const lastOtp = existingOTP[existingOTP.length - 1]
+        if (await lastOtp.isCorrectOtp(otp)) {
+            return {
+                success: true,
+                message: "verify OTP successfully"
+            }
+        }
+        return {
+            success: false,
+            message: "verify OTP unsuccessfully"
+        }
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.message
+        }
+    }
 };

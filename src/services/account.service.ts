@@ -1,7 +1,7 @@
 import User from '../models/user';
 import Account from '../models/account';
 import { generateAccessToken, generateRefreshToken } from '../middlewares/jwt.mdw';
-import { verifyOTP } from './otp.service';
+import { generateAndSendOTP, verifyOtpService } from './otp.service';
 import lodash from 'lodash';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
@@ -12,7 +12,7 @@ import { passwordResetPass } from '../helper/joiSchemaRegister.helper';
 const verifyAndRegisterService = async (body: any) => {
   const { email, otp } = body;
   // verify OTP
-  const verifyOtp = await verifyOTP(email, otp);
+  const verifyOtp = await verifyOtpService(email, otp);
   if (!verifyOtp)
     return {
       success: false,
@@ -31,8 +31,7 @@ const registerAccount = async (data: any): Promise<object> => {
   // check email is existed
   const account = await Account.create(data);
   const user = await User.create({
-    username: data.username,
-    account: [account._id],
+    username: data.username
   });
   account.user = user._id;
   return await account.save();
@@ -52,11 +51,11 @@ const createAccountWithOAuth = async (data: any) => {
       const newAccount = await Account.create(data);
 
       // Find the corresponding user
-      const userExist = await User.findOne({ _id: newAccount.user });
-      if (userExist) {
-        userExist.account.push(newAccount._id);
-        await userExist.save();
-      }
+      // const userExist = await User.findOne({ _id: newAccount.user });
+      // if (userExist) {
+      //   userExist.account.push(newAccount._id);
+      //   await userExist.save();
+      // }
       return newAccount;
     }
     return null;
@@ -321,22 +320,10 @@ export const forgotPassService = async (email: string) => {
         success: false,
         message: 'Account is not existed',
       };
-    const resetToken = await account.createPassChangeToken();
-    await account.save();
-    // send mail
-    await sendEmail({
-      to: email,
-      subject: 'Email verification code',
-      message: `<h4>Hi</h4>
-        <body>
-        <p>Please use the folowing resetToken to access the form: <a href=${process.env.URL_CLIENT_FGPASS}/api/account/reset-pass/${resetToken}>Click here</a> .</p>
-        <p>Do not share this resetToken with anyone.</P>
-        <p>Thank you!</p>
-        </body>`,
-    });
+    generateAndSendOTP(email);
     return {
       success: true,
-      message: 'resetToken has been sent.',
+      message: 'OTP has been sent.',
     };
   } catch (error) {
     return {
@@ -348,32 +335,27 @@ export const forgotPassService = async (email: string) => {
 
 // RESET PASS SERVICE
 export const resetPassService = async (req: any) => {
-  const { password, token } = req.body;
+  const { password, email } = req.body;
   const { error } = passwordResetPass.validate({
     newPassword: req.body.password,
-    token: req.body.token,
+    email: req.body.email
   });
   if (error)
     return {
       success: false,
       message: 'Validation failed: Please provide valid input',
     };
-  const hashToken = crypto.createHash('sha256').update(token).digest('hex');
-  const account1 = await Account.findOne({
-    passwordResetToken: hashToken,
-    passwordResetExpires: { $gt: Date.now() },
-  });
-  if (!account1) throw new Error('Invalid reset token');
-  account1.password = password;
-  account1.passwordResetToken = undefined;
-  account1.passwordChangeAt = new Date(Date.now());
-  account1.passwordResetExpires = undefined;
-  await account1.save();
+  const account = await Account.findOne({ email });
+  if (!account) throw new Error('Invalid reset token');
+  account.password = password;
+  account.passwordChangeAt = new Date(Date.now());
+  await account.save();
   return {
     success: true,
     message: 'Reset password is successfully.',
   };
 };
+
 export {
   verifyAndRegisterService,
   loginService,

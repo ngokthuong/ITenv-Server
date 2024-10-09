@@ -6,7 +6,7 @@ interface IOtp extends Document {
     email: string;
     otp: string;
     expiredOtp: Date;
-    isCorrectOtp(password: string): Promise<boolean>;
+    isCorrectOtp(otp: string): Promise<boolean>;
 }
 
 // Create the schema for the OTP model

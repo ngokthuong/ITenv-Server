@@ -12,8 +12,6 @@ interface IAccount extends Document {
     isBlocked: boolean;
     authenWith: number;
     passwordChangeAt?: Date;
-    passwordResetToken?: string;
-    passwordResetExpires?: Date;
     refreshToken: string;
     user: mongoose.Types.ObjectId;
     isCorrectPassword(password: string): Promise<boolean>;
@@ -49,13 +47,6 @@ const accountSchema: Schema<IAccount> = new Schema({
         max: 3
     },
     passwordChangeAt: {
-        type: Date,
-        default: Date.now
-    },
-    passwordResetToken: {
-        type: String
-    },
-    passwordResetExpires: {
         type: Date,
         default: Date.now
     },
