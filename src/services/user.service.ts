@@ -1,18 +1,14 @@
-
 import User from '../models/user';
 import Account from '../models/account';
 
 export const getCurrentUserService = async (req: any) => {
-    const user = await User.findById(req?.user?.user).populate({
-        path: 'account',
-        select: 'role isBlocked email',
-    });
+  const user = await User.findById(req?.user?.user);
 
-    if (!user) {
-        throw new Error('User not found');
-    }
+  if (!user) {
+    throw new Error('User not found');
+  }
 
-    const account = await Account.findById(req?.user?._id);
+  const account = await Account.findById(req?.user?._id);
 
     const responseData = {
         username: user.username,
@@ -30,29 +26,29 @@ export const getCurrentUserService = async (req: any) => {
         isBlocked: account?.isBlocked,
     };
 
-    return responseData;
+  return responseData;
 };
 
-export const getAllUsersService = async (pageNumber: number, limitNumber: number, search: string) => {
-    const searchQuery = search
-        ? {
-            $or: [
-                { username: { $regex: search, $options: 'i' } },
-                { email: { $regex: search, $options: 'i' } },
-            ],
-        }
-        : {};
+export const getAllUsersService = async (
+  pageNumber: number,
+  limitNumber: number,
+  search: string,
+) => {
+  const searchQuery = search
+    ? {
+        $or: [
+          { username: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+        ],
+      }
+    : {};
 
-    const users = await User.find(searchQuery)
-        .populate({
-            path: 'account',
-            select: 'role isBlocked email',
-        })
-        .skip((pageNumber - 1) * limitNumber)
-        .limit(limitNumber);
+  const users = await User.find(searchQuery)
 
-    const total = await User.countDocuments(searchQuery);
+    .skip((pageNumber - 1) * limitNumber)
+    .limit(limitNumber);
 
-    return { total, users };
+  const total = await User.countDocuments(searchQuery);
+
+  return { total, users };
 };
-
