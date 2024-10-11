@@ -28,7 +28,6 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-
         notificationType: {
             type: String,
             enum: Object.values(EnumNotification),

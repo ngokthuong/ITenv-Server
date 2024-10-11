@@ -17,3 +17,4 @@ Use mongoose.model(name, schema)
 09-10-2024	25:34:17----errhandler: /api/account/forgot-pass --- GET --- Route /api/account/forgot-pass is not found
 09-10-2024	25:35:17----errhandler: /api/account/forgot-pass --- GET --- Route /api/account/forgot-pass is not found
 09-10-2024	10:28:23----errhandler: /api/account/reset-pass --- POST --- Parameter "filter" to findOne() must be an object, got "waytnt17523@gmail.com" (type string)
+11-10-2024	48:45:13----errhandler: /api/tag/all-tags --- GET --- Route /api/tag/all-tags is not found

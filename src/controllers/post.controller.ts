@@ -2,11 +2,13 @@ import { Response, Request } from 'express';
 import asyncHandler from 'express-async-handler';
 import { AuthRequest } from '../types/AuthRequest.type';
 import Post from '../models/post';
+import { createPostService } from '../services/post.service'
 
 export const createPostController = asyncHandler(async (req: AuthRequest, res: Response) => {
   const user_id = req.user?.userId;
   const { title, content, isAnonymous, tags, categoryId } = req.body;
-  //create new post
+
+
   if (!title || !content) {
     res.status(200).json({
       success: false,

@@ -6,6 +6,7 @@ import { notFound, errHandler } from '../middlewares/handelError.mdw';
 import { logEvents } from '../helper/logEvents';
 import postRouter from './post.routes';
 import uploadRouter from './upload.routes';
+import tagRouter from './tag.routes'
 const initRoutes = (app: Express) => {
   // API
   app.use('/api/account', accountRouter);
@@ -13,6 +14,7 @@ const initRoutes = (app: Express) => {
   app.use('/api/user', userRouter);
   app.use('/api/post', postRouter);
   app.use('/api/storage/upload', uploadRouter);
+  app.use('/api/tag', tagRouter);
   //  ko tim dc api
   app.use(notFound);
   app.use(errHandler);
