@@ -3,28 +3,35 @@ import Account from '../models/account';
 
 export const getCurrentUserService = async (req: any) => {
   const user = await User.findById(req?.user?.user);
-
   if (!user) {
     throw new Error('User not found');
   }
-
   const account = await Account.findById(req?.user?._id);
 
-    const responseData = {
-        username: user.username,
-        dob: user.dob,
-        phoneNumber: user.phoneNumber,
-        avatar: user.avatar,
-        gender: user.gender,
-        status: user.status,
-        lastOnline: user.lastOnline,
-        email: account?.email,
-        role: account?.role,
-        isBlocked: account?.isBlocked,
-    };
+  const responseData = {
+    username: user.username,
+    dob: user.dob,
+    phoneNumber: user.phoneNumber,
+    avatar: user.avatar,
+    gender: user.gender,
+    status: user.status,
+    lastOnline: user.lastOnline,
+    email: account?.email,
+    role: account?.role,
+    isBlocked: account?.isBlocked,
+  };
 
   return responseData;
 };
+
+export const findUserById = async (userId: string) => {
+  try {
+    const currentUser = User.findById(userId);
+    return currentUser;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+}
 
 export const getAllUsersService = async (
   pageNumber: number,
@@ -33,11 +40,11 @@ export const getAllUsersService = async (
 ) => {
   const searchQuery = search
     ? {
-        $or: [
-          { username: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-        ],
-      }
+      $or: [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ],
+    }
     : {};
 
   const users = await User.find(searchQuery)

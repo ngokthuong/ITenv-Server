@@ -3,4 +3,5 @@ export type ResponseType<T> = {
   data: T;
   total?: number;
   error?: string;
+  timeStamp?: Date
 };

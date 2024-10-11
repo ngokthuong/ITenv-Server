@@ -3,7 +3,7 @@ export const getAllTagsService = async (req: any) => {
     try {
         const tags = await tag.find();
         return tags;
-    } catch (error) {
-        throw new Error('Error retrieving tags');
+    } catch (error: any) {
+        throw new Error(error.message);
     }
 };

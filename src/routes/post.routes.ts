@@ -4,8 +4,8 @@ import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 
 const router = Router();
 
-router.post('/', verifyAccessToken, createPostController);
-router.get('/', getAllPostsController);
+router.post('/create-post', verifyAccessToken, createPostController);
+router.get('/all-pots', getAllPostsController);
 
 
 export default router;
