@@ -2,12 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
 export interface CustomJwtPayload extends JwtPayload {
-  _id: string;
+  _accId: string;
   role: string;
-  user: string;
+  userId: string;
 }
 interface AuthRequest extends Request {
-  user?: CustomJwtPayload; // Extend the request object
+  user?: CustomJwtPayload;
 }
 
 export const verifyAccessToken = asyncHandler(

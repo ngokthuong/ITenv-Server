@@ -1,15 +1,13 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from "bcrypt";
 
-// Define an interface for the OTP schema
 interface IOtp extends Document {
     email: string;
     otp: string;
     expiredOtp: Date;
-    isCorrectOtp(password: string): Promise<boolean>;
+    isCorrectOtp(otp: string): Promise<boolean>;
 }
 
-// Create the schema for the OTP model
 const otpSchema: Schema<IOtp> = new Schema({
     email: {
         type: String,
@@ -21,7 +19,7 @@ const otpSchema: Schema<IOtp> = new Schema({
     expiredOtp: {
         type: Date,
         default: Date.now,
-        index: { expires: '120s' } // TTL index, 60 seconds after OTP is created
+        index: { expires: '120s' }
     }
 });
 

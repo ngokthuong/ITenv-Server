@@ -2,13 +2,13 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPost extends Document {
   postBy: mongoose.Types.ObjectId;
+  tags: mongoose.Types.ObjectId[];
   title: string;
   content: string;
-  view: mongoose.Types.ObjectId;
-  vote: mongoose.Types.ObjectId;
-  comment: mongoose.Types.ObjectId[];
-  postAt: Date;
-  editAt?: Date;
+  view: mongoose.Types.ObjectId[];
+  vote: mongoose.Types.ObjectId[];
+  commentBy: mongoose.Types.ObjectId[];
+  category: mongoose.Types.ObjectId[];
   isAnonymous: boolean;
   status: boolean;
 }
@@ -20,48 +20,49 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    tags: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tag'
+      },
+    ],
     title: {
-      type: String,
-      required: true,
+      type: String
     },
     content: {
-      type: String,
-      required: true,
+      type: String
     },
     view: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
+        ref: 'User'
       },
     ],
     vote: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
+        ref: 'User'
       },
     ],
-    comment: [
+    commentBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Comment',
+        ref: 'User'
       },
     ],
-    postAt: {
-      type: Date,
-      default: Date.now,
-    },
-    editAt: {
-      type: Date,
-    },
+    category: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category'
+      },
+    ],
     isAnonymous: {
       type: Boolean,
-      default: false,
+      default: false
     },
     status: {
       type: Boolean,
-      default: false,
+      default: false
     },
   },
   { timestamps: true },

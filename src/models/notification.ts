@@ -1,39 +1,48 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
+import { EnumNotification } from '../enums/schemaNotification.enum';
 
 export interface INotification extends Document {
+    postedBy: mongoose.Types.ObjectId;
     title: string;
     content: string;
     isSeen: boolean;
-    postedBy: mongoose.Types.ObjectId;
-    postAt: Date;
-    notificationType?: string;
+    notificationType?: EnumNotification;
+    postId: mongoose.Types.ObjectId;
+    problemId: mongoose.Types.ObjectId;
 }
 
-const notificationSchema: Schema<INotification> = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true
+const notificationSchema: Schema<INotification> = new mongoose.Schema(
+    {
+        postedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        title: {
+            type: String,
+        },
+        content: {
+            type: String,
+        },
+        isSeen: {
+            type: Boolean,
+            default: false,
+        },
+
+        notificationType: {
+            type: String,
+            enum: Object.values(EnumNotification),
+        },
+        postId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Post',
+        },
+        problemId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Problem',
+        },
     },
-    content: {
-        type: String,
-        required: true
-    },
-    isSeen: {
-        type: Boolean,
-        default: false
-    },
-    postedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    postAt: {
-        type: Date,
-        default: Date.now
-    },
-    notificationType: {
-        type: String
-    }
-}, { timestamps: true });
+    { timestamps: true },
+);
 
 export default mongoose.model<INotification>('Notification', notificationSchema);

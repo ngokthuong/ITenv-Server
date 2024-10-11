@@ -1,7 +1,7 @@
 04-10-2024	41:19:12----------errhandler: - Expected double-quoted property name in JSON at position 34
 04-10-2024	44:19:12----------errhandler: - Expected double-quoted property name in JSON at position 34
 04-10-2024	21:21:12----------errhandler: /api/account/login --- POST --- Expected double-quoted property name in JSON at position 34
-    05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
+05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
 05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
 05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
 05-10-2024	45:04:15----errhandler: /api/storage/upload/delete-image --- POST --- Cannot read properties of undefined (reading 'length')
@@ -13,3 +13,7 @@
 06-10-2024	12:43:12----errhandler: /api/storage/upload/image --- POST --- Request Timeout
 07-10-2024	19:39:17----errhandler: /api/post --- GET --- Schema hasn't been registered for model "Comment".
 Use mongoose.model(name, schema)
+09-10-2024	24:33:17----errhandler: /api/account/forgot-pass --- GET --- Route /api/account/forgot-pass is not found
+09-10-2024	25:34:17----errhandler: /api/account/forgot-pass --- GET --- Route /api/account/forgot-pass is not found
+09-10-2024	25:35:17----errhandler: /api/account/forgot-pass --- GET --- Route /api/account/forgot-pass is not found
+09-10-2024	10:28:23----errhandler: /api/account/reset-pass --- POST --- Parameter "filter" to findOne() must be an object, got "waytnt17523@gmail.com" (type string)

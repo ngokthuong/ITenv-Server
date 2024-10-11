@@ -1,26 +1,22 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { EnumRoleAccount } from '../enums/schemaAccount.enum'
 import bcrypt from "bcrypt";
 import crypto from 'crypto';
 
-
-// Định nghĩa interface cho dữ liệu của Account
 interface IAccount extends Document {
     _id: mongoose.Types.ObjectId;
     email: string;
     password: string;
-    role: string;
+    role: EnumRoleAccount;
     isBlocked: boolean;
     authenWith: number;
     passwordChangeAt?: Date;
-    passwordResetToken?: string;
-    passwordResetExpires?: Date;
     refreshToken: string;
     user: mongoose.Types.ObjectId;
     isCorrectPassword(password: string): Promise<boolean>;
     createPassChangeToken(): Promise<string>;
 }
 
-// Định nghĩa Schema của Mongo model
 const accountSchema: Schema<IAccount> = new Schema({
     email: {
         type: String,
@@ -37,7 +33,8 @@ const accountSchema: Schema<IAccount> = new Schema({
     },
     role: {
         type: String,
-        default: 'user',
+        enum: Object.values(EnumRoleAccount),
+        default: EnumRoleAccount.ROLE_USER,
     },
     isBlocked: {
         type: Boolean,
@@ -49,13 +46,6 @@ const accountSchema: Schema<IAccount> = new Schema({
         max: 3
     },
     passwordChangeAt: {
-        type: Date,
-        default: Date.now
-    },
-    passwordResetToken: {
-        type: String
-    },
-    passwordResetExpires: {
         type: Date,
         default: Date.now
     },
