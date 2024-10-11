@@ -8,9 +8,7 @@ export interface IPost extends Document {
   view: mongoose.Types.ObjectId[];
   vote: mongoose.Types.ObjectId[];
   commentBy: mongoose.Types.ObjectId[];
-  shareBy: mongoose.Types.ObjectId[];
-  postAt: Date;
-  editAt?: Date;
+  category: mongoose.Types.ObjectId[];
   isAnonymous: boolean;
   status: boolean;
 }
@@ -52,19 +50,12 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
         ref: 'User'
       },
     ],
-    shareBy: [
+    category: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'Category'
       },
     ],
-    postAt: {
-      type: Date,
-      default: Date.now,
-    },
-    editAt: {
-      type: Date
-    },
     isAnonymous: {
       type: Boolean,
       default: false

@@ -4,8 +4,8 @@ import { AuthRequest } from '../types/AuthRequest.type';
 import Post from '../models/post';
 
 export const createPostController = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const user_id = req.user;
-  const { title, content, isAnonymous = false } = req.body;
+  const user_id = req.user?.userId;
+  const { title, content, isAnonymous, tags, categoryId } = req.body;
   //create new post
   if (!title || !content) {
     res.status(200).json({

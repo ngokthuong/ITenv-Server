@@ -16,12 +16,6 @@ import { schema } from '../helper/joiSchemaRegister.helper';
 import { generateAndSendOTP, verifyOtpService } from '../services/otp.service';
 import { addRefreshTokenToCookie, clearRefreshTokenInCookie } from '../middlewares/cookie.mdw';
 
-interface RefreshTokenResult {
-  success: boolean;
-  newAccessToken: string;
-  message: string;
-}
-
 // OTP
 export const createAndSendOtp = asyncHandler(async (req: any, res: any) => {
   const { error } = schema.validate(req.body, { allowUnknown: true });
@@ -69,8 +63,6 @@ export const verifyAndRegisterController = asyncHandler(async (req: any, res: an
     });
   }
 });
-
-
 
 // LOGIN + CREATE TOKEN
 export const loginController = asyncHandler(async (req: any, res: any, next) => {
