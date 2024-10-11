@@ -30,6 +30,8 @@ export interface IProblem extends Document {
   postAt: Date;
   editAt?: Date;
   status: boolean;
+  category?: mongoose.Types.ObjectId[];
+
 }
 
 const initialCodeSchema: Schema<IInitialCode> = new mongoose.Schema({
@@ -123,6 +125,12 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
+  category: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category'
+    }
+  ]
 }, { timestamps: true });
 
 export default mongoose.model<IProblem>('Problem', problemSchema);

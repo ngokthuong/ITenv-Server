@@ -49,13 +49,6 @@ const createAccountWithOAuth = async (data: any) => {
       // Assign the UserID from the existing account to the data
       data.user = accountExist.user;
       const newAccount = await Account.create(data);
-
-      // Find the corresponding user
-      // const userExist = await User.findOne({ _id: newAccount.user });
-      // if (userExist) {
-      //   userExist.account.push(newAccount._id);
-      //   await userExist.save();
-      // }
       return newAccount;
     }
     return null;

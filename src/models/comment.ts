@@ -6,8 +6,6 @@ interface IComment extends Document {
   parentComment?: mongoose.Types.ObjectId;
   isAccepted: boolean;
   vote: mongoose.Types.ObjectId[];
-  commentedAt: Date;
-  editedAt?: Date;
   notificationId: mongoose.Types.ObjectId;
   postId: mongoose.Types.ObjectId;
   problemId: mongoose.Types.ObjectId;
@@ -29,13 +27,6 @@ const commentSchema: Schema<IComment> = new mongoose.Schema(
     isAccepted: {
       type: Boolean,
       default: false
-    },
-    commentedAt: {
-      type: Date,
-      default: Date.now
-    },
-    editedAt: {
-      type: Date
     },
     parentComment: {
       type: mongoose.Schema.Types.ObjectId,
