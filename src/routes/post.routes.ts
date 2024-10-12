@@ -1,11 +1,11 @@
 import Router from 'express';
-import { createPostController, getAllPostsController } from '../controllers/post.controller';
+import { createPostController, getPostsWithCategoryIdController } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 
 const router = Router();
 
 router.post('/create-post', verifyAccessToken, createPostController);
-router.get('/all-pots', getAllPostsController);
+router.get('/all-pots', getPostsWithCategoryIdController);
 
 
 export default router;
