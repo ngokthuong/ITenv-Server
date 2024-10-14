@@ -1,7 +1,5 @@
-import { any } from 'joi';
 import { getAllTagsService } from '../services/tag.service'
 import { ResponseType } from '../types/Response.type'
-import { timeStamp } from 'console';
 
 export const getAllTagsController = async (req: any, res: any) => {
     try {

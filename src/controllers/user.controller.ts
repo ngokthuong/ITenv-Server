@@ -1,11 +1,5 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
-import { any, string } from 'joi';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import User from '../models/user';
-import Account from '../models/account';
-import { generate } from 'otp-generator';
-import { generateAccessToken } from '../middlewares/jwt.mdw';
 import { getAllUsersService, getCurrentUserService } from '../services/user.service';
 
 interface AuthRequest extends Request {

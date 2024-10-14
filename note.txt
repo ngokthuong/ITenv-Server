@@ -10,3 +10,6 @@ middleware in framework express
 ***
 - UPdate ko validate ( Bật runValidators: true )
 - update OTP
+
+
+https://docs.google.com/spreadsheets/d/1mDYfyaO_uzccFJLwVg5_8qKHRsAIcA82Av6Ghcv7aps/edit?usp=sharing

@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPost extends Document {
-  postBy: mongoose.Types.ObjectId;
+  postedBy: mongoose.Types.ObjectId;
   tags: mongoose.Types.ObjectId[];
   title: string;
   content: string;
@@ -15,7 +15,7 @@ export interface IPost extends Document {
 
 const postSchema: Schema<IPost> = new mongoose.Schema(
   {
-    postBy: {
+    postedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
