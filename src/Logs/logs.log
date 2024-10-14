@@ -19,3 +19,17 @@ Use mongoose.model(name, schema)
 09-10-2024	10:28:23----errhandler: /api/account/reset-pass --- POST --- Parameter "filter" to findOne() must be an object, got "waytnt17523@gmail.com" (type string)
 11-10-2024	48:45:13----errhandler: /api/tag/all-tags --- GET --- Route /api/tag/all-tags is not found
 11-10-2024	32:06:23----errhandler: /api/post/create-post --- GET --- Route /api/post/create-post is not found
+14-10-2024	10:48:10----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	16:48:10----errhandler: /api/user/current --- GET --- User not found
+14-10-2024	16:48:10----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	13:49:10----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	18:49:10----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	57:51:10----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	02:52:10----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	26:52:10----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	36:52:10----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	30:23:12----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	35:23:12----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	37:23:12----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	42:23:12----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+14-10-2024	07:24:12----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found

@@ -19,7 +19,7 @@ export const setupSocket = (server: any) => {
     let user: any = null;
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as CustomJwtPayload;
-      user = await User.findById(decoded.user);
+      user = await User.findById(decoded.userId);
       if (!user) {
         console.log('User not found.');
         return socket.disconnect(true);
@@ -36,10 +36,7 @@ export const setupSocket = (server: any) => {
       console.error('Error updating socket ID:', err);
       socket.disconnect(true);
     }
-    
 
-
-   
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${user._id}`);
       await User.findByIdAndUpdate(user._id, { status: 0, lastOnline: new Date() });

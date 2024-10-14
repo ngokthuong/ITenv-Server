@@ -1,10 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
 import { getAllUsersService, getCurrentUserService } from '../services/user.service';
+import { AuthRequest } from '../types/AuthRequest.type';
 
-interface AuthRequest extends Request {
-  user?: { _id: string; role: string; user: string };
-}
 // export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
 //   const user = await User.findById(req?.user?.user).populate({
 //     path: 'account',

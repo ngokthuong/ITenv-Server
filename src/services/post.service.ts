@@ -23,8 +23,8 @@ export const createPostService = async (data: any) => {
 // have pagination
 export const getPostsWithCategoryIdService = async (categoryId: string, queryOption: QueryOption) => {
     try {
-        const limit = queryOption.pageSize || 10;
-        const skip = (queryOption.page || 1 - 1) * limit;
+        const limit = queryOption?.pageSize || 10;
+        const skip = (queryOption?.page || 1 - 1) * limit;
         // get all posts with categor   yId and pagination
         const posts = await post.find({ categoryId })
             .skip(skip)
