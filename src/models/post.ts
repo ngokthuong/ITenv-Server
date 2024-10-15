@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPost extends Document {
-  postedBy: mongoose.Types.ObjectId;
+  postedBy?: mongoose.Types.ObjectId;
   tags: mongoose.Types.ObjectId[];
   title: string;
   content: string;
