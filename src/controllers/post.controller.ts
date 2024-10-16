@@ -60,7 +60,7 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
 // read
 export const getPostsWithCategoryIdController = asyncHandler(async (req: any, res: any) => {
   try {
-    const queryOption = req.body.queryOption;
+    const queryOption = req.query;
     const { posts, totalPosts } = await getPostsWithCategoryIdService(
       req.params.categoryId,
       queryOption,

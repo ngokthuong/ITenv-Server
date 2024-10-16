@@ -26,8 +26,11 @@ export const getPostsWithCategoryIdService = async (
   queryOption: QueryOption,
 ) => {
   try {
-    const limit = queryOption?.pageSize || 10;
-    const skip = (queryOption?.page || 1 - 1) * limit;
+    const page = queryOption?.page || 1;
+    const pageSize = queryOption?.pageSize || 10;
+
+    const limit = pageSize;
+    var skip = (page - 1) * limit;
 
     const posts = await post.find({ categoryId }).skip(skip).limit(limit).lean();
     const populatedPosts = await Promise.all(
@@ -58,7 +61,7 @@ export const getPostsWithCategoryIdService = async (
         }
       }),
     );
-
+    console.log(posts);
     const totalPosts = await post.countDocuments({ categoryId });
 
     return {
