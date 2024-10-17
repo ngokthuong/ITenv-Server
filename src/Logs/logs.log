@@ -33,3 +33,12 @@ Use mongoose.model(name, schema)
 14-10-2024	37:23:12----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
 14-10-2024	42:23:12----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
 14-10-2024	07:24:12----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba --- GET --- Route /api/post/all-posts/670b6a1062937ef087fd23ba is not found
+17-10-2024	27:41:10----errhandler: /api/comment/670cb56dd7d3d8d072a3db67 --- GET --- Route /api/comment/670cb56dd7d3d8d072a3db67 is not found
+17-10-2024	32:41:10----errhandler: /api/comment/670cb56dd7d3d8d072a3db67 --- GET --- Route /api/comment/670cb56dd7d3d8d072a3db67 is not found
+17-10-2024	38:41:10----errhandler: /api/comment/670cb56dd7d3d8d072a3db67 --- GET --- Route /api/comment/670cb56dd7d3d8d072a3db67 is not found
+17-10-2024	39:41:10----errhandler: /api/comment/undefined --- GET --- Route /api/comment/undefined is not found
+17-10-2024	39:41:10----errhandler: /api/comment/670cb56dd7d3d8d072a3db67 --- GET --- Route /api/comment/670cb56dd7d3d8d072a3db67 is not found
+17-10-2024	44:41:10----errhandler: /api/comment/670cb56dd7d3d8d072a3db67 --- GET --- Route /api/comment/670cb56dd7d3d8d072a3db67 is not found
+17-10-2024	49:41:10----errhandler: /api/comment/670cb56dd7d3d8d072a3db67 --- GET --- Route /api/comment/670cb56dd7d3d8d072a3db67 is not found
+17-10-2024	55:41:10----errhandler: /api/comment/670cb56dd7d3d8d072a3db67 --- GET --- Route /api/comment/670cb56dd7d3d8d072a3db67 is not found
+17-10-2024	00:42:10----errhandler: /api/comment/670cb56dd7d3d8d072a3db67 --- GET --- Route /api/comment/670cb56dd7d3d8d072a3db67 is not found

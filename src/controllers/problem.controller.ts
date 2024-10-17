@@ -176,3 +176,17 @@ export const getSingleProblem = asyncHandler(async (req: any, res: any) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+export const commentController = asyncHandler(async (req: any, res: any) => {
+  const { problemId } = req.params;
+  const { comment } = req.body;
+  try {
+    const problem = await Problem.findOneAndUpdate(
+      { _id: problemId },
+      { $push: { comment: comment } },
+      { new: true },
+    );
+  } catch (error) {
+    console.log(error);
+  }
+});
