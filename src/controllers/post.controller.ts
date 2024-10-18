@@ -7,6 +7,7 @@ import {
   editPostByIdService,
   getPostByIdService,
   getPostsWithCategoryIdService,
+  votePostService,
 } from '../services/post.service';
 import { validateCreatePost } from '../helper/joiSchemaRegister.helper';
 import { ResponseType } from '../types/Response.type';
@@ -100,6 +101,22 @@ export const getPostByIdController = asyncHandler(async (req: any, res: any) => 
       timeStamp: new Date(),
     };
     return res.status(500).json(response);
+  }
+});
+
+export const votePostController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.user?.userId;
+  const postId = req.params._id;
+  const { typeVote } = req.body;
+  console.log(req.body);
+  try {
+    if (userId) {
+      const result = await votePostService(postId, userId, typeVote);
+      if (result) return res.status(200).json({ success: true, message: 'success' });
+      return res.status(200).json({ success: false, message: 'failed' });
+    }
+  } catch (error) {
+    return res.status(200).json({ success: false, message: 'failed' });
   }
 });
 

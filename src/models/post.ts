@@ -7,6 +7,7 @@ export interface IPost extends Document {
   content: string;
   view: mongoose.Types.ObjectId[];
   vote: mongoose.Types.ObjectId[];
+  downVote: mongoose.Types.ObjectId[];
   commentBy: mongoose.Types.ObjectId[];
   categoryId: mongoose.Types.ObjectId[];
   isAnonymous: boolean;
@@ -23,46 +24,52 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
     tags: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tag'
+        ref: 'Tag',
       },
     ],
     title: {
-      type: String
+      type: String,
     },
     content: {
-      type: String
+      type: String,
     },
     view: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
       },
     ],
     vote: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+      },
+    ],
+    downVote: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
       },
     ],
     commentBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
       },
     ],
     categoryId: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category'
+        ref: 'Category',
       },
     ],
     isAnonymous: {
       type: Boolean,
-      default: false
+      default: false,
     },
     status: {
       type: Boolean,
-      default: false
+      default: false,
     },
   },
   { timestamps: true },

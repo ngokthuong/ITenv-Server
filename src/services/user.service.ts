@@ -11,6 +11,7 @@ export const getCurrentUserService = async (req: AuthRequest) => {
   const account = await Account.findById(req?.user?._accId);
 
   const responseData = {
+    _id: user._id,
     username: user.username,
     dob: user.dob,
     phoneNumber: user.phoneNumber,

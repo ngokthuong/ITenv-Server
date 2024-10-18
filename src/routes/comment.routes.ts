@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
   getCommentByPostIdController,
   postCommentController,
-} from '../controllers/comment.comtroller';
+} from '../controllers/comment.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 
 const router = Router();

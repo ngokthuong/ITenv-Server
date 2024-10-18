@@ -1,4 +1,5 @@
 import comment from '../models/comment';
+import post from '../models/post';
 
 export const getCommentByPostIdService = async (postId: string) => {
   try {
@@ -22,7 +23,7 @@ export const postCommentService = async (postId: string, userId: string, cmt: an
       content: cmt.content,
       parentComment: cmt.parentComment || null,
     });
-    console.log(createdComment);
+    await post.findByIdAndUpdate(postId, { $push: { commentBy: createdComment._id } });
     return createdComment;
   } catch (error: any) {
     throw new Error(error.message);
