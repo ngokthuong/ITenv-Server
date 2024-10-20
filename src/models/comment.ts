@@ -6,6 +6,7 @@ interface IComment extends Document {
   parentComment?: mongoose.Types.ObjectId;
   isAccepted: boolean;
   vote: mongoose.Types.ObjectId[];
+  downVote: mongoose.Types.ObjectId[];
   content: string;
   notificationId: mongoose.Types.ObjectId;
   postId: mongoose.Types.ObjectId;
@@ -20,6 +21,12 @@ const commentSchema: Schema<IComment> = new mongoose.Schema(
       required: true,
     },
     vote: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    downVote: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

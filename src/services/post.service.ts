@@ -4,6 +4,7 @@ import { findUserById } from './user.service';
 import { QueryOption } from '../types/QueryOption.type';
 import mongoose from 'mongoose';
 import { TypeVoteEnum } from '../enums/typeVote.enum';
+import { updateVoteStatus } from './vote.service';
 
 export const createPostService = async (data: any) => {
   try {
@@ -158,46 +159,15 @@ export const editPostByIdService = async (_id: string, data: any) => {
 
 export const votePostService = async (postId: string, userId: string, typeVote: number) => {
   try {
-    const findPost = await post.findById(postId);
+    let findPost = await post.findById(postId);
     const userObjectId = new mongoose.Types.ObjectId(userId);
     if (!findPost) {
       throw new Error('Post not found');
     }
+    findPost = updateVoteStatus(findPost, userObjectId, typeVote);
 
-    if (typeVote === TypeVoteEnum.upvote) {
-      await post.findByIdAndUpdate(postId, {
-        $pull: { downVote: userId },
-      });
-
-      if (findPost.vote.includes(userObjectId)) {
-        await post.findByIdAndUpdate(postId, {
-          $pull: { vote: userId },
-        });
-      } else {
-        await post.findByIdAndUpdate(postId, {
-          $addToSet: { vote: userId },
-        });
-      }
-    } else if (typeVote === TypeVoteEnum.downvote) {
-      await post.findByIdAndUpdate(postId, {
-        $pull: { vote: userId },
-      });
-
-      if (findPost.downVote.includes(userObjectId)) {
-        await post.findByIdAndUpdate(postId, {
-          $pull: { downVote: userId },
-        });
-      } else {
-        console.log('downvote');
-
-        await post.findByIdAndUpdate(postId, {
-          $addToSet: { downVote: userId },
-        });
-      }
-    }
-
-    const updatedPost = await post.findById(postId);
-    return updatedPost;
+    if (findPost) await findPost.save();
+    return findPost;
   } catch (error: any) {
     throw new Error(error.message);
   }

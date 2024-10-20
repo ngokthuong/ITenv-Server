@@ -1,5 +1,9 @@
 import asyncHandler from 'express-async-handler';
-import { getCommentByPostIdService, postCommentService } from '../services/comment.service';
+import {
+  getCommentByPostIdService,
+  postCommentService,
+  voteCommentService,
+} from '../services/comment.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 
 export const getCommentByPostIdController = asyncHandler(async (req: any, res: any) => {
@@ -39,5 +43,21 @@ export const postCommentController = asyncHandler(async (req: AuthRequest, res: 
     });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+export const voteCommentController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.user?.userId;
+  const commentId = req.params._id;
+  const { typeVote } = req.body;
+  console.log(req.body);
+  try {
+    if (userId) {
+      const result = await voteCommentService(commentId, userId, typeVote);
+      if (result) return res.status(200).json({ success: true, message: 'success' });
+      return res.status(200).json({ success: false, message: 'failed' });
+    }
+  } catch (error) {
+    return res.status(200).json({ success: false, message: 'failed' });
   }
 });
