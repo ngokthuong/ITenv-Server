@@ -8,7 +8,6 @@ export const getCommentByPostIdService = async (postId: string) => {
     const comments = await comment
       .find({ postId })
       .populate('commentBy', 'username avatar _id')
-      // .populate('vote')
       .sort({ isAccepted: -1, vote: -1, createdAt: -1 })
       .exec();
     return comments;
@@ -34,7 +33,9 @@ export const postCommentService = async (postId: string, userId: string, cmt: an
 
 export const voteCommentService = async (commentId: string, userId: string, typeVote: number) => {
   try {
-    let findComment = await comment.findById(commentId);
+    let findComment = await comment
+      .findById(commentId)
+      .populate('commentBy', 'username avatar _id');
     const userObjectId = new mongoose.Types.ObjectId(userId);
     if (!findComment) {
       throw new Error('Post not found');

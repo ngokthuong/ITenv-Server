@@ -101,3 +101,17 @@ Use mongoose.model(name, schema)
 20-10-2024	37:04:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
 20-10-2024	55:19:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
 20-10-2024	55:19:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+20-10-2024	02:46:19----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	03:03:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	03:36:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	37:36:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	38:36:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	46:36:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	46:36:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	48:22:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	48:22:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	53:22:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	53:22:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+21-10-2024	17:14:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+22-10-2024	42:30:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+22-10-2024	01:33:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found

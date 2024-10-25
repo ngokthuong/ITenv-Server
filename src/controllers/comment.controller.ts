@@ -54,7 +54,7 @@ export const voteCommentController = asyncHandler(async (req: AuthRequest, res: 
   try {
     if (userId) {
       const result = await voteCommentService(commentId, userId, typeVote);
-      if (result) return res.status(200).json({ success: true, message: 'success' });
+      if (result) return res.status(200).json({ success: true, message: 'success', data: result });
       return res.status(200).json({ success: false, message: 'failed' });
     }
   } catch (error) {
