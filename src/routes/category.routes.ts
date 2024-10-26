@@ -5,11 +5,11 @@ import { createCategoryController, deleteCategoryController, findCatesOfPostsCon
 
 const router = Router();
 
-router.post('/create', verifyAccessToken, createCategoryController);
+router.post('/create', createCategoryController);
 
-router.get('/posts/get-cates', verifyAccessToken, findCatesOfPostsController);
-router.get('/problems/get-cates', verifyAccessToken, findCatesOfProblemsController);
-router.put('/update', verifyAccessToken, updateCategoryController);
-router.delete('/delete', verifyAccessToken, deleteCategoryController);
+router.get('/posts/get-cates', findCatesOfPostsController);
+router.get('/problems/get-cates', findCatesOfProblemsController);
+router.put('/update', updateCategoryController);
+router.delete('/delete', deleteCategoryController);
 
 export default router;

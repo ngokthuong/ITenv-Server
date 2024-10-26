@@ -6,8 +6,8 @@ export interface IFriend extends Document {
     receiver: mongoose.Types.ObjectId;
     status: EnumFriend;
     isBlockBy: mongoose.Types.ObjectId;
-    createdAt?: Date;
     acceptedAt?: Date;
+    isdeleted: boolean
 }
 
 const friendSchema: Schema<IFriend> = new mongoose.Schema(
@@ -31,9 +31,9 @@ const friendSchema: Schema<IFriend> = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
         },
-        createdAt: {
-            type: Date,
-            default: Date.now,
+        isdeleted: {
+            type: Boolean,
+            default: false
         },
         acceptedAt: {
             type: Date,

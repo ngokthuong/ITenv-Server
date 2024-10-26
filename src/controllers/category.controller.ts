@@ -11,7 +11,6 @@ export const createCategoryController = asyncHandler(async (req: AuthRequest, re
         const response: ResponseType<typeof createCategory> = {
             success: true,
             data: createCategory,
-            timeStamp: new Date(),
         };
         return res.status(200).json(response);
     } catch (error: any) {
@@ -19,7 +18,6 @@ export const createCategoryController = asyncHandler(async (req: AuthRequest, re
             success: false,
             data: null,
             error: error.message,
-            timeStamp: new Date(),
         };
         return res.status(500).json(response);
     }
@@ -32,7 +30,6 @@ export const findCatesOfPostsController = asyncHandler(async (req: any, res: any
         const response: ResponseType<typeof categories> = {
             success: true,
             data: categories,
-            timeStamp: new Date(),
         };
         return res.status(200).json(response);
     } catch (error: any) {
@@ -40,7 +37,6 @@ export const findCatesOfPostsController = asyncHandler(async (req: any, res: any
             success: false,
             data: null,
             error: error.message,
-            timeStamp: new Date(),
         };
         return res.status(500).json(response);
     }
@@ -53,7 +49,6 @@ export const findCatesOfProblemsController = asyncHandler(async (req: any, res: 
         const response: ResponseType<typeof categories> = {
             success: true,
             data: categories,
-            timeStamp: new Date(),
         };
         return res.status(200).json(response);
     } catch (error: any) {
@@ -61,7 +56,6 @@ export const findCatesOfProblemsController = asyncHandler(async (req: any, res: 
             success: false,
             data: null,
             error: error.message,
-            timeStamp: new Date(),
         };
         return res.status(500).json(response);
     }
@@ -75,15 +69,13 @@ export const updateCategoryController = asyncHandler(async (req: AuthRequest, re
         const response: ResponseType<typeof updateCategory> = {
             success: true,
             data: updateCategory,
-            timeStamp: new Date(),
         };
         return res.status(200).json(response);
     } catch (error: any) {
         const response: ResponseType<null> = {
             success: false,
             data: null,
-            error: error.message,
-            timeStamp: new Date(),
+            error: error.message
         };
         return res.status(500).json(response);
     }
@@ -95,16 +87,14 @@ export const deleteCategoryController = asyncHandler(async (req: AuthRequest, re
         const idCategory = await req.params.idCategory;
         await deleteCategoryService(idCategory);
         const response: ResponseType<null> = {
-            success: true,
-            timeStamp: new Date(),
+            success: true
         };
         return res.status(200).json(response);
     } catch (error: any) {
         const response: ResponseType<null> = {
             success: false,
             data: null,
-            error: error.message,
-            timeStamp: new Date(),
+            error: error.message
         };
         return res.status(500).json(response);
     }

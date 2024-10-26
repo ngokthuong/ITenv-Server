@@ -124,3 +124,7 @@ Use mongoose.model(name, schema)
 26-10-2024	48:29:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
 26-10-2024	48:29:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
 26-10-2024	18:32:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+26-10-2024	52:48:17----errhandler: /api/post/search/670b6a1062937ef087fd23ba?page=1&pageSize=10&search=Net&sortOrder=DESC&sortField=createdAt --- GET --- Route /api/post/search/670b6a1062937ef087fd23ba?page=1&pageSize=10&search=Net&sortOrder=DESC&sortField=createdAt is not found
+26-10-2024	08:55:17----errhandler: /favicon.ico --- GET --- Route /favicon.ico is not found
+26-10-2024	22:55:17----errhandler: /favicon.ico --- GET --- Route /favicon.ico is not found
+26-10-2024	35:35:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
