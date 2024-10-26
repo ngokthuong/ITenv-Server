@@ -121,3 +121,6 @@ Use mongoose.model(name, schema)
 25-10-2024	24:37:18----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
 26-10-2024	16:57:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
 26-10-2024	36:59:12----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+26-10-2024	48:29:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+26-10-2024	48:29:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+26-10-2024	18:32:13----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found

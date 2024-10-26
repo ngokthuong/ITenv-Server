@@ -34,10 +34,8 @@ export const getPostsWithCategoryIdService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 10;
-
     var skip = (page - 1) * limit;
 
-    // const posts = await post.find({ categoryId, status: Constants.STATUS_ACTIVE }).skip(skip).limit(limit).lean();
     const posts = await post.find({ categoryId, isDeleted: false }).skip(skip).limit(limit).lean();
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
@@ -67,7 +65,6 @@ export const getPostsWithCategoryIdService = async (
         }
       }),
     );
-    console.log(posts);
     const totalPosts = await post.countDocuments({ categoryId });
     return {
       posts: populatedPosts,
