@@ -3,7 +3,8 @@ import comment from '../models/comment';
 import post from '../models/post';
 import { updateVoteStatus } from './vote.service';
 
-export const getCommentByPostIdService = async (postId: string) => {
+// parrent don't exist
+export const getCommentsByPostIdService = async (postId: string) => {
   try {
     const comments = await comment
       .find({ postId })
@@ -24,7 +25,7 @@ export const postCommentService = async (postId: string, userId: string, cmt: an
       content: cmt.content,
       parentComment: cmt.parentComment || null,
     });
-    await post.findByIdAndUpdate(postId, { $push: { commentBy: createdComment._id } });
+    // await post.findByIdAndUpdate(postId, { $push: { commentBy: createdComment._id } });
     return createdComment;
   } catch (error: any) {
     throw new Error(error.message);

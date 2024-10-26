@@ -9,6 +9,7 @@ export interface INotification extends Document {
     notificationType?: EnumNotification;
     postId: mongoose.Types.ObjectId;
     problemId: mongoose.Types.ObjectId;
+    comment: mongoose.Types.ObjectId;
 }
 
 const notificationSchema: Schema<INotification> = new mongoose.Schema(
@@ -39,6 +40,10 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
         problemId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Problem',
+        },
+        comment: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Comment',
         },
     },
     { timestamps: true },

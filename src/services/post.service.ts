@@ -5,7 +5,9 @@ import { QueryOption } from '../types/QueryOption.type';
 import mongoose from 'mongoose';
 import { TypeVoteEnum } from '../enums/typeVote.enum';
 import { updateVoteStatus } from './vote.service';
+import { Constants } from '../enums/constants.enum';
 
+// USER + ADMIN
 export const createPostService = async (data: any) => {
   try {
     if (data.isAnonymous) {
@@ -24,17 +26,18 @@ export const createPostService = async (data: any) => {
 };
 
 // have pagination
+// ALL
 export const getPostsWithCategoryIdService = async (
   categoryId: string,
   queryOption: QueryOption,
 ) => {
   try {
     const page = queryOption?.page || 1;
-    const pageSize = queryOption?.pageSize || 10;
+    const limit = queryOption?.pageSize || 10;
 
-    const limit = pageSize;
     var skip = (page - 1) * limit;
 
+    // const posts = await post.find({ categoryId, status: Constants.STATUS_ACTIVE }).skip(skip).limit(limit).lean();
     const posts = await post.find({ categoryId }).skip(skip).limit(limit).lean();
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
@@ -66,7 +69,6 @@ export const getPostsWithCategoryIdService = async (
     );
     console.log(posts);
     const totalPosts = await post.countDocuments({ categoryId });
-
     return {
       posts: populatedPosts,
       totalPosts,
@@ -76,6 +78,7 @@ export const getPostsWithCategoryIdService = async (
   }
 };
 
+// USER 
 export const getPostByIdService = async (postId: string) => {
   try {
     const postItem = await post.findById(postId);
@@ -108,6 +111,7 @@ export const getPostByIdService = async (postId: string) => {
   }
 };
 
+// USER 
 export const getAllTagsInPostsWithCateService = async (categoryID: string) => {
   try {
     // get all tags in posts with categoryID
@@ -129,7 +133,6 @@ export const getAllTagsInPostsWithCateService = async (categoryID: string) => {
 };
 
 // edit
-
 export const editPostByIdService = async (_id: string, data: any) => {
   try {
     const editPost = await post.findByIdAndUpdate(_id, data, { new: true });
@@ -172,3 +175,14 @@ export const votePostService = async (postId: string, userId: string, typeVote: 
     throw new Error(error.message);
   }
 };
+
+export const deletePostServise = async (postId: string, postedBy: string) => {
+  try {
+    return await post.findOneAndUpdate({ _id: postId, postedBy: postedBy },
+      // { status: Constants.STATUS_ACTIVE },
+      { new: true, runValidators: true }
+    )
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
