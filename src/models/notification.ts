@@ -35,6 +35,9 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
         postId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Post',
+            required: function () {
+                return this.notificationType === EnumNotification.TYPE_POST
+            }
         },
         problemId: {
             type: mongoose.Schema.Types.ObjectId,

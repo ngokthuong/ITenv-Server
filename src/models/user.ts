@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { EnumGengerUser } from '../enums/schemaUser.enum';
 import { boolean, string } from 'joi';
-interface IUser extends Document {
+export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   username?: string;
   dob?: Date;
