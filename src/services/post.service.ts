@@ -173,6 +173,36 @@ export const votePostService = async (postId: string, userId: string, typeVote: 
   }
 };
 
+export const searchPostsWithCategoryService = async (categoryId: string, queryOption: QueryOption) => {
+  try {
+    const page = queryOption?.page || 1;
+    const limit = queryOption?.pageSize || 10;
+    const skip = (page - 1) * limit;
+
+    const querySearch = {
+      $and: [
+        categoryId ? { categoryId } : {},
+        queryOption.search ? {
+          $or: [
+            { title: { $regex: queryOption.search, $options: 'i' } },
+            { content: { $regex: queryOption.search, $options: 'i' } }
+          ]
+        } : {}
+      ]
+    };
+
+    const posts = await post.find(querySearch)
+      .sort({ [queryOption.sortField]: queryOption.sortOrder === 'ASC' ? 1 : -1 })
+      .skip(skip)
+      .limit(queryOption.pageSize);
+
+    return posts;
+
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
 export const deletePostServise = async (postId: string, postedBy: string) => {
   try {
     return await post.findOneAndUpdate({ _id: postId, postedBy: postedBy },

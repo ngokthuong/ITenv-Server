@@ -8,11 +8,13 @@ import {
   editPostByIdService,
   getPostByIdService,
   getPostsWithCategoryIdService,
+  searchPostsWithCategoryService,
   votePostService,
 } from '../services/post.service';
 import { validateCreatePost } from '../helper/joiSchemaRegister.helper';
 import { ResponseType } from '../types/Response.type';
 import { Constants } from '../enums/constants.enum';
+import { QueryOption } from '../types/QueryOption.type';
 
 // create
 // mac dinh khi create Post thi status la false
@@ -166,6 +168,9 @@ export const editPostByIdController = asyncHandler(async (req: AuthRequest, res:
   }
 });
 
+// 
+// export const updateViewPost = asyncHandler(async (req: ))
+
 export const deletePostByIdController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
     const postedBy = req.user?.userId;
@@ -187,5 +192,19 @@ export const deletePostByIdController = asyncHandler(async (req: AuthRequest, re
       timeStamp: new Date(),
     };
     return res.status(500).json(response);
+  }
+});
+
+// All
+// Search post 
+export const searchPostController = asyncHandler(async (req: any, res: any) => {
+  try {
+    const queryOption = req.query;
+    const search = await searchPostsWithCategoryService(
+      req.params.categoryId,
+      queryOption,
+    );
+  } catch (error: any) {
+
   }
 });
