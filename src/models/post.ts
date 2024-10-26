@@ -8,10 +8,9 @@ export interface IPost extends Document {
   view: mongoose.Types.ObjectId[];
   vote: mongoose.Types.ObjectId[];
   downVote: mongoose.Types.ObjectId[];
-  commentBy: mongoose.Types.ObjectId[];
   categoryId: mongoose.Types.ObjectId[];
   isAnonymous: boolean;
-  status: boolean;
+  isDeleted: boolean;
 }
 
 const postSchema: Schema<IPost> = new mongoose.Schema(
@@ -51,12 +50,7 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
         ref: 'User',
       },
     ],
-    commentBy: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
+
     categoryId: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -67,7 +61,7 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    status: {
+    isDeleted: {
       type: Boolean,
       default: false,
     },

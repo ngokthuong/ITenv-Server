@@ -4,6 +4,7 @@ import { AuthRequest } from '../types/AuthRequest.type';
 import Post from '../models/post';
 import {
   createPostService,
+  deletePostServise,
   editPostByIdService,
   getPostByIdService,
   getPostsWithCategoryIdService,
@@ -11,8 +12,11 @@ import {
 } from '../services/post.service';
 import { validateCreatePost } from '../helper/joiSchemaRegister.helper';
 import { ResponseType } from '../types/Response.type';
+import { constant } from 'lodash';
+import { Constants } from '../enums/constants.enum';
 
 // create
+// mac dinh khi create Post thi status la false
 export const createPostController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
     const postedBy = req.user?.userId;
@@ -38,8 +42,8 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
         isAnonymous,
         tags,
         categoryId,
+        // status: Constants.STATUS_ACTIVE,
       });
-      console.log(newPost);
       const response: ResponseType<typeof newPost> = {
         success: true,
         data: newPost,
@@ -108,7 +112,6 @@ export const votePostController = asyncHandler(async (req: AuthRequest, res: any
   const userId = req.user?.userId;
   const postId = req.params._id;
   const { typeVote } = req.body;
-  console.log(req.body);
   try {
     if (userId) {
       const result = await votePostService(postId, userId, typeVote);
@@ -162,5 +165,17 @@ export const editPostByIdController = asyncHandler(async (req: AuthRequest, res:
       timeStamp: new Date(),
     };
     return res.status(500).json(response);
+  }
+});
+
+export const deletePostByIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const postedBy = req.user?.userId;
+    const postId = req.params.postId;
+    if (postedBy && postId) {
+      const deletePost = await deletePostServise(postId, postedBy);
+    }
+  } catch (error: any) {
+
   }
 });

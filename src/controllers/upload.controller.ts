@@ -3,7 +3,6 @@ import cloudinary from 'cloudinary';
 export const uploadSingleImageController = (req: any, res: any) => {
   try {
     const file = req.file;
-    console.log(file);
     if (!file) {
       return res.status(400).json({ message: 'No image uploaded!' });
     }
@@ -21,7 +20,6 @@ export const uploadSingleImageController = (req: any, res: any) => {
 
 export const deleteImageController = async (req: any, res: any) => {
   try {
-    console.log(req.body);
     const images = req.body.images;
     if (images.length > 0) {
       await Promise.all(
