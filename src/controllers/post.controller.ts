@@ -12,7 +12,6 @@ import {
 } from '../services/post.service';
 import { validateCreatePost } from '../helper/joiSchemaRegister.helper';
 import { ResponseType } from '../types/Response.type';
-import { constant } from 'lodash';
 import { Constants } from '../enums/constants.enum';
 
 // create
@@ -42,7 +41,6 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
         isAnonymous,
         tags,
         categoryId,
-        // status: Constants.STATUS_ACTIVE,
       });
       const response: ResponseType<typeof newPost> = {
         success: true,
@@ -174,8 +172,20 @@ export const deletePostByIdController = asyncHandler(async (req: AuthRequest, re
     const postId = req.params.postId;
     if (postedBy && postId) {
       const deletePost = await deletePostServise(postId, postedBy);
+      const response: ResponseType<typeof deletePost> = {
+        success: true,
+        data: deletePost,
+        timeStamp: new Date(),
+      };
+      return res.status(200).json(response);
     }
   } catch (error: any) {
-
+    const response: ResponseType<null> = {
+      success: false,
+      data: null,
+      error: error.message,
+      timeStamp: new Date(),
+    };
+    return res.status(500).json(response);
   }
 });

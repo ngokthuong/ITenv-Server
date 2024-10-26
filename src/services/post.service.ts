@@ -38,7 +38,7 @@ export const getPostsWithCategoryIdService = async (
     var skip = (page - 1) * limit;
 
     // const posts = await post.find({ categoryId, status: Constants.STATUS_ACTIVE }).skip(skip).limit(limit).lean();
-    const posts = await post.find({ categoryId }).skip(skip).limit(limit).lean();
+    const posts = await post.find({ categoryId, isDeleted: false }).skip(skip).limit(limit).lean();
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
         if (!postItem.isAnonymous) {
@@ -150,7 +150,7 @@ export const editPostByIdService = async (_id: string, data: any) => {
         title: editPost?.title,
         content: editPost?.content,
         isAnonymous: editPost?.isAnonymous,
-        postStatus: editPost?.status,
+        // isDeleted: editPost?.isDeleted,
         tags: editPost?.tags,
         categoryId: editPost?.categoryId,
       };
@@ -179,7 +179,7 @@ export const votePostService = async (postId: string, userId: string, typeVote: 
 export const deletePostServise = async (postId: string, postedBy: string) => {
   try {
     return await post.findOneAndUpdate({ _id: postId, postedBy: postedBy },
-      // { status: Constants.STATUS_ACTIVE },
+      { isDeleted: true },
       { new: true, runValidators: true }
     )
   } catch (error: any) {
