@@ -105,7 +105,6 @@ export const insertProblems = asyncHandler(async (req: any, res: any) => {
                   tags.push(isExist._id);
                 }
               }
-              console.log('tags: ', tags);
               !question.paidOnly &&
                 (await Problem.create({
                   title: question.title,

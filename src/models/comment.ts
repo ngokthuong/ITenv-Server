@@ -8,7 +8,6 @@ interface IComment extends Document {
   vote: mongoose.Types.ObjectId[];
   downVote: mongoose.Types.ObjectId[];
   content: string;
-  notificationId: mongoose.Types.ObjectId;
   postId: mongoose.Types.ObjectId;
   problemId: mongoose.Types.ObjectId;
 }
@@ -44,10 +43,6 @@ const commentSchema: Schema<IComment> = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Comment',
       default: null,
-    },
-    notificationId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Notification',
     },
     postId: {
       type: mongoose.Schema.Types.ObjectId,
