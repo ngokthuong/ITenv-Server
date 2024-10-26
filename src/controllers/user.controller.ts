@@ -1,16 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
-import { any, string } from 'joi';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import User from '../models/user';
-import Account from '../models/account';
-import { generate } from 'otp-generator';
-import { generateAccessToken } from '../middlewares/jwt.mdw';
 import { getAllUsersService, getCurrentUserService } from '../services/user.service';
+import { AuthRequest } from '../types/AuthRequest.type';
 
-interface AuthRequest extends Request {
-  user?: { _id: string; role: string; user: string };
-}
 // export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
 //   const user = await User.findById(req?.user?.user).populate({
 //     path: 'account',

@@ -26,12 +26,12 @@ export interface IProblem extends Document {
   hint: string[];
   initialCode: IInitialCode[];
   testCase?: ITestCase;
-  vote?: number;
+  vote: mongoose.Types.ObjectId[];
+  downVote: mongoose.Types.ObjectId[];
   postAt: Date;
   editAt?: Date;
   status: boolean;
   category?: mongoose.Types.ObjectId[];
-
 }
 
 const initialCodeSchema: Schema<IInitialCode> = new mongoose.Schema({
@@ -68,69 +68,80 @@ const testCaseSchema: Schema<ITestCase> = new mongoose.Schema({
   },
 });
 
-const problemSchema: Schema<IProblem> = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-  },
-  slug: {
-    type: String,
-    required: true,
-  },
-  content: {
-    type: String,
-    required: false,
-  },
-  level: {
-    type: String,
-    enum: Object.values(EnumLevelProblem),
-    required: true,
-  },
-  tags: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: 'Tag',
-    required: true,
-  },
-  acceptance: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+const problemSchema: Schema<IProblem> = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
     },
-  ],
-  submitBy: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    slug: {
+      type: String,
+      required: true,
     },
-  ],
-  hint: {
-    type: [String],
-    required: false,
+    content: {
+      type: String,
+      required: false,
+    },
+    level: {
+      type: String,
+      enum: Object.values(EnumLevelProblem),
+      required: true,
+    },
+    tags: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'Tag',
+      required: true,
+    },
+    acceptance: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    submitBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    hint: {
+      type: [String],
+      required: false,
+    },
+    initialCode: [initialCodeSchema],
+    testCase: testCaseSchema,
+    vote: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    downVote: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    postAt: {
+      type: Date,
+      default: Date.now,
+    },
+    editAt: {
+      type: Date,
+      default: null,
+    },
+    status: {
+      type: Boolean,
+      required: true,
+    },
+    category: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+      },
+    ],
   },
-  initialCode: [initialCodeSchema],
-  testCase: testCaseSchema,
-  vote: {
-    type: Number,
-    default: 0,
-  },
-  postAt: {
-    type: Date,
-    default: Date.now,
-  },
-  editAt: {
-    type: Date,
-    default: null,
-  },
-  status: {
-    type: Boolean,
-    required: true,
-  },
-  category: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category'
-    }
-  ]
-}, { timestamps: true });
+  { timestamps: true },
+);
 
 export default mongoose.model<IProblem>('Problem', problemSchema);

@@ -6,6 +6,8 @@ interface IComment extends Document {
   parentComment?: mongoose.Types.ObjectId;
   isAccepted: boolean;
   vote: mongoose.Types.ObjectId[];
+  downVote: mongoose.Types.ObjectId[];
+  content: string;
   notificationId: mongoose.Types.ObjectId;
   postId: mongoose.Types.ObjectId;
   problemId: mongoose.Types.ObjectId;
@@ -16,36 +18,47 @@ const commentSchema: Schema<IComment> = new mongoose.Schema(
     commentBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
     },
     vote: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
       },
     ],
+    downVote: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    content: {
+      type: String,
+      required: true,
+    },
     isAccepted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     parentComment: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Comment'
+      ref: 'Comment',
+      default: null,
     },
     notificationId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Notification'
+      ref: 'Notification',
     },
     postId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Post'
+      ref: 'Post',
     },
     problemId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Problem'
+      ref: 'Problem',
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model<IComment>('Comment', commentSchema);

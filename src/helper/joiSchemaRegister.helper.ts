@@ -1,4 +1,4 @@
-import Joi from 'joi'
+import Joi, { any } from 'joi'
 
 const allowedDomains = [
     'gmail.com',
@@ -22,4 +22,31 @@ export const passwordResetPass = Joi.object({
     newPassword: Joi.string().min(6).required(),
     email: Joi.string().required()
 });
+
+export const validateCreatePost = Joi.object({
+    title: Joi.string().required(),
+    content: Joi.string().required(),
+    categoryId: Joi.string().required()
+}).error(errors => {
+    errors.forEach((err: any) => {
+        if (err.context?.key === 'title') {
+            console.log("Validation Error in 'title':", err.message);
+        } else if (err.context?.key === 'content') {
+            console.log("Validation Error in 'content':", err.message);
+        } else if (err.context?.key === 'categoryId') {
+            console.log("Validation Error in 'categoryId':", err.message);
+        } else {
+            console.log("Other Validation Error:", err.message);
+        }
+    });
+    return errors; // Quan trọng: phải return lại errors để Joi tiếp tục xử lý
+});
+
+
+
+
+
+
+
+
 

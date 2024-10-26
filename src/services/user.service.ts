@@ -1,29 +1,39 @@
 import User from '../models/user';
 import Account from '../models/account';
+import { AuthRequest } from '../types/AuthRequest.type';
 
-export const getCurrentUserService = async (req: any) => {
-  const user = await User.findById(req?.user?.user);
-
+export const getCurrentUserService = async (req: AuthRequest) => {
+  console.log(req?.user);
+  const user = await User.findById(req?.user?.userId);
   if (!user) {
     throw new Error('User not found');
   }
+  const account = await Account.findById(req?.user?._accId);
 
-  const account = await Account.findById(req?.user?._id);
-
-    const responseData = {
-        username: user.username,
-        dob: user.dob,
-        phoneNumber: user.phoneNumber,
-        avatar: user.avatar,
-        gender: user.gender,
-        status: user.status,
-        lastOnline: user.lastOnline,
-        email: account?.email,
-        role: account?.role,
-        isBlocked: account?.isBlocked,
-    };
+  const responseData = {
+    _id: user._id,
+    username: user.username,
+    dob: user.dob,
+    phoneNumber: user.phoneNumber,
+    avatar: user.avatar,
+    gender: user.gender,
+    status: user.status,
+    lastOnline: user.lastOnline,
+    email: account?.email,
+    role: account?.role,
+    isBlocked: account?.isBlocked,
+  };
 
   return responseData;
+};
+
+export const findUserById = async (userId: string) => {
+  try {
+    const currentUser = User.findById(userId);
+    return currentUser;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
 };
 
 export const getAllUsersService = async (
