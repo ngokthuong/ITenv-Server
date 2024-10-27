@@ -128,3 +128,7 @@ Use mongoose.model(name, schema)
 26-10-2024	08:55:17----errhandler: /favicon.ico --- GET --- Route /favicon.ico is not found
 26-10-2024	22:55:17----errhandler: /favicon.ico --- GET --- Route /favicon.ico is not found
 26-10-2024	35:35:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+28-10-2024	16:17:00----errhandler: /api/friend/create --- GET --- Route /api/friend/create is not found
+28-10-2024	37:22:00----errhandler: /api/friend/accept --- GET --- Route /api/friend/accept is not found
+28-10-2024	55:22:00----errhandler: /api/friend/accept --- GET --- Route /api/friend/accept is not found
+28-10-2024	07:23:00----errhandler: /api/friend/accept --- GET --- Route /api/friend/accept is not found

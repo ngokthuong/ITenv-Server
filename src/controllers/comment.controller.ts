@@ -7,9 +7,9 @@ import {
 import { AuthRequest } from '../types/AuthRequest.type';
 
 export const getCommentsByPostIdController = asyncHandler(async (req: any, res: any) => {
-  const page = parseInt(req.query.page || 1);
-  const limit = parseInt(req.query.limit || 10);
-  var skip = (page - 1) * limit;
+  // const page = parseInt(req.query.page || 1);
+  // const limit = parseInt(req.query.limit || 10);
+  // var skip = (page - 1) * limit;
   const { postId } = req.params;
   try {
     const comments = await getCommentsByPostIdService(postId);

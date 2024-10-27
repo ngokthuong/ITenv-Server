@@ -1,7 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
-import { getAllUsersService, getCurrentUserService } from '../services/user.service';
+import { getAllFriendsOfUserService, getAllUsersService, getCurrentUserService } from '../services/user.service';
 import { AuthRequest } from '../types/AuthRequest.type';
+import { ResponseType } from '../types/Response.type';
 
 // export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
 //   const user = await User.findById(req?.user?.user).populate({
@@ -33,6 +34,34 @@ import { AuthRequest } from '../types/AuthRequest.type';
 //     throw new Error('User not found');
 //   }
 // });
+
+// have page
+export const getAllFriendsOfUserController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const userId = req.user?.userId;
+    const page = parseInt(req.query.page as string || '1');
+    // const limit = parseInt(req.query.limit as string || '1');
+    const limit = 20;
+    var skip = (page - 1) * limit;
+    if (userId) {
+      const getAllFriends = await getAllFriendsOfUserService({ userId, skip, limit });
+      const response: ResponseType<typeof getAllFriends> = {
+        success: true,
+        data: getAllFriends,
+      };
+      return res.status(200).json(response);
+    }
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      data: null,
+      error: error.message,
+    };
+    return res.status(500).json(response);
+  }
+
+});
+
 export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
   try {
     const responseData = await getCurrentUserService(req);

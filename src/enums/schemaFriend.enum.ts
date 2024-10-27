@@ -1,5 +1,5 @@
 export enum EnumFriend {
-    TYPE_PENDING = "Pending",
-    TYPE_ACCEPT = "Accept",
-    TYPE_BLOCKED = "Blocked"
+    TYPE_PENDING = "PENDING",
+    TYPE_ACCEPT = "ACCEPT",
+    TYPE_BLOCKED = "BLOCKED"
 }
