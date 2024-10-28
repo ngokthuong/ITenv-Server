@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Comment from '../models/comment';
 import post from '../models/post';
 import { updateVoteStatus } from './vote.service';
+import comment from '../models/comment';
 
 
 // GET CMT ( ALL )
@@ -36,17 +37,42 @@ export const getCommentsByPostIdService = async (postId: string) => {
   }
 };
 
-export const postCommentService = async (postId: string, userId: string, cmt: any) => {
+// post && reply
+export const postCommentService = async (parentComment: string, content: string, postId: string, commentBy: string) => {
   try {
-    console.log(postId, userId, cmt);
-    const createdComment = await Comment.create({
-      postId,
-      commentBy: userId,
-      content: cmt.content,
-      parentComment: cmt.parentComment || null,
-    });
-    // await post.findByIdAndUpdate(postId, { $push: { commentBy: createdComment._id } });
-    return createdComment;
+    const findParentComment = await comment.findById(parentComment);
+    // check null
+
+    // if else
+    if (!parentComment) {
+      console.log('parent 1')
+      const createdParentComment = await Comment.create({
+        postId,
+        commentBy,
+        content,
+        parentComment: null,
+      });
+      return createdParentComment;
+    } else if (!findParentComment?.parentComment && parentComment) {
+      console.log('parent 2')
+      const createdChildComment = await Comment.create({
+        postId,
+        commentBy,
+        content,
+        parentComment,
+      });
+      return createdChildComment;
+    } else {
+      console.log('parent 3')
+      const createdChildComment = await Comment.create({
+        commentBy,
+        content,
+        parentComment: findParentComment?.parentComment,
+        postId
+      });
+
+      return createdChildComment;
+    }
   } catch (error: any) {
     throw new Error(error.message);
   }

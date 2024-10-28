@@ -36,7 +36,7 @@ export const postCommentController = asyncHandler(async (req: AuthRequest, res: 
     });
   }
   try {
-    const newComment = await postCommentService(postId, postedBy, comment);
+    const newComment = await postCommentService(comment.parentComment, comment.content, postId, postedBy);
     return res.status(201).json({
       success: true,
       data: newComment,
