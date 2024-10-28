@@ -13,7 +13,7 @@ const verifyAndRegisterService = async (body: any) => {
   const { email, otp } = body;
   // verify OTP
   const verifyOtp = await verifyOtpService(email, otp);
-  if (!verifyOtp)
+  if (!verifyOtp.success)
     return {
       success: false,
       message: 'verify OTP is error',

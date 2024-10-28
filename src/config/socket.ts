@@ -35,7 +35,7 @@ export const setupSocket = (server: any) => {
     await updateUserStatus(user._id, socket);
 
     socketFunctions(socket, user);
-    
+
 
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${user._id}`);

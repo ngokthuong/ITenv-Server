@@ -6,6 +6,8 @@ interface ITag extends Document {
     name?: string;
     description?: string;
     type?: EnumTag;
+    slug: string;
+
 }
 
 const TagSchema = new Schema<ITag>({
@@ -18,6 +20,10 @@ const TagSchema = new Schema<ITag>({
     type: {
         type: String,
         enum: Object.values(EnumTag)
+    },
+    slug: {
+        type: String,
+        required: true,
     },
 }, {
     timestamps: true,

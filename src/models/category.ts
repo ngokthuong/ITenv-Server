@@ -8,6 +8,8 @@ interface ICategory extends Document {
     description: string;
     type: EnumTag;
     isDeleted: boolean;
+    slug: string;
+
 }
 
 const CategorySchema: Schema<ICategory> = new Schema({
@@ -34,7 +36,11 @@ const CategorySchema: Schema<ICategory> = new Schema({
     isDeleted: {
         type: Boolean,
         required: false,
-    }
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
 }, { timestamps: true });
 
 export default mongoose.model<ICategory>('Category', CategorySchema);
