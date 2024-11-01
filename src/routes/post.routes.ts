@@ -14,13 +14,13 @@ import { isAdmin, isUser } from '../middlewares/verify_roles';
 
 const router = Router();
 
-router.post('/create-post', verifyAccessToken, createPostController);
-router.get('/all-posts/:categoryId', getPostsWithCategoryIdController);
+router.post('/create-post', verifyAccessToken, isUser, createPostController);
+router.get('/all-posts/:categoryId', verifyAccessToken, isAdmin, isUser, getPostsWithCategoryIdController);
 router.get('/:_id', getPostByIdController);
-router.put('/edit-post', verifyAccessToken, isUser, editPostByIdController);
-router.post('/vote/:_id', verifyAccessToken, isUser, votePostController);
+router.put('/edit-post', verifyAccessToken, isUser, isAdmin, editPostByIdController);
+router.post('/vote/:_id', verifyAccessToken, isUser, isAdmin, votePostController);
 router.get('/search/:categoryId', searchPostWithCategoryIdController);
-router.get('/delete/:postId', verifyAccessToken, isAdmin, deletePostByIdController);
+router.get('/delete/:postId', verifyAccessToken, isUser, isAdmin, deletePostByIdController);
 router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileController);
 
 export default router;

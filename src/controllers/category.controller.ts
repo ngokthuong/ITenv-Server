@@ -30,6 +30,7 @@ export const findCatesOfPostsController = asyncHandler(async (req: any, res: any
         const response: ResponseType<typeof categories> = {
             success: true,
             data: categories,
+            message: "cate"
         };
         return res.status(200).json(response);
     } catch (error: any) {

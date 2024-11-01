@@ -5,6 +5,8 @@ import { QueryOption } from '../types/QueryOption.type';
 import mongoose from 'mongoose';
 import { updateVoteStatus } from './vote.service';
 import share from '../models/share';
+import message from '../models/message';
+import comment from '../models/comment';
 // USER + ADMIN
 export const createPostService = async (data: any) => {
   try {
@@ -25,6 +27,7 @@ export const createPostService = async (data: any) => {
 
 // have pagination
 // ALL
+
 export const getPostsWithCategoryIdService = async (
   categoryId: string,
   queryOption: QueryOption,
@@ -32,11 +35,39 @@ export const getPostsWithCategoryIdService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 10;
-    var skip = (page - 1) * limit;
+    const sortField = queryOption.sortField || "createdAt";
+    const sortOrder = queryOption.sortOrder || "DESC"
+    const skip = (page - 1) * limit;
 
-    const posts = await post.find({ categoryId, isDeleted: false }).skip(skip).limit(limit).lean();
+    const querySearch = {
+      $and: [
+        categoryId ? { categoryId } : {},
+        queryOption.search ? {
+          $or: [
+            { title: { $regex: queryOption.search, $options: 'i' } },
+            {
+              $and: [
+                { content: { $regex: queryOption.search, $options: 'i' } },
+                { title: { $exists: false } }
+              ]
+            }
+          ]
+        } : {}
+      ]
+    };
+
+    const posts = await post.find(querySearch)
+      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+    // const page = queryOption?.page || 1;
+    // const limit = queryOption?.pageSize || 10;
+    // var skip = (page - 1) * limit;
+    // const posts = await post.find({ categoryId, isDeleted: false }).skip(skip).limit(limit).lean();
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
+        const totalComment = await comment.countDocuments({ postId: postItem._id });
         if (!postItem.isAnonymous) {
           const populatedUser = await post.populate(postItem, [
             {
@@ -49,6 +80,7 @@ export const getPostsWithCategoryIdService = async (
               select: 'name description type',
             },
           ]);
+          (populatedUser as any).totalComment = totalComment;
           return populatedUser;
         } else {
           if (postItem.postedBy) {
@@ -59,6 +91,7 @@ export const getPostsWithCategoryIdService = async (
             model: 'Tag',
             select: 'name description type',
           });
+          (populatedTags as any).totalComment = totalComment;
           return populatedTags;
         }
       }),

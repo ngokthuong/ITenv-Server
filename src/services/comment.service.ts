@@ -18,12 +18,16 @@ const getChildrenComments = async (commentId: string) => {
   return children;
 };
 
-export const getCommentsByPostIdService = async (postId: string) => {
+export const getCommentsByPostIdService = async (postId: string, page: number) => {
+  const limit = 15;
+  var skip = (page - 1) * limit;
   try {
     // Lấy bình luận gốc ( ko co parentcmt)
     const comments = await Comment.find({ postId, parentComment: null }) // Bình luận không có cha
       .populate('commentBy', 'username avatar _id')
       .sort({ isAccepted: -1, vote: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .exec();
 
     // Lấy bình luận con
@@ -95,3 +99,28 @@ export const voteCommentService = async (commentId: string, userId: string, type
     throw new Error(error.message);
   }
 };
+
+export const deleteCommentService = async (commentId: string): Promise<boolean> => {
+  try {
+    const deleteComment = await comment.findByIdAndUpdate(
+      commentId,
+      { isDeleted: true },
+      { new: true }
+    );
+
+    return deleteComment !== null;
+  } catch (error: any) {
+    throw new Error('Failed to delete comment');
+  }
+}
+
+export const editCommentByIdService = async (commentId: string, content: string) => {
+  try {
+    const currentComment = await comment.findOne({ _id: commentId, isDeleted: false })
+    if (currentComment)
+      return await comment.findByIdAndUpdate(commentId, { content: content }, { new: true })
+    else return null
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}

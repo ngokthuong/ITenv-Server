@@ -156,3 +156,7 @@ Use mongoose.model(name, schema)
 28-10-2024	16:19:14----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
 28-10-2024	46:19:14----errhandler: /api/storage/upload/image --- POST --- Image file format webp not allowed
 28-10-2024	36:08:16----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+28-10-2024	13:41:17----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+29-10-2024	26:31:10----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+29-10-2024	29:29:11----errhandler: /api/comment/delete/6720561738acd45a5c88c7c1 --- GET --- Route /api/comment/delete/6720561738acd45a5c88c7c1 is not found
+31-10-2024	24:02:01----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found

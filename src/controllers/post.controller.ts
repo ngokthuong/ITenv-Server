@@ -73,7 +73,6 @@ export const getPostsWithCategoryIdController = asyncHandler(async (req: any, re
       success: true,
       data: posts,
       total: totalPosts,
-
     };
     return res.status(200).json(response);
   } catch (error: any) {
@@ -245,3 +244,4 @@ export const sharePostToProfileController = asyncHandler(async (req: AuthRequest
     return res.status(500).json(response);
   }
 });
+
