@@ -3,10 +3,10 @@ import post from '../models/post';
 import { findUserById } from './user.service';
 import { QueryOption } from '../types/QueryOption.type';
 import mongoose from 'mongoose';
-import { TypeVoteEnum } from '../enums/typeVote.enum';
 import { updateVoteStatus } from './vote.service';
-import { Constants } from '../enums/constants.enum';
-
+import share from '../models/share';
+import message from '../models/message';
+import comment from '../models/comment';
 // USER + ADMIN
 export const createPostService = async (data: any) => {
   try {
@@ -27,6 +27,7 @@ export const createPostService = async (data: any) => {
 
 // have pagination
 // ALL
+
 export const getPostsWithCategoryIdService = async (
   categoryId: string,
   queryOption: QueryOption,
@@ -34,13 +35,39 @@ export const getPostsWithCategoryIdService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 10;
+    const sortField = queryOption.sortField || "createdAt";
+    const sortOrder = queryOption.sortOrder || "DESC"
+    const skip = (page - 1) * limit;
 
-    var skip = (page - 1) * limit;
+    const querySearch = {
+      $and: [
+        categoryId ? { categoryId } : {},
+        queryOption.search ? {
+          $or: [
+            { title: { $regex: queryOption.search, $options: 'i' } },
+            {
+              $and: [
+                { content: { $regex: queryOption.search, $options: 'i' } },
+                { title: { $exists: false } }
+              ]
+            }
+          ]
+        } : {}
+      ]
+    };
 
-    // const posts = await post.find({ categoryId, status: Constants.STATUS_ACTIVE }).skip(skip).limit(limit).lean();
-    const posts = await post.find({ categoryId, isDeleted: false }).skip(skip).limit(limit).lean();
+    const posts = await post.find(querySearch)
+      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+    // const page = queryOption?.page || 1;
+    // const limit = queryOption?.pageSize || 10;
+    // var skip = (page - 1) * limit;
+    // const posts = await post.find({ categoryId, isDeleted: false }).skip(skip).limit(limit).lean();
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
+        const totalComment = await comment.countDocuments({ postId: postItem._id });
         if (!postItem.isAnonymous) {
           const populatedUser = await post.populate(postItem, [
             {
@@ -53,6 +80,7 @@ export const getPostsWithCategoryIdService = async (
               select: 'name description type',
             },
           ]);
+          (populatedUser as any).totalComment = totalComment;
           return populatedUser;
         } else {
           if (postItem.postedBy) {
@@ -63,11 +91,11 @@ export const getPostsWithCategoryIdService = async (
             model: 'Tag',
             select: 'name description type',
           });
+          (populatedTags as any).totalComment = totalComment;
           return populatedTags;
         }
       }),
     );
-    console.log(posts);
     const totalPosts = await post.countDocuments({ categoryId });
     return {
       posts: populatedPosts,
@@ -176,12 +204,64 @@ export const votePostService = async (postId: string, userId: string, typeVote: 
   }
 };
 
+export const searchPostsWithCategoryService = async (categoryId: string, queryOption: QueryOption) => {
+  try {
+    const page = queryOption?.page || 1;
+    const limit = queryOption?.pageSize || 10;
+    const sortField = queryOption.sortField || "createdAt";
+    const sortOrder = queryOption.sortOrder || "DESC"
+    const skip = (page - 1) * limit;
+
+    const querySearch = {
+      $and: [
+        categoryId ? { categoryId } : {},
+        queryOption.search ? {
+          $or: [
+            { title: { $regex: queryOption.search, $options: 'i' } },
+            {
+              $and: [
+                { content: { $regex: queryOption.search, $options: 'i' } },
+                { title: { $exists: false } }
+              ]
+            }
+          ]
+        } : {}
+      ]
+    };
+
+    const posts = await post.find(querySearch)
+      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return posts;
+
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
 export const deletePostServise = async (postId: string, postedBy: string) => {
   try {
     return await post.findOneAndUpdate({ _id: postId, postedBy: postedBy },
       { isDeleted: true },
       { new: true, runValidators: true }
     )
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+interface SharePostData {
+  sharedBy: string;
+  postId: string;
+  shareToProfile?: boolean;
+}
+
+export const sharePostToProfileService = async (data: SharePostData) => {
+  try {
+    data.shareToProfile = true;
+    return await share.create(data);
   } catch (error: any) {
     throw new Error(error.message)
   }

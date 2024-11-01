@@ -1,18 +1,19 @@
 import asyncHandler from 'express-async-handler';
 import {
+  deleteCommentService,
+  editCommentByIdService,
   getCommentsByPostIdService,
   postCommentService,
   voteCommentService,
 } from '../services/comment.service';
 import { AuthRequest } from '../types/AuthRequest.type';
+import { ResponseType } from '../types/Response.type';
 
 export const getCommentsByPostIdController = asyncHandler(async (req: any, res: any) => {
   const page = parseInt(req.query.page || 1);
-  const limit = parseInt(req.query.limit || 10);
-  var skip = (page - 1) * limit;
   const { postId } = req.params;
   try {
-    const comments = await getCommentsByPostIdService(postId);
+    const comments = await getCommentsByPostIdService(postId, page);
     return res.status(200).json({
       success: true,
       data: comments,
@@ -36,7 +37,7 @@ export const postCommentController = asyncHandler(async (req: AuthRequest, res: 
     });
   }
   try {
-    const newComment = await postCommentService(postId, postedBy, comment);
+    const newComment = await postCommentService(comment.parentComment, comment.content, postId, postedBy);
     return res.status(201).json({
       success: true,
       data: newComment,
@@ -59,4 +60,58 @@ export const voteCommentController = asyncHandler(async (req: AuthRequest, res: 
   } catch (error) {
     return res.status(200).json({ success: false, message: 'failed' });
   }
+});
+
+export const deleteCommentController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const commentId = req.params._id;
+    const result = await deleteCommentService(commentId);
+    if (result) {
+      const response: ResponseType<null> = {
+        success: true,
+        message: 'Comment is deleted',
+      };
+      return res.status(200).json(response);
+    }
+    const response: ResponseType<null> = {
+      success: false,
+      message: 'Comment is not deleted',
+    };
+    return res.status(404).json(response);
+
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      message: error.message,
+    };
+    return res.status(500).json(response);
+  }
+});
+
+export const editCommentByIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const commentId = req.params._id;
+    const { content } = req.body;
+    const result = await editCommentByIdService(commentId, content);
+    if (result != null) {
+      const response: ResponseType<typeof result> = {
+        success: true,
+        data: result,
+        message: 'Comment is edited',
+      };
+      return res.status(200).json(response);
+    }
+    const response: ResponseType<null> = {
+      success: false,
+      message: 'Failed to edit comment',
+    };
+    return res.status(500).json(response);
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      message: 'Failed to edit comment',
+    };
+    return res.status(500).json(response);
+  }
+
 });

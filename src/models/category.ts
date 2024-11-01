@@ -6,7 +6,10 @@ interface ICategory extends Document {
     name: string;
     parentCategory: mongoose.Types.ObjectId;
     description: string;
-    type: EnumTag
+    type: EnumTag;
+    isDeleted: boolean;
+    slug: string;
+
 }
 
 const CategorySchema: Schema<ICategory> = new Schema({
@@ -29,7 +32,15 @@ const CategorySchema: Schema<ICategory> = new Schema({
         type: String,
         enum: Object.values(EnumTag),
         required: true,
-    }
+    },
+    isDeleted: {
+        type: Boolean,
+        required: false,
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
 }, { timestamps: true });
 
 export default mongoose.model<ICategory>('Category', CategorySchema);

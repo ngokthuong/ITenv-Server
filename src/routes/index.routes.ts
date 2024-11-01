@@ -8,6 +8,8 @@ import postRouter from './post.routes';
 import uploadRouter from './upload.routes';
 import tagRouter from './tag.routes';
 import commentRouter from './comment.routes';
+import categoryRouter from './category.routes';
+import friendRouter from './friend.routes';
 const initRoutes = (app: Express) => {
   // API
   app.use('/api/account', accountRouter);
@@ -17,6 +19,8 @@ const initRoutes = (app: Express) => {
   app.use('/api/storage/upload', uploadRouter);
   app.use('/api/tag', tagRouter);
   app.use('/api/comment', commentRouter);
+  app.use('/api/category', categoryRouter);
+  app.use('/api/friend', friendRouter);
   //  ko tim dc api
   app.use(notFound);
   app.use(errHandler);

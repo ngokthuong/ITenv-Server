@@ -8,11 +8,12 @@ import {
   editPostByIdService,
   getPostByIdService,
   getPostsWithCategoryIdService,
+  searchPostsWithCategoryService,
+  sharePostToProfileService,
   votePostService,
 } from '../services/post.service';
 import { validateCreatePost } from '../helper/joiSchemaRegister.helper';
 import { ResponseType } from '../types/Response.type';
-import { Constants } from '../enums/constants.enum';
 
 // create
 // mac dinh khi create Post thi status la false
@@ -29,7 +30,7 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
         success: false,
         data: null,
         error: error.message,
-        timeStamp: new Date(),
+
       };
       return res.status(500).json(response);
     }
@@ -45,7 +46,7 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
       const response: ResponseType<typeof newPost> = {
         success: true,
         data: newPost,
-        timeStamp: new Date(),
+
       };
       return res.status(200).json(response);
     }
@@ -54,7 +55,7 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
       success: false,
       data: null,
       error: error.message,
-      timeStamp: new Date(),
+
     };
     return res.status(500).json(response);
   }
@@ -72,7 +73,6 @@ export const getPostsWithCategoryIdController = asyncHandler(async (req: any, re
       success: true,
       data: posts,
       total: totalPosts,
-      timeStamp: new Date(),
     };
     return res.status(200).json(response);
   } catch (error: any) {
@@ -80,7 +80,7 @@ export const getPostsWithCategoryIdController = asyncHandler(async (req: any, re
       success: false,
       data: null,
       error: error.message,
-      timeStamp: new Date(),
+
     };
     return res.status(500).json(response);
   }
@@ -92,7 +92,7 @@ export const getPostByIdController = asyncHandler(async (req: any, res: any) => 
     const response: ResponseType<typeof data> = {
       success: true,
       data: data,
-      timeStamp: new Date(),
+
     };
     return res.status(200).json(response);
   } catch (error: any) {
@@ -100,7 +100,7 @@ export const getPostByIdController = asyncHandler(async (req: any, res: any) => 
       success: false,
       data: null,
       error: error.message,
-      timeStamp: new Date(),
+
     };
     return res.status(500).json(response);
   }
@@ -135,7 +135,7 @@ export const editPostByIdController = asyncHandler(async (req: AuthRequest, res:
         success: false,
         data: null,
         error: error.message,
-        timeStamp: new Date(),
+
       };
       return res.status(500).json(response);
     }
@@ -151,7 +151,7 @@ export const editPostByIdController = asyncHandler(async (req: AuthRequest, res:
       const response: ResponseType<typeof editPost> = {
         success: true,
         data: editPost,
-        timeStamp: new Date(),
+
       };
       return res.status(200).json(response);
     }
@@ -160,11 +160,14 @@ export const editPostByIdController = asyncHandler(async (req: AuthRequest, res:
       success: false,
       data: null,
       error: error.message,
-      timeStamp: new Date(),
+
     };
     return res.status(500).json(response);
   }
 });
+
+// 
+// export const updateViewPost = asyncHandler(async (req: ))
 
 export const deletePostByIdController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
@@ -175,7 +178,6 @@ export const deletePostByIdController = asyncHandler(async (req: AuthRequest, re
       const response: ResponseType<typeof deletePost> = {
         success: true,
         data: deletePost,
-        timeStamp: new Date(),
       };
       return res.status(200).json(response);
     }
@@ -184,8 +186,62 @@ export const deletePostByIdController = asyncHandler(async (req: AuthRequest, re
       success: false,
       data: null,
       error: error.message,
-      timeStamp: new Date(),
+
     };
     return res.status(500).json(response);
   }
 });
+
+// All
+// Search post 
+export const searchPostWithCategoryIdController = asyncHandler(async (req: any, res: any) => {
+  try {
+    const queryOption = req.query;
+    const searchPosts = await searchPostsWithCategoryService(
+      req.params.categoryId,
+      queryOption,
+    );
+    const response: ResponseType<typeof searchPosts> = {
+      success: true,
+      data: searchPosts,
+    };
+    return res.status(200).json(response);
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      data: null,
+      error: error.message,
+    };
+    return res.status(500).json(response);
+  }
+});
+
+// Share post 
+export const sharePostToProfileController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const sharedBy = req.user?.userId;
+    const postId = req.params.postId;
+    if (sharedBy && postId) {
+      const sharePost = await sharePostToProfileService({ sharedBy, postId });
+      const response: ResponseType<typeof sharePost> = {
+        success: true,
+        data: sharePost,
+      };
+      return res.status(200).json(response);
+    }
+    const response: ResponseType<null> = {
+      success: false,
+      data: null,
+      error: "Share post is not successfully",
+    };
+    return res.status(500).json(response);
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      data: null,
+      error: error.message,
+    };
+    return res.status(500).json(response);
+  }
+});
+

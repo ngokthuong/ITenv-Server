@@ -10,6 +10,8 @@ interface IComment extends Document {
   content: string;
   postId: mongoose.Types.ObjectId;
   problemId: mongoose.Types.ObjectId;
+  children?: IComment[];
+  isDeleted: boolean
 }
 
 const commentSchema: Schema<IComment> = new mongoose.Schema(
@@ -41,8 +43,7 @@ const commentSchema: Schema<IComment> = new mongoose.Schema(
     },
     parentComment: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Comment',
-      default: null,
+      ref: 'Comment'
     },
     postId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -51,6 +52,14 @@ const commentSchema: Schema<IComment> = new mongoose.Schema(
     problemId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Problem',
+    },
+    children: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Comment'
+    }],
+    isDeleted: {
+      type: Boolean,
+      default: false
     },
   },
   { timestamps: true },

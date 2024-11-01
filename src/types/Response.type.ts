@@ -1,7 +1,12 @@
 export type ResponseType<T> = {
   success: boolean;
-  data: T;
+  data?: T | null;
   total?: number;
   error?: string;
-  timeStamp?: Date
+  message?: string;
 };
+
+export interface ResponseAxios {
+  success: boolean;
+  message: string;
+}

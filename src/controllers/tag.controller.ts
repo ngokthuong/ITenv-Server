@@ -9,7 +9,6 @@ export const getAllTagsController = async (req: any, res: any) => {
             success: true,
             data: tags,
             total: totalTags,
-            timeStamp: new Date()
         }
         return res.status(200).json(response);
     } catch (error: any) {
@@ -17,7 +16,6 @@ export const getAllTagsController = async (req: any, res: any) => {
             success: false,
             data: null,
             error: error.message,
-            timeStamp: new Date()
         };
         return res.status(500).json(response);
     }
