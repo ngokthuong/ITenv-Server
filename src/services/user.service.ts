@@ -10,7 +10,9 @@ export const getCurrentUserService = async (req: AuthRequest) => {
     throw new Error('User not found');
   }
   const account = await Account.findById(req?.user?._accId);
-
+  const friends = await Friend.find({
+    $or: [{ sendBy: user._id }, { receiver: user._id }],
+  });
   const responseData = {
     _id: user._id,
     username: user.username,
@@ -23,6 +25,7 @@ export const getCurrentUserService = async (req: AuthRequest) => {
     email: account?.email,
     role: account?.role,
     isBlocked: account?.isBlocked,
+    friends,
   };
 
   return responseData;
@@ -52,24 +55,55 @@ export const getAllUsersService = async (
     : {};
 
   const users = await User.find(searchQuery)
-
     .skip((pageNumber - 1) * limitNumber)
-    .limit(limitNumber);
+    .limit(limitNumber)
+    .lean();
 
+  const userWithFriends = await Promise.all(
+    users.map(async (user) => {
+      const friends = await Friend.find({
+        $or: [{ sendBy: user._id }, { receiver: user._id }],
+        status: EnumFriend.TYPE_ACCEPT,
+      });
+
+      const formattedFriends = await Promise.all(
+        friends.map(async (friend) => {
+          const isSender = friend.sendBy.toString() === user._id.toString();
+          const friendId = isSender ? friend.receiver : friend.sendBy;
+          const friendDetails = await User.findById(friendId).select('avatar username _id');
+          return friendDetails;
+        }),
+      );
+
+      return { ...user, friends: formattedFriends };
+    }),
+  );
   const total = await User.countDocuments(searchQuery);
 
-  return { total, users };
+  return { total, users: userWithFriends };
 };
 
 //  get all friends
 
+//  friends:{
+// 	total : 100
+// 	friends : [limit 5]
+// } [
+//      {
+//                     "_id": "66fb8b527c1e17e7cd859266",
+//                     "username": "tranduongthieu",
+//                     "avatar": "https://res.cloudinary.com/dcti265mg/image/upload/v1725036493/png-clipart-united-states-avatar-organization-information-user-avatar-service-computer-wallpaper_xa2b6h.png"
+//                 }
+//             ]
+
 export const getAllFriendsOfUserService = async (data: any) => {
   try {
-    const { userId, limit = 20, skip } = data;
-
+    //type =
+    const { userId, limit = 20, skip, type } = data;
+    const statusCondition = type === 'ALL' ? {} : { status: type };
     const friends = await Friend.find({
       $or: [{ sendBy: userId }, { receiver: userId }],
-      status: EnumFriend.TYPE_ACCEPT,
+      ...statusCondition,
     });
     // Tạo danh sách các friend IDs từ các bản ghi tìm được
     const friendIDs = friends.map((Friend) =>

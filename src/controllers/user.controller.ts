@@ -1,6 +1,10 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
-import { getAllFriendsOfUserService, getAllUsersService, getCurrentUserService } from '../services/user.service';
+import {
+  getAllFriendsOfUserService,
+  getAllUsersService,
+  getCurrentUserService,
+} from '../services/user.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 import { ResponseType } from '../types/Response.type';
 
@@ -39,7 +43,7 @@ import { ResponseType } from '../types/Response.type';
 export const getAllFriendsOfUserController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
     const userId = req.user?.userId;
-    const page = parseInt(req.query.page as string || '1');
+    const page = parseInt((req.query.page as string) || '1');
     // const limit = parseInt(req.query.limit as string || '1');
     const limit = 20;
     var skip = (page - 1) * limit;
@@ -59,7 +63,6 @@ export const getAllFriendsOfUserController = asyncHandler(async (req: AuthReques
     };
     return res.status(500).json(response);
   }
-
 });
 
 export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -111,7 +114,7 @@ export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) =
 
   try {
     const { total, users } = await getAllUsersService(pageNumber, limitNumber, q.toString());
-
+    console.log(users);
     res.json({
       success: true,
       total,
