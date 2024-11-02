@@ -11,9 +11,7 @@ export const getCurrentUserService = async (req: AuthRequest) => {
     throw new Error('User not found');
   }
   const account = await Account.findById(req?.user?._accId);
-  const friends = await Friend.find({
-    $or: [{ sendBy: user._id }, { receiver: user._id }],
-  });
+
   const responseData = {
     _id: user._id,
     username: user.username,
@@ -26,7 +24,6 @@ export const getCurrentUserService = async (req: AuthRequest) => {
     email: account?.email,
     role: account?.role,
     isBlocked: account?.isBlocked,
-    friends,
   };
 
   return responseData;
@@ -48,63 +45,45 @@ export const getAllUsersService = async (
 ) => {
   const searchQuery = search
     ? {
-        $or: [
-          { username: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-        ],
-      }
+      $or: [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ],
+    }
     : {};
 
   const users = await User.find(searchQuery)
     .skip((pageNumber - 1) * limitNumber)
-    .limit(limitNumber)
-    .lean();
+    .limit(limitNumber);
 
-  const userWithFriends = await Promise.all(
-    users.map(async (user) => {
-      const friends = await Friend.find({
-        $or: [{ sendBy: user._id }, { receiver: user._id }],
-        status: EnumFriend.TYPE_ACCEPT,
-      });
-
-      const formattedFriends = await Promise.all(
-        friends.map(async (friend) => {
-          const isSender = friend.sendBy.toString() === user._id.toString();
-          const friendId = isSender ? friend.receiver : friend.sendBy;
-          const friendDetails = await User.findById(friendId).select('avatar username _id');
-          return friendDetails;
-        }),
-      );
-
-      return { ...user, friends: formattedFriends };
-    }),
-  );
   const total = await User.countDocuments(searchQuery);
 
-  return { total, users: userWithFriends };
+  return { total, users };
 };
 
-//  get all friends
+//  get all friends 
 
 export const getAllFriendsOfUserByTypeService = async (data: any) => {
   try {
     const { userId, limit, skip, type } = data;
-
+    // 
+    const statusCondition = type === 'ALL' ? {} : { status: type };
     const friends = await Friend.find({
       $or: [{ sendBy: userId }, { receiver: userId }],
-      status: type
+      ...statusCondition
     });
     // Tạo danh sách các friend IDs từ các bản ghi tìm được
-    const friendIDs = friends.map((Friend) =>
-      Friend.sendBy.toString() === userId.toString() ? Friend.receiver : Friend.sendBy,
+    const friendIDs = friends.map(Friend =>
+      Friend.sendBy.toString() === userId.toString() ? Friend.receiver : Friend.sendBy
     );
     // Phân trang khi tìm user từ danh sách friend IDs
     const friendUsers = await User.find({ _id: { $in: friendIDs } })
       .skip(skip)
       .limit(limit);
     return friendUsers;
+
   } catch (error: any) {
-    throw new Error(error.message);
+    throw new Error(error.message)
   }
 }
 
