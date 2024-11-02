@@ -174,3 +174,5 @@ Use mongoose.model(name, schema)
 02-11-2024	52:14:10----errhandler: /api/user/all/users/friend-page --- GET --- Route /api/user/all/users/friend-page is not found
 02-11-2024	11:15:10----errhandler: /api/user/all/users/friend-page --- GET --- Route /api/user/all/users/friend-page is not found
 02-11-2024	30:15:10----errhandler: /api/user/all/users/friend-page?page=1&pageSize=10 --- GET --- Route /api/user/all/users/friend-page?page=1&pageSize=10 is not found
+02-11-2024	05:33:11----errhandler: /api/notification/all-notification --- GET --- Account is not User
+02-11-2024	32:33:11----errhandler: /api/notification/all-notification --- GET --- Account is not User

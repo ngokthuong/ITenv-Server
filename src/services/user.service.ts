@@ -87,7 +87,6 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
   }
 }
 
-
 export const getUsersForFriendPageService = async (userId: string, page: number, pageSize: number) => {
   const limit = pageSize
   const skip = (page - 1) * limit;

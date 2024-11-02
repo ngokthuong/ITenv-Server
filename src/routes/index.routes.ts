@@ -10,6 +10,7 @@ import tagRouter from './tag.routes';
 import commentRouter from './comment.routes';
 import categoryRouter from './category.routes';
 import friendRouter from './friend.routes';
+import notificationRouter from './notification.routes';
 const initRoutes = (app: Express) => {
   // API
   app.use('/api/account', accountRouter);
@@ -21,6 +22,7 @@ const initRoutes = (app: Express) => {
   app.use('/api/comment', commentRouter);
   app.use('/api/category', categoryRouter);
   app.use('/api/friend', friendRouter);
+  app.use('/api/notification', notificationRouter);
   //  ko tim dc api
   app.use(notFound);
   app.use(errHandler);

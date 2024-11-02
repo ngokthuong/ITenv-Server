@@ -80,7 +80,6 @@ export const getPostsWithCategoryIdController = asyncHandler(async (req: any, re
       success: false,
       data: null,
       error: error.message,
-
     };
     return res.status(500).json(response);
   }
