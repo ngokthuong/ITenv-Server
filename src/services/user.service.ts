@@ -5,7 +5,7 @@ import Friend from '../models/friend';
 import { EnumFriend } from '../enums/schemaFriend.enum';
 
 export const getCurrentUserService = async (req: AuthRequest) => {
-  console.log(req?.user);
+
   const user = await User.findById(req?.user?.userId);
   if (!user) {
     throw new Error('User not found');
@@ -53,7 +53,6 @@ export const getAllUsersService = async (
     : {};
 
   const users = await User.find(searchQuery)
-
     .skip((pageNumber - 1) * limitNumber)
     .limit(limitNumber);
 
@@ -64,27 +63,62 @@ export const getAllUsersService = async (
 
 //  get all friends 
 
-export const getAllFriendsOfUserService = async (data: any) => {
+export const getAllFriendsOfUserByTypeService = async (data: any) => {
   try {
-    const { userId, limit = 20, skip } = data;
+    const { userId, limit, skip, type } = data;
 
     const friends = await Friend.find({
       $or: [{ sendBy: userId }, { receiver: userId }],
-      status: EnumFriend.TYPE_ACCEPT
+      status: type
     });
     // Tạo danh sách các friend IDs từ các bản ghi tìm được
     const friendIDs = friends.map(Friend =>
       Friend.sendBy.toString() === userId.toString() ? Friend.receiver : Friend.sendBy
     );
-    console.log(friendIDs)
     // Phân trang khi tìm user từ danh sách friend IDs
     const friendUsers = await User.find({ _id: { $in: friendIDs } })
       .skip(skip)
       .limit(limit);
-    console.log(friendUsers)
     return friendUsers;
 
   } catch (error: any) {
     throw new Error(error.message)
   }
+}
+
+
+export const getUsersForFriendPageService = async (userId: string, page: number, pageSize: number) => {
+  const limit = pageSize
+  const skip = (page - 1) * limit;
+  const { users } = await getAllUsersService(page, limit, '');
+  const usersWithFriends = await Promise.all(
+    users.map(async (user) => {
+      const friends = await getAllFriendsOfUserByTypeService({
+        userId: user._id,
+        limit,
+        skip,
+        type: EnumFriend.TYPE_ACCEPT,
+      });
+      return {
+        ...user.toObject(),
+        friends,
+      };
+    })
+  );
+  // tim trang thai cua user xem da ket ban voi nguoi su dung hien tai chua
+  const result = await Promise.all(
+    usersWithFriends.map(async (user) => {
+      const friendWithMe = await Friend.findOne({
+        $or: [
+          { sendBy: userId, receiver: user._id },
+          { sendBy: user._id, receiver: userId }
+        ]
+      });
+      return {
+        ...user,
+        friendWithMe
+      };
+    })
+  )
+  return result;
 }

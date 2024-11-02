@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
-import { getAllFriendsOfUserService, getAllUsersService, getCurrentUserService } from '../services/user.service';
+import { getAllFriendsOfUserByTypeService, getAllUsersService, getCurrentUserService, getUsersForFriendPageService } from '../services/user.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 import { ResponseType } from '../types/Response.type';
 
@@ -35,16 +35,19 @@ import { ResponseType } from '../types/Response.type';
 //   }
 // });
 
-// have page
-export const getAllFriendsOfUserController = asyncHandler(async (req: AuthRequest, res: any) => {
+// have page ( dùng để tìm friend với các type khác nhau)
+// dùng trong profile của user
+export const getAllFriendsOfUserByTypeController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
     const userId = req.user?.userId;
+    const type = req.query.type
     const page = parseInt(req.query.page as string || '1');
     // const limit = parseInt(req.query.limit as string || '1');
     const limit = 20;
     var skip = (page - 1) * limit;
+
     if (userId) {
-      const getAllFriends = await getAllFriendsOfUserService({ userId, skip, limit });
+      const getAllFriends = await getAllFriendsOfUserByTypeService({ userId, skip, limit, type });
       const response: ResponseType<typeof getAllFriends> = {
         success: true,
         data: getAllFriends,
@@ -59,8 +62,30 @@ export const getAllFriendsOfUserController = asyncHandler(async (req: AuthReques
     };
     return res.status(500).json(response);
   }
-
 });
+
+// get all user cho FriendPage ( have pageable )
+export const getUsersForFriendPageController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const userId = req.user?.userId;
+    const page = parseInt(req.query.page as string || '1');
+    const pageSize = parseInt(req.query.pageSize as string || '20');
+
+    const result = await getUsersForFriendPageService(userId as string, page, pageSize);
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result
+    };
+    return res.status(200).json(response);
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      data: null,
+      error: error.message,
+    };
+    return res.status(500).json(response);
+  }
+})
 
 export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
   try {
@@ -103,6 +128,7 @@ export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Respons
 //   });
 // });
 
+// foradmin
 export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { page = 1, limit = 10, q = '' } = req.query;
 

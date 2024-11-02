@@ -160,3 +160,17 @@ Use mongoose.model(name, schema)
 29-10-2024	26:31:10----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
 29-10-2024	29:29:11----errhandler: /api/comment/delete/6720561738acd45a5c88c7c1 --- GET --- Route /api/comment/delete/6720561738acd45a5c88c7c1 is not found
 31-10-2024	24:02:01----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+01-11-2024	02:51:23----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+01-11-2024	06:51:23----errhandler: /api/post/all-posts/672274d2989486a94b0d79e4/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+01-11-2024	06:51:23----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+01-11-2024	08:51:23----errhandler: /api/post/all-posts/672274d2989486a94b0d79e4/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+01-11-2024	08:51:23----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+01-11-2024	24:51:23----errhandler: /api/post/all-posts/672274d2989486a94b0d79e4/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+01-11-2024	29:51:23----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+01-11-2024	57:53:23----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+01-11-2024	37:57:23----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	47:12:10----errhandler: /api/user/all/users/friend-page --- GET --- Route /api/user/all/users/friend-page is not found
+02-11-2024	11:14:10----errhandler: /api/user/all/users/friend-page --- GET --- Route /api/user/all/users/friend-page is not found
+02-11-2024	52:14:10----errhandler: /api/user/all/users/friend-page --- GET --- Route /api/user/all/users/friend-page is not found
+02-11-2024	11:15:10----errhandler: /api/user/all/users/friend-page --- GET --- Route /api/user/all/users/friend-page is not found
+02-11-2024	30:15:10----errhandler: /api/user/all/users/friend-page?page=1&pageSize=10 --- GET --- Route /api/user/all/users/friend-page?page=1&pageSize=10 is not found
