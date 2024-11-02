@@ -137,7 +137,7 @@ export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) =
 
   try {
     const { total, users } = await getAllUsersService(pageNumber, limitNumber, q.toString());
-
+    console.log(users);
     res.json({
       success: true,
       total,
