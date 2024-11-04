@@ -174,5 +174,83 @@ Use mongoose.model(name, schema)
 02-11-2024	52:14:10----errhandler: /api/user/all/users/friend-page --- GET --- Route /api/user/all/users/friend-page is not found
 02-11-2024	11:15:10----errhandler: /api/user/all/users/friend-page --- GET --- Route /api/user/all/users/friend-page is not found
 02-11-2024	30:15:10----errhandler: /api/user/all/users/friend-page?page=1&pageSize=10 --- GET --- Route /api/user/all/users/friend-page?page=1&pageSize=10 is not found
+<<<<<<< Updated upstream
 02-11-2024	05:33:11----errhandler: /api/notification/all-notification --- GET --- Account is not User
 02-11-2024	32:33:11----errhandler: /api/notification/all-notification --- GET --- Account is not User
+=======
+02-11-2024	12:14:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	45:15:11----errhandler: /api/user/all/users//friend-pagepage=1&limit=10&q=th --- GET --- Route /api/user/all/users//friend-pagepage=1&limit=10&q=th is not found
+02-11-2024	51:15:11----errhandler: /api/user/all/users/friend-pagepage=1&limit=10&q=th --- GET --- Route /api/user/all/users/friend-pagepage=1&limit=10&q=th is not found
+02-11-2024	17:16:11----errhandler: /api/user/all/users/friend-pagepage=1&limit=10&q=th --- GET --- Route /api/user/all/users/friend-pagepage=1&limit=10&q=th is not found
+02-11-2024	05:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	10:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	11:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	19:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	20:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	21:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	25:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	26:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	31:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	50:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	50:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	55:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	58:19:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	03:20:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	04:20:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	09:20:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	14:20:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	15:20:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	20:20:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	31:20:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	52:21:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	57:21:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	00:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	05:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	08:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	11:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	21:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	22:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	32:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	48:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	58:22:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	33:23:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	44:23:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	01:24:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	12:24:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	44:24:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	54:24:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	54:24:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	00:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	04:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	04:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	10:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	14:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	14:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	19:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	35:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	40:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	45:25:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	00:26:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	07:26:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	12:26:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	06:27:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	17:27:11----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	24:36:11----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	27:36:11----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	29:36:11----errhandler: /api/post/all-posts/671cc694f2356ee728ddd780/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	30:36:11----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	56:36:11----errhandler: /api/post/all-posts/671cc694f2356ee728ddd780/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	24:37:11----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	27:37:11----errhandler: /api/post/all-posts/671cc694f2356ee728ddd780/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	28:37:11----errhandler: /api/post/all-posts/670b6a1062937ef087fd23ba/?page=1&pageSize=10&search= --- GET --- Account is not Admin
+02-11-2024	38:19:12----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	43:19:12----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	47:19:12----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	52:19:12----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	53:19:12----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	57:44:16----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	02:45:16----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	05:45:16----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	11:45:16----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+02-11-2024	13:45:16----errhandler: /api/notify/? --- GET --- Route /api/notify/? is not found
+>>>>>>> Stashed changes

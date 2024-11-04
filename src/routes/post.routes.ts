@@ -7,7 +7,7 @@ import {
   getPostsWithCategoryIdController,
   searchPostWithCategoryIdController,
   sharePostToProfileController,
-  votePostController
+  votePostController,
 } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isAdmin, isUser } from '../middlewares/verify_roles';
