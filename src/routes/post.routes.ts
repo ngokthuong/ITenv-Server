@@ -18,7 +18,7 @@ router.post('/create-post', verifyAccessToken, isUser, createPostController);
 router.get('/all-posts/:categoryId', getPostsWithCategoryIdController);
 router.get('/:_id', getPostByIdController);
 router.put('/edit-post', verifyAccessToken, isUser, isAdmin, editPostByIdController);
-router.post('/vote/:_id', verifyAccessToken, isUser, isAdmin, votePostController);
+router.post('/vote/:_id', verifyAccessToken, isUser, votePostController);
 router.get('/search/:categoryId', searchPostWithCategoryIdController);
 router.get('/delete/:postId', verifyAccessToken, isUser, isAdmin, deletePostByIdController);
 router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileController);
