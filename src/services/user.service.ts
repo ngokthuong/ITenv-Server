@@ -91,7 +91,7 @@ export const getUsersForFriendPageService = async (userId: string, page: number,
   const limit = pageSize
   const skip = (page - 1) * limit;
   const { users } = await getAllUsersService(page, limit, '');
-  const usersWithFriends = await Promise.all(
+  const friendOfUser = await Promise.all(
     users.map(async (user) => {
       const friends = await getAllFriendsOfUserByTypeService({
         userId: user._id,
@@ -107,7 +107,7 @@ export const getUsersForFriendPageService = async (userId: string, page: number,
   );
   // tim trang thai cua user xem da ket ban voi nguoi su dung hien tai chua
   const result = await Promise.all(
-    usersWithFriends.map(async (user) => {
+    friendOfUser.map(async (user) => {
       const friendWithMe = await Friend.findOne({
         $or: [
           { sendBy: userId, receiver: user._id },

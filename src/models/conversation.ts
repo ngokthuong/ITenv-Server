@@ -6,7 +6,7 @@ export interface IConversation extends Document {
     participants: mongoose.Types.ObjectId[];
     isGroupChat?: boolean;
     groupName?: string;
-    lastMessages: mongoose.Types.ObjectId[];
+    isDeleted?: boolean
 }
 
 const conversationSchema: Schema<IConversation> = new mongoose.Schema(
@@ -21,24 +21,23 @@ const conversationSchema: Schema<IConversation> = new mongoose.Schema(
             ref: 'User',
             required: true,
         }],
-        lastMessages: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Message'
-        }],
         isGroupChat: {
             type: Boolean,
-            default: true,
+            default: false,
         },
         groupName: {
-            type: String,
-            required: true
+            type: String
+        },
+        isDeleted: {
+            type: Boolean,
+            default: false
         },
     },
     { timestamps: true }
 );
 
-conversationSchema.path('participants').validate(function (value) {
-    return value.length >= 3;
-}, 'A conversation must have at least 3 participants.');
+// conversationSchema.path('participants').validate(function (value) {
+//     return value.length >= 3;
+// }, 'A conversation must have at least 3 participants.');
 
 export default mongoose.model<IConversation>('Conversation', conversationSchema);

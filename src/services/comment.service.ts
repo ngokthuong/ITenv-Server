@@ -49,7 +49,6 @@ export const postCommentService = async (parentComment: string, content: string,
 
     // if else
     if (!parentComment) {
-      console.log('parent 1')
       const createdParentComment = await Comment.create({
         postId,
         commentBy,
@@ -58,7 +57,6 @@ export const postCommentService = async (parentComment: string, content: string,
       });
       return createdParentComment;
     } else if (!findParentComment?.parentComment && parentComment) {
-      console.log('parent 2')
       const createdChildComment = await Comment.create({
         postId,
         commentBy,
@@ -67,7 +65,6 @@ export const postCommentService = async (parentComment: string, content: string,
       });
       return createdChildComment;
     } else {
-      console.log('parent 3')
       const createdChildComment = await Comment.create({
         commentBy,
         content,

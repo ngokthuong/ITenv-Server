@@ -7,7 +7,8 @@ import {
   deletePostServise,
   editPostByIdService,
   getPostByIdService,
-  getPostsWithCategoryIdService,
+  getPostsByUserIdService,
+  getPostsWithCategoryIdAndTagsService,
   searchPostsWithCategoryService,
   sharePostToProfileService,
   votePostService,
@@ -62,10 +63,10 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
 });
 
 // read
-export const getPostsWithCategoryIdController = asyncHandler(async (req: any, res: any) => {
+export const getPostsWithCategoryIdAndTagsController = asyncHandler(async (req: any, res: any) => {
   try {
     const queryOption = req.query;
-    const { posts, totalPosts } = await getPostsWithCategoryIdService(
+    const { posts, totalPosts } = await getPostsWithCategoryIdAndTagsService(
       req.params.categoryId,
       queryOption,
     );
@@ -244,3 +245,21 @@ export const sharePostToProfileController = asyncHandler(async (req: AuthRequest
   }
 });
 
+export const getPostsByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const postedBy = req.params.postedBy;
+    const result = await getPostsByUserIdService(postedBy as string);
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      data: null,
+      error: error.message,
+    };
+    return res.status(400).json(response);
+  }
+})

@@ -10,7 +10,7 @@ export const getNotificationByUserIdController = asyncHandler(async (req: AuthRe
         const pageSize = parseInt(req.query.pageSize as string || '10');
         const result = await getNotificationByUserIdService(postedBy as string, page, pageSize);
         const response: ResponseType<typeof result> = {
-            success: false,
+            success: true,
             data: result,
         };
         return res.status(200).json(response);

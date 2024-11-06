@@ -10,7 +10,9 @@ export interface INotification extends Document {
   postId: mongoose.Types.ObjectId;
   problemId: mongoose.Types.ObjectId;
   comment: mongoose.Types.ObjectId;
+  message: mongoose.Types.ObjectId;
   receivers: mongoose.Types.ObjectId[];
+  isDeleted: boolean;
 }
 
 const notificationSchema: Schema<INotification> = new mongoose.Schema(
@@ -47,6 +49,9 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
       //     );
       //   },
     },
+    message: {
+      type: mongoose.Schema.Types.ObjectId
+    },
     receivers: [mongoose.Schema.Types.ObjectId],
 
     problemId: {
@@ -57,6 +62,10 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Comment',
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true },
 );

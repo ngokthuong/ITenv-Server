@@ -2,24 +2,22 @@ import mongoose, { Document, Schema } from "mongoose";
 import { EnumMessage } from '../enums/schemaMessage.enum';
 
 export interface IMessage extends Document {
-    conversation: mongoose.Types.ObjectId;
+    conversationId: mongoose.Types.ObjectId;
     sender: mongoose.Types.ObjectId;
     isSeenBy: mongoose.Types.ObjectId[];
-    messageType: EnumMessage;
+    hasText: boolean;
+    hasFile: boolean;
     content: string;
     fileUrl?: string;
-    sentAt: Date;
     isRecalled: boolean;
     isDeleted: boolean;
-    notification?: mongoose.Types.ObjectId;
     parentMessage?: mongoose.Types.ObjectId;
 }
 
 const messageSchema: Schema<IMessage> = new mongoose.Schema({
-    conversation: {
+    conversationId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Conversation',
-        required: true,
+        ref: 'Conversation'
     },
     sender: {
         type: mongoose.Schema.Types.ObjectId,
@@ -30,10 +28,11 @@ const messageSchema: Schema<IMessage> = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     }],
-    messageType: {
-        type: String,
-        enum: Object.values(EnumMessage),
-        required: true,
+    hasText: {
+        type: Boolean,
+    },
+    hasFile: {
+        type: Boolean
     },
     content: {
         type: String,
@@ -43,11 +42,6 @@ const messageSchema: Schema<IMessage> = new mongoose.Schema({
         type: String,
         default: '',
     },
-    sentAt: {
-        type: Date,
-        required: true,
-        default: Date.now,
-    },
     isRecalled: {
         type: Boolean,
         default: false,
@@ -55,11 +49,6 @@ const messageSchema: Schema<IMessage> = new mongoose.Schema({
     isDeleted: {
         type: Boolean,
         default: false,
-    },
-    notification: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Notification',
-        required: false,
     },
     parentMessage: {
         type: mongoose.Schema.Types.ObjectId,

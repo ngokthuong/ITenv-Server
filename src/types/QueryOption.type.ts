@@ -4,5 +4,5 @@ export type QueryOption = {
     search?: string;
     sortOrder?: 'DESC' | 'ASC' | 'desc' | 'asc';
     sortField?: string;
-    tag: string[];
+    tags?: string[];
 };

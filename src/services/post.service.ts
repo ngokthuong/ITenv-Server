@@ -27,8 +27,7 @@ export const createPostService = async (data: any) => {
 
 // have pagination
 // ALL
-
-export const getPostsWithCategoryIdService = async (
+export const getPostsWithCategoryIdAndTagsService = async (
   categoryId: string,
   queryOption: QueryOption,
 ) => {
@@ -38,33 +37,42 @@ export const getPostsWithCategoryIdService = async (
     const sortField = queryOption.sortField || "createdAt";
     const sortOrder = queryOption.sortOrder || "DESC"
     const skip = (page - 1) * limit;
-
-    const querySearch = {
-      $and: [
-        categoryId ? { categoryId } : {},
-        queryOption.search ? {
-          $or: [
-            { title: { $regex: queryOption.search, $options: 'i' } },
-            {
-              $and: [
-                { content: { $regex: queryOption.search, $options: 'i' } },
-                { title: { $exists: false } }
-              ]
-            }
-          ]
-        } : {}
-      ]
-    };
+    const tagsRequest = queryOption.tags || [];
+    const searchRequest = queryOption.search || "";
+    // create 1 condition
+    const conditions = [];
+    // if searchRequest exist then push in condition
+    if (searchRequest) {
+      conditions.push({
+        $or: [
+          { title: { $regex: searchRequest, $options: 'i' } },
+          { content: { $regex: searchRequest, $options: 'i' } }
+        ]
+      });
+    }
+    // if tagsRequest exist then push in condition
+    if (tagsRequest.length > 0) {
+      conditions.push({
+        tags: { $all: tagsRequest }
+      });
+    }
+    // create querySearch use to in function find()
+    let querySearch = {};
+    if (conditions.length > 0) {
+      querySearch = {
+        // use and to query two value search and tags
+        $and: conditions
+      };
+    } else {
+      querySearch = {};
+    }
 
     const posts = await post.find(querySearch)
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
       .lean()
-    // const page = queryOption?.page || 1;
-    // const limit = queryOption?.pageSize || 10;
-    // var skip = (page - 1) * limit;
-    // const posts = await post.find({ categoryId, isDeleted: false }).skip(skip).limit(limit).lean();
+
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
         const totalComment = await comment.countDocuments({ postId: postItem._id });
@@ -262,6 +270,15 @@ export const sharePostToProfileService = async (data: SharePostData) => {
   try {
     data.shareToProfile = true;
     return await share.create(data);
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getPostsByUserIdService = async (postedBy: string) => {
+  try {
+    const result = await post.find({ postedBy })
+    return result;
   } catch (error: any) {
     throw new Error(error.message)
   }

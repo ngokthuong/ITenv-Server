@@ -16,8 +16,8 @@ const storage = new CloudinaryStorage({
   } as {
     folder: string;
     format:
-      | string
-      | ((req: Express.Request, file: Express.Multer.File) => string | Promise<string>);
+    | string
+    | ((req: Express.Request, file: Express.Multer.File) => string | Promise<string>);
     allowed_formats?: string[];
   },
 });

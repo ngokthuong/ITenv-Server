@@ -176,3 +176,12 @@ Use mongoose.model(name, schema)
 02-11-2024	30:15:10----errhandler: /api/user/all/users/friend-page?page=1&pageSize=10 --- GET --- Route /api/user/all/users/friend-page?page=1&pageSize=10 is not found
 02-11-2024	05:33:11----errhandler: /api/notification/all-notification --- GET --- Account is not User
 02-11-2024	32:33:11----errhandler: /api/notification/all-notification --- GET --- Account is not User
+05-11-2024	46:14:16----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+05-11-2024	56:22:16----errhandler: /api/storage/upload/image --- POST --- Image file format webp not allowed
+05-11-2024	12:24:18----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+05-11-2024	33:29:23----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	45:44:09----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	48:07:10----errhandler: /api/api/storage/upload/image --- POST --- Route /api/api/storage/upload/image is not found
+06-11-2024	31:31:17----errhandler: /api/conversation/get --- GET --- Route /api/conversation/get is not found
+06-11-2024	46:50:17----errhandler: /api/post/get/6706a6e3a369ef46ffd7fb81 --- GET --- Route /api/post/get/6706a6e3a369ef46ffd7fb81 is not found
+06-11-2024	07:13:18----errhandler: /api/conversation/create --- GET --- Route /api/conversation/create is not found
