@@ -43,7 +43,10 @@ export const addMessForConvertationByUserIdService = async (data: any, sender: s
             conversationId = result._id.toString();
         }
         // add mess
-        return await postMessageToConversationService({ sender, conversationId, hasFile, hasText, fileUrl, content, parentMessage });
+        const newMess = await postMessageToConversationService({ sender, conversationId, hasFile, hasText, fileUrl, content, parentMessage });
+        // update lastmess 
+        await updateLastmessByConversationIdService(conversationId, newMess._id as string)
+        return newMess;
     } catch (error: any) {
         throw new Error(error.message)
     }

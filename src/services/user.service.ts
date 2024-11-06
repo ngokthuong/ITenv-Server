@@ -44,11 +44,11 @@ export const getAllUsersService = async (
 ) => {
   const searchQuery = search
     ? {
-        $or: [
-          { username: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-        ],
-      }
+      $or: [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ],
+    }
     : {};
 
   const users = await User.find(searchQuery)
@@ -94,7 +94,7 @@ export const getUsersForFriendPageService = async (
   const limit = pageSize;
   const skip = (page - 1) * limit;
   const { users } = await getAllUsersService(page, limit, '');
-  const friendOfUser = await Promise.all(
+  const result = await Promise.all(
     users.map(async (user) => {
       const friends = await getAllFriendsOfUserByTypeService({
         userId: user._id,
@@ -102,26 +102,20 @@ export const getUsersForFriendPageService = async (
         skip,
         type: EnumFriend.TYPE_ACCEPT,
       });
-      return {
-        ...user.toObject(),
-        friends,
-      };
-    }),
-  );
-  // tim trang thai cua user xem da ket ban voi nguoi su dung hien tai chua
-  const result = await Promise.all(
-    friendOfUser.map(async (user) => {
+
       const friendWithMe = await Friend.findOne({
         $or: [
           { sendBy: userId, receiver: user._id },
           { sendBy: user._id, receiver: userId },
         ],
       });
+
       return {
-        ...user,
+        ...user.toObject(),
+        friends,
         friendWithMe,
       };
-    }),
+    })
   );
   return result;
 };

@@ -186,3 +186,13 @@ Use mongoose.model(name, schema)
 06-11-2024	31:31:17----errhandler: /api/conversation/get --- GET --- Route /api/conversation/get is not found
 06-11-2024	46:50:17----errhandler: /api/post/get/6706a6e3a369ef46ffd7fb81 --- GET --- Route /api/post/get/6706a6e3a369ef46ffd7fb81 is not found
 06-11-2024	07:13:18----errhandler: /api/conversation/create --- GET --- Route /api/conversation/create is not found
+06-11-2024	21:26:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	30:27:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	59:27:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	56:28:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	25:31:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	53:32:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	22:34:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	27:34:22----errhandler: /api/comment/ --- GET --- Route /api/comment/ is not found
+06-11-2024	04:39:22----errhandler: /api/friend/ --- GET --- Route /api/friend/ is not found
+06-11-2024	32:41:22----errhandler: /api/friend/ --- GET --- Route /api/friend/ is not found

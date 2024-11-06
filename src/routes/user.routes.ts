@@ -14,6 +14,6 @@ const router = Router();
 router.get(ApiUsers.CURRENT_USER, verifyAccessToken, getCurrentUser);
 router.get(ApiUsers.ALL_USERS, getAllUser);
 router.get(ApiUsers.ALL_FRIENDS, verifyAccessToken, isUser, getAllFriendsOfUserByTypeController);
-router.get(ApiUsers.ALL_USERS_FRIENDPAGE, getUsersForFriendPageController);
+router.get(ApiUsers.ALL_USERS_FRIENDPAGE, verifyAccessToken, isUser, getUsersForFriendPageController);
 router.get(ApiUsers.SINGLE_USER_BY_ID, getUserByIdController);
 export default router;

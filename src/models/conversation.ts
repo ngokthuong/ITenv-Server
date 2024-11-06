@@ -7,6 +7,7 @@ export interface IConversation extends Document {
     isGroupChat?: boolean;
     groupName?: string;
     isDeleted?: boolean
+    lastMessage?: mongoose.Types.ObjectId;
 }
 
 const conversationSchema: Schema<IConversation> = new mongoose.Schema(
@@ -32,6 +33,10 @@ const conversationSchema: Schema<IConversation> = new mongoose.Schema(
             type: Boolean,
             default: false
         },
+        lastMessage: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Message"
+        }
     },
     { timestamps: true }
 );

@@ -151,7 +151,6 @@ export const editPostByIdController = asyncHandler(async (req: AuthRequest, res:
       const response: ResponseType<typeof editPost> = {
         success: true,
         data: editPost,
-
       };
       return res.status(200).json(response);
     }
@@ -248,7 +247,8 @@ export const sharePostToProfileController = asyncHandler(async (req: AuthRequest
 export const getPostsByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
     const postedBy = req.params.postedBy;
-    const result = await getPostsByUserIdService(postedBy as string);
+    const queryOption = req.query;
+    const result = await getPostsByUserIdService(postedBy as string, queryOption);
     const response: ResponseType<typeof result> = {
       success: true,
       data: result,

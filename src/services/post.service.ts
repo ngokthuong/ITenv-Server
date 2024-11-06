@@ -275,9 +275,19 @@ export const sharePostToProfileService = async (data: SharePostData) => {
   }
 }
 
-export const getPostsByUserIdService = async (postedBy: string) => {
+export const getPostsByUserIdService = async (postedBy: string, queryOption: QueryOption) => {
   try {
+    const page = queryOption?.page || 1;
+    const limit = queryOption?.pageSize || 10;
+    const sortField = queryOption.sortField || "createdAt";
+    const sortOrder = queryOption.sortOrder || "ASC"
+    const skip = (page - 1) * limit;
+
     const result = await post.find({ postedBy })
+      .sort({ [sortField]: sortOrder === "ASC" ? 1 : -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
     return result;
   } catch (error: any) {
     throw new Error(error.message)
