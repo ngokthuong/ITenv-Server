@@ -8,7 +8,7 @@ import {
   getPostsWithCategoryIdAndTagsController,
   searchPostWithCategoryIdController,
   sharePostToProfileController,
-  votePostController
+  votePostController,
 } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isAdmin, isUser } from '../middlewares/verify_roles';
@@ -19,7 +19,7 @@ router.post('/create-post', verifyAccessToken, isUser, createPostController);
 router.get('/all-posts/:categoryId', getPostsWithCategoryIdAndTagsController);
 router.get('/:_id', getPostByIdController);
 router.put('/edit-post', verifyAccessToken, isUser, isAdmin, editPostByIdController);
-router.post('/vote/:_id', verifyAccessToken, isUser, isAdmin, votePostController);
+router.post('/vote/:_id', verifyAccessToken, isUser, votePostController);
 router.get('/search/:categoryId', searchPostWithCategoryIdController);
 router.get('/delete/:postId', verifyAccessToken, isUser, isAdmin, deletePostByIdController);
 router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileController);
