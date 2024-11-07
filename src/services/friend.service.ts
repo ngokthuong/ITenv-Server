@@ -75,19 +75,25 @@ export const getFriendsByUserIdService = async (userId: string) => {
   }
 };
 
-export const getFriendRequestByUserIdService = async (receiver: string, queryOption: QueryOption) => {
+export const getFriendRequestByUserIdService = async (
+  receiver: string,
+  queryOption: QueryOption,
+) => {
   try {
     const page = queryOption?.page || 1;
     const limit = 20;
-    const sortField = "createdAt";
+    const sortField = 'createdAt';
     const skip = (page - 1) * limit;
-    const result = await friend.find({ receiver, status: EnumFriend.TYPE_PENDING })
+    const result = await friend
+      .find({ receiver, status: EnumFriend.TYPE_PENDING })
       .sort({ [sortField]: -1 })
       .skip(skip)
       .limit(limit)
-      .lean()
-    return result;
+      .populate({ path: 'sendBy receiver', select: '_id username avatar' })
+      .lean();
+    const total = await friend.countDocuments({ receiver, status: EnumFriend.TYPE_PENDING });
+    return { result, total };
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
