@@ -5,6 +5,7 @@ import {
   acceptFriendRequestService,
   blockFriendRequestService,
   createFriendRequest,
+  getFriendRequestByUserIdService,
   getFriendsByUserIdService,
   rejectFriendRequestService,
 } from '../services/friend.service';
@@ -25,7 +26,7 @@ export const createFriendRequestConrtroller = asyncHandler(async (req: AuthReque
       data: null,
       error: error.message,
     };
-    return res.status(500).json(response);
+    return res.status(400).json(response);
   }
 });
 
@@ -46,7 +47,7 @@ export const acceptFriendRequestController = asyncHandler(async (req: AuthReques
       data: null,
       error: error.message,
     };
-    return res.status(500).json(response);
+    return res.status(400).json(response);
   }
 });
 
@@ -67,7 +68,7 @@ export const rejectFriendRequestController = asyncHandler(async (req: AuthReques
       data: null,
       error: error.message,
     };
-    return res.status(500).json(response);
+    return res.status(400).json(response);
   }
 });
 
@@ -88,9 +89,10 @@ export const blockFriendController = asyncHandler(async (req: AuthRequest, res: 
       data: null,
       error: error.message,
     };
-    return res.status(500).json(response);
+    return res.status(400).json(response);
   }
 });
+
 export const getFriendsByUserIdController = asyncHandler(async (req: any, res: any) => {
   try {
     const userId = req.params.userId;
@@ -101,7 +103,30 @@ export const getFriendsByUserIdController = asyncHandler(async (req: any, res: a
       total: total,
     };
     return res.status(200).json(response);
-  } catch {
-    return res.status(500).json({ success: false, message: 'Internal server error' });
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      error: error.message,
+    };
+    return res.status(400).json(response);
   }
 });
+
+export const getFriendRequestByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const queryOption = req.query;
+    const receiver = req.user?.userId;
+    const result = await getFriendRequestByUserIdService(receiver as string, queryOption);
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      error: error.message,
+    };
+    return res.status(400).json(response);
+  }
+})

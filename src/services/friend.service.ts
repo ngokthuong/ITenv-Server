@@ -1,5 +1,6 @@
 import { EnumFriend } from '../enums/schemaFriend.enum';
 import friend from '../models/friend';
+import { QueryOption } from '../types/QueryOption.type';
 
 export const createFriendRequest = async (data: any) => {
   try {
@@ -52,6 +53,7 @@ export const blockFriendRequestService = async (_id: string, blockBy: string) =>
     throw new Error(error.message);
   }
 };
+
 export const getFriendsByUserIdService = async (userId: string) => {
   try {
     const friends = await friend
@@ -72,3 +74,20 @@ export const getFriendsByUserIdService = async (userId: string) => {
     return { friends: [], total: 0 };
   }
 };
+
+export const getFriendRequestByUserIdService = async (recirver: string, queryOption: QueryOption) => {
+  try {
+    const page = queryOption?.page || 1;
+    const limit = 10;
+    const sortField = "createdAt";
+    const skip = (page - 1) * limit;
+    const result = await friend.find({ receiver: recirver, status: EnumFriend.TYPE_PENDING })
+      .sort({ [sortField]: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
