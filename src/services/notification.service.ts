@@ -12,12 +12,21 @@ export const getNotificationByUserIdService = async (
     const sortOrder = "ASC";
     const result = await notification
       .find({ receivers: { $in: [userId] } })
-      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+      .sort({ [sortField]: -1 })
       .skip(skip)
       .limit(limit);
     const total = await notification.countDocuments({ receivers: { $in: [userId] } });
     return { result, total };
   } catch (error: any) {
-    return { result: [], total: 0 };
+    throw new Error(error.message)
   }
 };
+
+export const isSeenNotidicationService = async (notificationId: string) => {
+  try {
+    const result = await notification.findByIdAndUpdate(notificationId, { isSeen: true }, { new: true })
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}

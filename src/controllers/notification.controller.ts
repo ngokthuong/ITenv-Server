@@ -28,7 +28,6 @@ export const getNotificationByUserIdController = asyncHandler(
       };
       return res.status(200).json(response);
     } catch (error: any) {
-      console.error('Error in notification controller:', error); // Log the error
       const response: ResponseType<null> = {
         success: false,
         data: null,
@@ -38,3 +37,22 @@ export const getNotificationByUserIdController = asyncHandler(
     }
   },
 );
+
+export const isSeenNotidicationController = asyncHandler(async (req: AuthRequest, res: any) => {
+  try {
+    const { notificationId } = req.body
+    const result = await isSeenNotidicationService(notificationId);
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  } catch (error: any) {
+    const response: ResponseType<null> = {
+      success: false,
+      data: null,
+      error: error.message,
+    };
+    return res.status(400).json(response);
+  }
+})
