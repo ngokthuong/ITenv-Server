@@ -33,7 +33,7 @@ export const getPostsWithCategoryIdAndTagsService = async (
 ) => {
   try {
     const page = queryOption?.page || 1;
-    const limit = queryOption?.pageSize || 10;
+    const limit = queryOption?.pageSize || 20;
     const sortField = queryOption.sortField || "createdAt";
     const sortOrder = queryOption.sortOrder || "DESC"
     const skip = (page - 1) * limit;
@@ -215,7 +215,7 @@ export const votePostService = async (postId: string, userId: string, typeVote: 
 export const searchPostsWithCategoryService = async (categoryId: string, queryOption: QueryOption) => {
   try {
     const page = queryOption?.page || 1;
-    const limit = queryOption?.pageSize || 10;
+    const limit = queryOption?.pageSize || 20;
     const sortField = queryOption.sortField || "createdAt";
     const sortOrder = queryOption.sortOrder || "DESC"
     const skip = (page - 1) * limit;
@@ -278,7 +278,7 @@ export const sharePostToProfileService = async (data: SharePostData) => {
 export const getPostsByUserIdService = async (postedBy: string, queryOption: QueryOption) => {
   try {
     const page = queryOption?.page || 1;
-    const limit = queryOption?.pageSize || 10;
+    const limit = queryOption?.pageSize || 20;
     const sortField = queryOption.sortField || "createdAt";
     const sortOrder = queryOption.sortOrder || "ASC"
     const skip = (page - 1) * limit;

@@ -129,4 +129,4 @@ export const getFriendRequestByUserIdController = asyncHandler(async (req: AuthR
     };
     return res.status(400).json(response);
   }
-})
+});

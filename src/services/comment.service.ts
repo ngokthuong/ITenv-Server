@@ -19,7 +19,7 @@ const getChildrenComments = async (commentId: string) => {
 };
 
 export const getCommentsByPostIdService = async (postId: string, page: number) => {
-  const limit = 15;
+  const limit = 20;
   var skip = (page - 1) * limit;
   try {
     // Lấy bình luận gốc ( ko co parentcmt)
