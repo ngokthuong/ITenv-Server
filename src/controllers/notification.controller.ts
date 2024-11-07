@@ -1,4 +1,4 @@
-import { getNotificationByUserIdService } from '../services/notification.service';
+import { getNotificationByUserIdService, isSeenNotidicationService } from '../services/notification.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 import asyncHandler from 'express-async-handler';
 import { ResponseType } from '../types/Response.type';
