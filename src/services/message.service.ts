@@ -59,3 +59,12 @@ export const recalledMessageBySenderService = async (sender: string, messId: str
         throw new Error(error.message)
     }
 }
+
+export const seenMessageByUserIdService = async (userId: string, messageId: string) => {
+    try {
+        const result = await message.findByIdAndUpdate(messageId, { $addToSet: { isSeenBy: userId } }, { new: true })
+        return result;
+    } catch (error: any) {
+        throw new Error(error.message)
+    }
+}

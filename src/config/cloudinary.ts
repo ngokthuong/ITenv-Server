@@ -12,7 +12,8 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: 'users/imgs',
-    allowed_formats: ['jpg', 'png'],
+    allowed_formats: ['jpg', 'png', 'mp4', 'mp3', 'doc', 'docx', 'mkv'],
+
   } as {
     folder: string;
     format:

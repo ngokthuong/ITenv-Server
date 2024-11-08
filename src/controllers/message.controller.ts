@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import { AuthRequest } from '../types/AuthRequest.type';
-import { addMessForConvertationByUserIdService, getAllMesssOfCvssByCvssIdService, recalledMessageBySenderService } from '../services/message.service';
+import { addMessForConvertationByUserIdService, getAllMesssOfCvssByCvssIdService, recalledMessageBySenderService, seenMessageByUserIdService } from '../services/message.service';
 import { ResponseType } from '../types/Response.type';
 import { createConversationForTwoPeopleByUserService, findConversationByIdService } from '../services/conversation.service';
 
@@ -67,3 +67,22 @@ export const recalledMessageBySenderController = asyncHandler(async (req: any, r
         return res.status(400).json(response)
     }
 });
+
+export const seenMessageByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+    try {
+        const userId = req.user?.userId;
+        const { messageId } = req.body;
+        const result = await seenMessageByUserIdService(userId as string, messageId);
+        const response: ResponseType<typeof result> = {
+            success: true,
+            data: result,
+        };
+        return res.status(200).json(response);
+    } catch (error: any) {
+        const response: ResponseType<null> = {
+            success: false,
+            message: error.message
+        }
+        return res.status(400).json(response)
+    }
+})

@@ -71,7 +71,6 @@ export const editConversationNameController = asyncHandler(async (req: AuthReque
 export const addUserToConversationController = asyncHandler(async (req: AuthRequest, res: any) => {
     try {
         const userId = req.user?.userId;
-        const { listFriendId } = req.body;
 
 
     } catch (error: any) {

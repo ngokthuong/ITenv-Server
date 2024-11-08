@@ -19,7 +19,7 @@ export const getConversationsOfUserByUserIdService = async (userId: string, quer
             .populate('participants', '_id username avatar')
             .populate({
                 path: 'lastMessage',
-                select: 'sender isSeenBy hasText hasFile content fileUrl', // Các trường cần lấy từ lastMessage
+                select: 'sender isSeenBy hasText hasFile content fileUrl createdAt', // Các trường cần lấy từ lastMessage
                 match: { isRecalled: false, isDeleted: false }, // Điều kiện để chỉ lấy lastMessage với isRecalled và isDeleted là false
                 populate: { path: 'sender', select: '_id username avatar' } // Lấy chi tiết của sender trong lastMessage
             })
@@ -89,6 +89,7 @@ export const createGroupChatService = async (createdBy: string, participants: st
         if (participants.includes(createdBy)) {
             throw new Error("Validation failed, createdBy existed")
         }
+        participants.push(createdBy);
         const data = {
             createdBy: createdBy,
             participants: participants,

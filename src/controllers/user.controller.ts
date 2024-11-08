@@ -10,37 +10,6 @@ import {
 import { AuthRequest } from '../types/AuthRequest.type';
 import { ResponseType } from '../types/Response.type';
 
-// export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
-//   const user = await User.findById(req?.user?.user).populate({
-//     path: 'account',
-//     select: 'role isBlocked email', // Populate account fields
-//   });
-
-//   if (user) {
-//     const account = await Account.findById(req?.user?._id);
-//     const responseData = {
-//       username: user.username,
-//       dob: user.dob,
-//       phoneNumber: user.phoneNumber,
-//       avatar: user.avatar,
-//       posts: user.posts,
-//       notifications: user.notifications,
-//       submissions: user.submissions,
-//       gender: user.gender,
-//       status: user.status,
-//       lastOnline: user.lastOnline,
-//       email: account?.email,
-//       role: account?.role,
-//       isBlocked: account?.isBlocked,
-//     };
-
-//     res.json(responseData);
-//   } else {
-//     res.status(404);
-//     throw new Error('User not found');
-//   }
-// });
-
 // have page ( dùng để tìm friend với các type khác nhau)
 // dùng trong profile của user
 export const getAllFriendsOfUserByTypeController = asyncHandler(
