@@ -19,7 +19,9 @@ export const getConversationsOfUserByUserIdService = async (userId: string, quer
             .populate('participants', '_id username avatar')
             .populate({
                 path: 'lastMessage',
-                populate: { path: 'sender', select: '_id username avatar' }
+                select: 'sender isSeenBy hasText hasFile content fileUrl', // Các trường cần lấy từ lastMessage
+                match: { isRecalled: false, isDeleted: false }, // Điều kiện để chỉ lấy lastMessage với isRecalled và isDeleted là false
+                populate: { path: 'sender', select: '_id username avatar' } // Lấy chi tiết của sender trong lastMessage
             })
             .sort({ [sortField]: sortOrder === "ASC" ? 1 : -1 })
             .skip(skip)
