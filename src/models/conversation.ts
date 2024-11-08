@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IConversation extends Document {
     _id: mongoose.Types.ObjectId;
-    createBy: mongoose.Types.ObjectId;
+    createdBy: mongoose.Types.ObjectId;
     participants: mongoose.Types.ObjectId[];
     isGroupChat?: boolean;
     groupName?: string;
@@ -12,7 +12,7 @@ export interface IConversation extends Document {
 
 const conversationSchema: Schema<IConversation> = new mongoose.Schema(
     {
-        createBy: [{
+        createdBy: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,

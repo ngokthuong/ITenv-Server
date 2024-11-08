@@ -16,7 +16,12 @@ export const getConversationsOfUserByUserIdService = async (userId: string, quer
         const totalCount = await conversation.countDocuments({ participants: userId });
 
         const result = await conversation.find({ participants: userId })
-            .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+            .populate('participants', '_id username avatar')
+            .populate({
+                path: 'lastMessage',
+                populate: { path: 'sender', select: '_id username avatar' }
+            })
+            .sort({ [sortField]: sortOrder === "ASC" ? 1 : -1 })
             .skip(skip)
             .limit(limit)
             .lean();
@@ -42,10 +47,10 @@ export const findConversationByIdService = async (conversationId: string) => {
 }
 
 // two people
-export const createConversationForTwoPeopleByUserService = async (createBy: string, participantId: string[]) => {
+export const createConversationForTwoPeopleByUserService = async (createdBy: string, participantId: string[]) => {
     try {
         const data = {
-            createBy,
+            createdBy,
             participants: participantId,
             isGroupChat: false,
         }
@@ -65,25 +70,25 @@ export const updateLastmessByConversationIdService = async (conversationId: stri
     }
 }
 
-export const editConversationNameService = async (createBy: string, conversationId: string, groupName: string) => {
+export const editConversationNameService = async (createdBy: string, conversationId: string, groupName: string) => {
     try {
-        const result = await conversation.findOneAndUpdate({ _id: conversationId, createBy }, { groupName }, { new: true });
+        const result = await conversation.findOneAndUpdate({ _id: conversationId, createdBy }, { groupName }, { new: true });
         return result;
     } catch (error: any) {
         throw new Error(error.message)
     }
 }
 
-export const createGroupChatService = async (createBy: string, participants: string[], groupName: string) => {
+export const createGroupChatService = async (createdBy: string, participants: string[], groupName: string) => {
     try {
         if (!(await checkListFriendService(participants))) {
             throw new Error("At least 3 people")
         }
-        if (participants.includes(createBy)) {
-            throw new Error("Validation failed, createBy existed")
+        if (participants.includes(createdBy)) {
+            throw new Error("Validation failed, createdBy existed")
         }
         const data = {
-            createBy,
+            createdBy: createdBy,
             participants: participants,
             isGroupChat: true,
             groupName

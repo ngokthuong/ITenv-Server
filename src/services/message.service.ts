@@ -33,8 +33,8 @@ export const getAllMesssOfCvssByCvssIdService = async (conversationId: string, q
 
 export const addMessForConvertationByUserIdService = async (data: any, sender: string, fileUrl?: string) => {
     try {
-        let { reciever, content, conversationId, hasFile, hasText, parentMessage } = data;
-        const recieverArray = Array.isArray(reciever) ? reciever : [reciever];
+        let { receiver, content, conversationId, hasFile, hasText, parentMessage } = data;
+        const recieverArray = Array.isArray(receiver) ? receiver : [receiver];
         recieverArray.push(sender);
         // have conversation
         if (!(await findConversationByIdService(conversationId))) {

@@ -27,10 +27,10 @@ export const getConversationsOfUserByUserIdController = asyncHandler(async (req:
 // click avatar -> if ( conversation null => create conversation ) then {open conversation}
 export const createGroupChatController = asyncHandler(async (req: AuthRequest, res: any) => {
     try {
-        const createBy = req.user?.userId;
+        const createdBy = req.user?.userId;
         let { participants, groupName } = req.body;
         participants = Array.isArray(participants) ? participants : [participants];
-        const result = await createGroupChatService(createBy as string, participants, groupName);
+        const result = await createGroupChatService(createdBy as string, participants, groupName);
         const response: ResponseType<typeof result> = {
             success: true,
             data: result,
