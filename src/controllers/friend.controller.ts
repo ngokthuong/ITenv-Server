@@ -112,21 +112,27 @@ export const getFriendsByUserIdController = asyncHandler(async (req: any, res: a
   }
 });
 
-export const getFriendRequestByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
-  try {
-    const queryOption = req.query;
-    const receiver = req.user?.userId;
-    const result = await getFriendRequestByUserIdService(receiver as string, queryOption);
-    const response: ResponseType<typeof result> = {
-      success: true,
-      data: result,
-    };
-    return res.status(200).json(response);
-  } catch (error: any) {
-    const response: ResponseType<null> = {
-      success: false,
-      error: error.message,
-    };
-    return res.status(400).json(response);
-  }
-});
+export const getFriendRequestByUserIdController = asyncHandler(
+  async (req: AuthRequest, res: any) => {
+    try {
+      const queryOption = req.query;
+      const receiver = req.user?.userId;
+      const { result, total } = await getFriendRequestByUserIdService(
+        receiver as string,
+        queryOption,
+      );
+      const response: ResponseType<typeof result> = {
+        success: true,
+        total: total,
+        data: result,
+      };
+      return res.status(200).json(response);
+    } catch (error: any) {
+      const response: ResponseType<null> = {
+        success: false,
+        error: error.message,
+      };
+      return res.status(400).json(response);
+    }
+  },
+);
