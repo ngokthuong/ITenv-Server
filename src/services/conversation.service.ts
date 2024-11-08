@@ -28,7 +28,7 @@ export const getConversationsOfUserByUserIdService = async (userId: string, quer
             .limit(limit)
             .lean();
 
-        return { result, totalCount }; // Trả về kết quả và tổng số tài liệu
+        return { result, totalCount };
     } catch (error: any) {
         throw new Error(error.message);
     }

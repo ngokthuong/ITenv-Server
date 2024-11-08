@@ -7,10 +7,11 @@ export const getConversationsOfUserByUserIdController = asyncHandler(async (req:
     try {
         const userId = req.user?.userId;
         const queryOption = req.query
-        const result = await getConversationsOfUserByUserIdService(userId as string, queryOption);
+        const { result, totalCount } = await getConversationsOfUserByUserIdService(userId as string, queryOption);
         const response: ResponseType<typeof result> = {
             success: true,
             data: result,
+            total: totalCount
         };
         return res.status(200).json(response);
 
