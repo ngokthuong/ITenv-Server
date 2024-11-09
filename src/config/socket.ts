@@ -32,11 +32,11 @@ export const setupSocket = (server: any) => {
       console.log('Authentication failed.');
       return;
     }
-    await updateUserStatus(user._id, socket);
-
-    socketFunctions(socket, user);
-
-    
+    if (user._id) {
+      await updateUserStatus(user._id, socket);
+      socket.join(user._id.toString());
+      socketFunctions(socket, user);
+    }
 
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${user._id}`);
