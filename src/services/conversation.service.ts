@@ -14,24 +14,27 @@ export const getConversationsOfUserByUserIdService = async (
     const sortField = queryOption.sortField || 'createdAt';
     const sortOrder = 'ASC';
     const skip = (page - 1) * limit;
-
+    const options = { sort: [['lastMessage?.createdAt', 'asc']] };
     const totalCount = await conversation.countDocuments({ participants: userId });
-
     const result = await conversation
       .find({ participants: userId })
       .populate('participants', '_id username avatar')
       .populate({
         path: 'lastMessage',
-        select: 'sender isSeenBy hasText hasFile content fileUrl createdAt', // Các trường cần lấy từ lastMessage
-        match: { isRecalled: false, isDeleted: false }, // Điều kiện để chỉ lấy lastMessage với isRecalled và isDeleted là false
-        populate: { path: 'sender', select: '_id username avatar' }, // Lấy chi tiết của sender trong lastMessage
+        select: 'sender isSeenBy hasText hasFile content fileUrl createdAt',
+        match: { isRecalled: false, isDeleted: false },
+        populate: { path: 'sender', select: '_id username avatar' },
       })
       .populate({ path: 'createdBy', select: '_id username avatar' })
-      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
+    result.sort((a, b) => {
+      const dateA = (a.lastMessage as any)?.createdAt || new Date(0);
+      const dateB = (b.lastMessage as any)?.createdAt || new Date(0);
+      return dateB - dateA;
+    });
     return { result, totalCount };
   } catch (error: any) {
     throw new Error(error.message);

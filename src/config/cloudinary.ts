@@ -12,13 +12,25 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: 'users/imgs',
-    allowed_formats: ['jpg', 'png', 'mp4', 'mp3', 'doc', 'docx', 'mkv'],
-
+    allowed_formats: [
+      'jpg',
+      'png',
+      'mp4',
+      'mp3',
+      'doc',
+      'docx',
+      'mkv',
+      'js',
+      'jsx',
+      'html',
+      'ts',
+      'tsx',
+    ],
   } as {
     folder: string;
     format:
-    | string
-    | ((req: Express.Request, file: Express.Multer.File) => string | Promise<string>);
+      | string
+      | ((req: Express.Request, file: Express.Multer.File) => string | Promise<string>);
     allowed_formats?: string[];
   },
 });

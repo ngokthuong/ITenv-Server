@@ -5,6 +5,6 @@ export type NotificationRequestType = {
   postId?: string;
   commentId?: string;
   content?: string;
-
+  relationshipId?: string;
   // problemId?: string;
 };

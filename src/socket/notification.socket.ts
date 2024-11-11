@@ -5,6 +5,7 @@ import post from '../models/post';
 import user, { IUser } from '../models/user';
 import { NotificationRequestType } from '../types/NotificationType';
 import comment from '../models/comment';
+import friend from '../models/friend';
 
 export const notifySocket = async (
   socket: Socket,
@@ -12,7 +13,7 @@ export const notifySocket = async (
   notificationReq: NotificationRequestType,
 ) => {
   try {
-    console.log('notification socket');
+    console.log('notification socket', notificationReq);
     let newNotification;
 
     switch (notificationReq.notificationType) {
@@ -111,6 +112,29 @@ export const notifySocket = async (
         }
         break;
 
+      case NotificationTypeEnum.ACCEPT_FRIEND_REQUEST:
+      case NotificationTypeEnum.REJECT_FRIEND_REQUEST:
+        console.log(notificationReq);
+        if (!notificationReq?.relationshipId) return;
+        const relationship = await friend.findById(notificationReq?.relationshipId);
+        if (!relationship) return;
+        newNotification = new notification({
+          postedBy: user._id,
+          notificationType: notificationReq.notificationType,
+          receivers:
+            relationship.sendBy === user._id ? [relationship.receiver] : [relationship.sendBy],
+          content: `<strong>${user.username}</strong> <span> ${
+            notificationReq.notificationType === NotificationTypeEnum.ACCEPT_FRIEND_REQUEST
+              ? 'accepted'
+              : 'rejected'
+          } your friend request</span>`,
+        });
+        
+        await newNotification.save();
+        for (const receiverId of newNotification.receivers) {
+          socket.to(receiverId.toString()).emit('receive_notification_friend', newNotification);
+        }
+        break;
       default:
         console.error('Unknown notification type');
     }

@@ -5,5 +5,7 @@ export enum NotificationTypeEnum {
   COMMENT_POST = 'comment_post',
   REP_COMMENT = 'rep_comment',
   VOTE_COMMENT = 'vote_comment',
-  DOWNVOTE_COMMENT = 'downvote_comment'
+  DOWNVOTE_COMMENT = 'downvote_comment',
+  ACCEPT_FRIEND_REQUEST = 'accept_request',
+  REJECT_FRIEND_REQUEST = 'reject_request',
 }
