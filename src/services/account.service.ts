@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import { sendEmail } from '../utils/sendEmail.utils';
 import crypto from 'crypto';
 import { passwordResetPass } from '../helper/joiSchemaRegister.helper';
+import { getInfoData } from '../utils/getInfoData.utils';
 
 const verifyAndRegisterService = async (body: any) => {
   const { email, otp } = body;
@@ -349,6 +350,22 @@ export const resetPassService = async (req: any) => {
   };
 };
 
+const getAllAccountByUserIdService = async (userId: string) => {
+  try {
+    let result = { email: '', authenWith: [] as number[] };
+    const Accounts = await Account.find({ user: userId });
+    const data = Accounts.map((account) => {
+      if (!result.email)
+        result.email = account.email;
+      result.authenWith.push(account.authenWith)
+      getInfoData({ fileds: ['email', 'authenWith'], object: account })
+    })
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
 export {
   verifyAndRegisterService,
   loginService,
@@ -356,4 +373,5 @@ export {
   fetchGithubUserData,
   fetchGithubUserEmail,
   checkAccountExisted,
+  getAllAccountByUserIdService
 };

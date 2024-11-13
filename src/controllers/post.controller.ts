@@ -9,6 +9,7 @@ import {
   getPostByIdService,
   getPostsByUserIdService,
   getPostsWithCategoryIdAndTagsService,
+  getPostsWithYearService,
   searchPostsWithCategoryService,
   sharePostToProfileService,
   votePostService,
@@ -262,4 +263,16 @@ export const getPostsByUserIdController = asyncHandler(async (req: AuthRequest, 
     };
     return res.status(400).json(response);
   }
+})
+
+export const getPostsWithYearController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const queryOption = req.query;
+  const userId = req.user?.userId
+  const { total, result } = await getPostsWithYearService(queryOption, userId as string);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+    total
+  };
+  return res.status(200).json(response);
 })

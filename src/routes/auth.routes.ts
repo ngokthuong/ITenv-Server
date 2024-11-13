@@ -13,6 +13,8 @@ import {
 } from '../controllers/auth.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { ApiAuth } from '../enums/apiAuth.enum';
+import { isUser } from '../middlewares/verify_roles';
+import { getAllAccountByUserIdController } from '../controllers/account.controller';
 
 const router = Router();
 
@@ -32,5 +34,9 @@ router.post(ApiAuth.LOGOUT, verifyAccessToken, logoutController);
 
 // REFRESH TOKEN
 router.post(ApiAuth.REFRESH_ACCESS_TOKEN, refreshAccessToken);
+
+
+// ACCOUNT update
+router.get(ApiAuth.GET_ALL_ACCOUNT, verifyAccessToken, isUser, getAllAccountByUserIdController);
 
 export default router;

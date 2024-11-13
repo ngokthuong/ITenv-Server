@@ -15,6 +15,7 @@ export interface IUser extends Document {
   conversations: mongoose.Types.ObjectId;
   submitProblems: mongoose.Types.ObjectId;
   acceptedProblems: mongoose.Types.ObjectId;
+  isDeleted: boolean;
 }
 
 const userSchema = new Schema<IUser>(
@@ -63,6 +64,10 @@ const userSchema = new Schema<IUser>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Problem',
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true },
 );

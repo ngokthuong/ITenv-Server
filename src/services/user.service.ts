@@ -3,6 +3,8 @@ import Account from '../models/account';
 import { AuthRequest } from '../types/AuthRequest.type';
 import Friend from '../models/friend';
 import { EnumFriend } from '../enums/schemaFriend.enum';
+import { QueryOption } from '../types/QueryOption.type';
+import { getInfoData } from '../utils/getInfoData.utils';
 
 export const getCurrentUserService = async (req: AuthRequest) => {
   const user = await User.findById(req?.user?.userId);
@@ -28,37 +30,47 @@ export const getCurrentUserService = async (req: AuthRequest) => {
   return responseData;
 };
 
-export const findUserById = async (userId: string) => {
+export const findUserByIdService = async (userId: string) => {
   try {
-    const currentUser = User.findById(userId);
+    const currentUser = User.findOne({ _id: userId, isDeleted: false });
     return currentUser;
   } catch (error: any) {
     throw new Error(error.message);
   }
 };
 
-export const getAllUsersService = async (
-  pageNumber: number,
-  limitNumber: number,
-  search: string,
-) => {
+export const getAllUsersService = async (queryOption: QueryOption) => {
+  const search = queryOption.search || '';
+  const page = queryOption.page || 1;
+  const pageSize = queryOption.pageSize || 20;
+
+  // Define the search query based on the search term
   const searchQuery = search
     ? {
-      $or: [
-        { username: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
+      $and: [
+        { isDeleted: false },
+        {
+          $or: [
+            { username: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+          ],
+        },
       ],
     }
-    : {};
+    : { isDeleted: false };
 
+  // Find users with pagination
   const users = await User.find(searchQuery)
-    .skip((pageNumber - 1) * limitNumber)
-    .limit(limitNumber);
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .lean();
 
+  // Get the total count of users matching the search criteria
   const total = await User.countDocuments(searchQuery);
 
   return { total, users };
 };
+
 
 //  get all friends
 
@@ -69,9 +81,9 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
     const statusCondition = type === 'ALL' ? {} : { status: type };
     const friends = await Friend.find({
       $or: [{ sendBy: userId }, { receiver: userId }],
-      ...statusCondition,
+      ...statusCondition, isdeleted: false
     });
-    const total = await Friend.countDocuments({ receiver: userId, ...statusCondition });
+    // const total = await Friend.countDocuments({ receiver: userId, ...statusCondition });
     // Tạo danh sách các friend IDs từ các bản ghi tìm được
     const friendIDs = friends.map((Friend) =>
       Friend.sendBy.toString() === userId.toString() ? Friend.receiver : Friend.sendBy,
@@ -93,7 +105,7 @@ export const getUsersForFriendPageService = async (
 ) => {
   const limit = pageSize;
   const skip = (page - 1) * limit;
-  const { users } = await getAllUsersService(page, limit, '');
+  const { users } = await getAllUsersService({ page, pageSize });
   const result = await Promise.all(
     users.map(async (user) => {
       const friends = await getAllFriendsOfUserByTypeService({
@@ -150,3 +162,60 @@ export const getUserByIdService = async (userId: string) => {
 
   return responseData;
 };
+
+export const getAllUserForAdminService = async (queryOption: QueryOption) => {
+  try {
+    const search = queryOption.search || '';
+    const page = queryOption.page || 1;
+    const pageSize = queryOption.pageSize || 20;
+    const sortField = queryOption.sortField || 'createdAt';
+    const sortOrder = queryOption.sortOrder || 'asc';
+
+    const result = await User.find({
+      username: { $regex: search, $options: 'i' }
+    })
+      .populate('Account', 'email password passwordChangeAt')
+      .sort({
+        [sortField]: sortOrder === 'asc' ? 1 : -1
+      })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean();
+
+    const total = await User.countDocuments();
+
+    return { total, result };
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+}
+
+export const editProfileByUserIdService = async (data: any, userId: string) => {
+  try {
+    const result = await User.findByIdAndUpdate({ _id: userId }, { username: data.username, dob: data.dob, phoneNumber: data.phoneNumber, gender: data.gender }, { new: true })
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const editAvatarByUserIdService = async (_id: string, avatar: string) => {
+  try {
+    // viet ham get u lieu phu hop
+    const result = await User.findByIdAndUpdate({ _id }, { avatar }, { new: true })
+    return {
+      avatar: getInfoData({ fileds: ['avatar'], object: result })
+    }
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getDetailUserByIdService = async (_id: string) => {
+  try {
+    const result = await User.findById(_id);
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}

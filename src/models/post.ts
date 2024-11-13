@@ -11,6 +11,8 @@ export interface IPost extends Document {
   categoryId: mongoose.Types.ObjectId[];
   isAnonymous: boolean;
   isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const postSchema: Schema<IPost> = new mongoose.Schema(
@@ -50,7 +52,6 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
         ref: 'User',
       },
     ],
-
     categoryId: [
       {
         type: mongoose.Schema.Types.ObjectId,

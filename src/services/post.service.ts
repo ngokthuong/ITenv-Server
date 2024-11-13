@@ -1,6 +1,6 @@
 import { find } from 'lodash';
 import post from '../models/post';
-import { findUserById } from './user.service';
+import { findUserByIdService } from './user.service';
 import { QueryOption } from '../types/QueryOption.type';
 import mongoose from 'mongoose';
 import { updateVoteStatus } from './vote.service';
@@ -15,7 +15,7 @@ export const createPostService = async (data: any) => {
       const result = await post.findById(newPost._id).select('-postedBy');
       return result;
     }
-    const currentUser = await findUserById(data.postedBy);
+    const currentUser = await findUserByIdService(data.postedBy);
     if (currentUser) {
       const newPost = (await post.create(data)).populate('postedBy', 'username avatar status');
       return newPost;
@@ -176,7 +176,7 @@ export const editPostByIdService = async (_id: string, data: any) => {
     if (data.isAnonymous) {
       return editPost;
     }
-    const currentUser = await findUserById(data.postedBy);
+    const currentUser = await findUserByIdService(data.postedBy);
     if (currentUser) {
       return {
         postedBy: editPost?.postedBy,
@@ -289,6 +289,43 @@ export const getPostsByUserIdService = async (postedBy: string, queryOption: Que
       .limit(limit)
       .lean()
     return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getPostsWithYearService = async (queryOption: QueryOption, userId: string) => {
+  try {
+    const year = queryOption.year || new Date().getFullYear()
+    const page = queryOption.page || 1;
+    const pageSize = queryOption.pageSize || 20;
+    const sortField = queryOption.sortField || 'createAt';
+    const sortOrder = queryOption.sortOrder || 'ASC';
+
+    const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    // Query documents created within this date range
+    const result = await post.find({
+      postedBy: userId,
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    })
+      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean();
+
+    const total = await post.countDocuments({
+      postedBy: userId,
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    });
+    return { total, result }
   } catch (error: any) {
     throw new Error(error.message)
   }

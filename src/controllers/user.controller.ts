@@ -1,17 +1,22 @@
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
 import {
+  editAvatarByUserIdService,
+  editProfileByUserIdService,
   getAllFriendsOfUserByTypeService,
+  getAllUserForAdminService,
   getAllUsersService,
   getCurrentUserService,
+  getDetailUserByIdService,
   getUserByIdService,
   getUsersForFriendPageService,
 } from '../services/user.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 import { ResponseType } from '../types/Response.type';
 
+// ----------------------------------------------------------_USER_---------------------------------------------------------------------
 // have page ( dùng để tìm friend với các type khác nhau)
-// dùng trong profile của user
+// dùng trong profile của user 
 export const getAllFriendsOfUserByTypeController = asyncHandler(
   async (req: AuthRequest, res: any) => {
     try {
@@ -105,15 +110,12 @@ export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Respons
 //   });
 // });
 
-// foradmin
-export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { page = 1, limit = 10, q = '' } = req.query;
 
-  const pageNumber = Number(page) || 1;
-  const limitNumber = Number(limit) || 10;
+export const getAllUserController = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const queryOption = req.query;
 
   try {
-    const { total, users } = await getAllUsersService(pageNumber, limitNumber, q.toString());
+    const { total, users } = await getAllUsersService(queryOption);
     console.log(users);
     res.json({
       success: true,
@@ -130,17 +132,62 @@ export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) =
 
 export const getUserByIdController = asyncHandler(async (req: any, res: Response) => {
   const userId = req.params.userId;
-  try {
-    const user = await getUserByIdService(userId);
-    if (user) {
-      res.status(200).json({
-        success: true,
-        data: user,
-      });
-    } else {
-      res.status(404).json({ success: false, message: 'User not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Internal server error' });
+  const user = await getUserByIdService(userId);
+
+  if (user) {
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } else {
+    res.status(404).json({ success: false, message: 'User not found' });
   }
 });
+
+export const editProfileByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.user?.userId;
+  const { username, dob, phoneNumber, gender } = req.body;
+  const result = await editProfileByUserIdService({ username, dob, phoneNumber, gender }, userId as string);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result
+  }
+  return res.status(200).json(response);
+})
+
+export const editAvatarByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const filePath = req.file?.path;
+  const userId = req.user?.userId;
+  const result = await editAvatarByUserIdService(userId as string, filePath as string);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result
+  }
+  return res.status(200).json(response);
+})
+
+export const getDetailUserByIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.user?.userId;
+  const result = await getDetailUserByIdService(userId as string);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result
+  }
+  return res.status(200).json(response);
+})
+
+
+// --------------------------------------------------------------_ADMIN_----------------------------------------------------------------
+
+export const getAllUserForAdminController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const queryOption = req.query;
+  const { result, total } = await getAllUserForAdminService(queryOption);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+    total: total,
+  }
+  return res.status(200).json(response);
+})
+
+// ----------------------------------------------------------_USER_&&_ADMIN_------------------------------------------------------------

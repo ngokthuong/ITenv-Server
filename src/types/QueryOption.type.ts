@@ -5,4 +5,5 @@ export type QueryOption = {
     sortOrder?: 'DESC' | 'ASC' | 'desc' | 'asc';
     sortField?: string;
     tags?: string[];
+    year?: number
 };

@@ -1,4 +1,4 @@
-import accountRouter from './auth.routes';
+import authRouter from './auth.routes';
 import problemRouter from './problem.routes';
 import userRouter from './user.routes';
 import { Express } from 'express';
@@ -15,7 +15,7 @@ import messsageRouter from './message.routes';
 import conversationRouter from './conversation.routes';
 const initRoutes = (app: Express) => {
   // API
-  app.use('/api/account', accountRouter);
+  app.use('/api/account', authRouter);
   app.use('/api/problem', problemRouter);
   app.use('/api/user', userRouter);
   app.use('/api/post', postRouter);

@@ -6,6 +6,7 @@ import {
   getPostByIdController,
   getPostsByUserIdController,
   getPostsWithCategoryIdAndTagsController,
+  getPostsWithYearController,
   searchPostWithCategoryIdController,
   sharePostToProfileController,
   votePostController,
@@ -24,5 +25,6 @@ router.get('/search/:categoryId', searchPostWithCategoryIdController);
 router.get('/delete/:postId', verifyAccessToken, isUser, isAdmin, deletePostByIdController);
 router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileController);
 router.get('/get/:postedBy', verifyAccessToken, isUser, getPostsByUserIdController);
+router.get('/get/year', verifyAccessToken, isUser, isAdmin, getPostsWithYearController);
 
 export default router;
