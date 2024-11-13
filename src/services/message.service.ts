@@ -10,7 +10,7 @@ import {
 
 export const postMessageToConversationService = async (data: any) => {
   try {
-    return await message.create(data);
+    return (await message.create(data)).populate('sender', '_id username avatar');
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -44,7 +44,7 @@ export const getAllMesssOfCvssByCvssIdService = async (
 export const addMessForConvertationByUserIdService = async (
   data: any,
   sender: string,
-  fileUrl?: string,
+  fileUrl?: string[],
 ) => {
   try {
     let { receiver, content, conversationId, hasFile, hasText, parentMessage } = data;

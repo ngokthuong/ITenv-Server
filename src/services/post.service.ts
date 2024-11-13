@@ -34,11 +34,11 @@ export const getPostsWithCategoryIdAndTagsService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 20;
-    const sortField = queryOption.sortField || "createdAt";
-    const sortOrder = queryOption.sortOrder || "DESC"
+    const sortField = queryOption.sortField || 'createdAt';
+    const sortOrder = queryOption.sortOrder || 'DESC';
     const skip = (page - 1) * limit;
     const tagsRequest = queryOption.tags || [];
-    const searchRequest = queryOption.search || "";
+    const searchRequest = queryOption.search || '';
     // create 1 condition
     const conditions = [];
     // if searchRequest exist then push in condition
@@ -46,14 +46,14 @@ export const getPostsWithCategoryIdAndTagsService = async (
       conditions.push({
         $or: [
           { title: { $regex: searchRequest, $options: 'i' } },
-          { content: { $regex: searchRequest, $options: 'i' } }
-        ]
+          { content: { $regex: searchRequest, $options: 'i' } },
+        ],
       });
     }
     // if tagsRequest exist then push in condition
     if (tagsRequest.length > 0) {
       conditions.push({
-        tags: { $all: tagsRequest }
+        tags: { $all: tagsRequest },
       });
     }
     // create querySearch use to in function find()
@@ -61,17 +61,18 @@ export const getPostsWithCategoryIdAndTagsService = async (
     if (conditions.length > 0) {
       querySearch = {
         // use and to query two value search and tags
-        $and: conditions
+        $and: conditions,
       };
     } else {
       querySearch = {};
     }
 
-    const posts = await post.find(querySearch)
+    const posts = await post
+      .find(querySearch)
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
-      .lean()
+      .lean();
 
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
@@ -114,7 +115,7 @@ export const getPostsWithCategoryIdAndTagsService = async (
   }
 };
 
-// USER 
+// USER
 export const getPostByIdService = async (postId: string) => {
   try {
     const postItem = await post.findById(postId);
@@ -147,7 +148,7 @@ export const getPostByIdService = async (postId: string) => {
   }
 };
 
-// USER 
+// USER
 export const getAllTagsInPostsWithCateService = async (categoryID: string) => {
   try {
     // get all tags in posts with categoryID
@@ -212,38 +213,43 @@ export const votePostService = async (postId: string, userId: string, typeVote: 
   }
 };
 
-export const searchPostsWithCategoryService = async (categoryId: string, queryOption: QueryOption) => {
+export const searchPostsWithCategoryService = async (
+  categoryId: string,
+  queryOption: QueryOption,
+) => {
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 20;
-    const sortField = queryOption.sortField || "createdAt";
-    const sortOrder = queryOption.sortOrder || "DESC"
+    const sortField = queryOption.sortField || 'createdAt';
+    const sortOrder = queryOption.sortOrder || 'DESC';
     const skip = (page - 1) * limit;
 
     const querySearch = {
       $and: [
         categoryId ? { categoryId } : {},
-        queryOption.search ? {
-          $or: [
-            { title: { $regex: queryOption.search, $options: 'i' } },
-            {
-              $and: [
-                { content: { $regex: queryOption.search, $options: 'i' } },
-                { title: { $exists: false } }
-              ]
+        queryOption.search
+          ? {
+              $or: [
+                { title: { $regex: queryOption.search, $options: 'i' } },
+                {
+                  $and: [
+                    { content: { $regex: queryOption.search, $options: 'i' } },
+                    { title: { $exists: false } },
+                  ],
+                },
+              ],
             }
-          ]
-        } : {}
-      ]
+          : {},
+      ],
     };
 
-    const posts = await post.find(querySearch)
+    const posts = await post
+      .find(querySearch)
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit);
 
     return posts;
-
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -251,14 +257,15 @@ export const searchPostsWithCategoryService = async (categoryId: string, queryOp
 
 export const deletePostServise = async (postId: string, postedBy: string) => {
   try {
-    return await post.findOneAndUpdate({ _id: postId, postedBy: postedBy },
+    return await post.findOneAndUpdate(
+      { _id: postId, postedBy: postedBy },
       { isDeleted: true },
-      { new: true, runValidators: true }
-    )
+      { new: true, runValidators: true },
+    );
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 interface SharePostData {
   sharedBy: string;
@@ -271,25 +278,27 @@ export const sharePostToProfileService = async (data: SharePostData) => {
     data.shareToProfile = true;
     return await share.create(data);
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getPostsByUserIdService = async (postedBy: string, queryOption: QueryOption) => {
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 20;
-    const sortField = queryOption.sortField || "createdAt";
-    const sortOrder = queryOption.sortOrder || "ASC"
+    const sortField = queryOption.sortField || 'createdAt';
+    const sortOrder = queryOption.sortOrder || 'ASC';
     const skip = (page - 1) * limit;
 
-    const result = await post.find({ postedBy })
-      .sort({ [sortField]: sortOrder === "ASC" ? 1 : -1 })
+    const result = await post
+      .find({ postedBy })
+      .sort({ [sortField]: sortOrder === 'DESC' ? 1 : -1 })
+      .populate('tags', 'name description type')
       .skip(skip)
       .limit(limit)
-      .lean()
+      .lean();
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};

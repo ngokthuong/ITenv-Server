@@ -35,5 +35,5 @@ const storage = new CloudinaryStorage({
   },
 });
 const uploadCloud = multer({ storage });
-
+export { cloudinary as cloudinaryConfig };
 export default uploadCloud;
