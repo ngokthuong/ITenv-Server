@@ -18,37 +18,13 @@ export const messageSocket = async (
   user: IUser,
   messageInfo: MessageRequestType,
 ) => {
-  let { receiver, content, conversationId, hasFile, hasText, parentMessage } = messageInfo;
-  const sender = user._id.toString();
-  const recieverArray = Array.isArray(receiver) ? receiver : [receiver || ''];
-  recieverArray.push(sender || '');
-  let conversation;
   try {
     console.log('message socket', messageInfo);
-    if (!(await findConversationByIdService(conversationId!))) {
-      // create conversation
-      conversation = await createConversationForTwoPeopleByUserService(sender, recieverArray);
-      conversationId = conversation._id.toString();
-    } else conversation = await findConversationByIdService(conversationId!);
-    const newMess = await postMessageToConversationService({
-      sender,
-      conversationId,
-      hasFile,
-      hasText,
-      //  fileUrl,
-      content,
-      parentMessage,
-      isSeenBy: [sender],
-    });
-    const findNewMess = await message
-      .findById(newMess._id)
-      .populate('sender', '_id username avatar')
-      .lean();
-    await updateLastmessByConversationIdService(conversationId!, newMess?._id as string);
+    const conversation = await findConversationByIdService(messageInfo?.conversationId!);
     conversation?.participants?.forEach((participant) => {
       console.log(participant._id.toString());
       socket.to(participant._id.toString()).emit('message', {
-        data: findNewMess,
+        data: messageInfo,
       });
     });
   } catch (error) {

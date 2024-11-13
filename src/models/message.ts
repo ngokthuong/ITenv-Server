@@ -8,7 +8,7 @@ export interface IMessage extends Document {
   hasText: boolean;
   hasFile: boolean;
   content: string;
-  fileUrl?: string;
+  fileUrl?: string[];
   isRecalled: boolean;
   isDeleted: boolean;
   parentMessage?: mongoose.Types.ObjectId;
@@ -43,10 +43,12 @@ const messageSchema: Schema<IMessage> = new mongoose.Schema(
         return this.hasText;
       },
     },
-    fileUrl: {
-      type: String,
-      default: '',
-    },
+    fileUrl: [
+      {
+        type: String,
+        default: '',
+      },
+    ],
     isRecalled: {
       type: Boolean,
       default: false,
