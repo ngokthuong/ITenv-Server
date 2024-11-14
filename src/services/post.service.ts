@@ -294,6 +294,7 @@ export const getPostsByUserIdService = async (postedBy: string, queryOption: Que
       .find({ postedBy })
       .sort({ [sortField]: sortOrder === 'DESC' ? 1 : -1 })
       .populate('tags', 'name description type')
+      .populate('postedBy', 'username avatar _id')
       .skip(skip)
       .limit(limit)
       .lean();
@@ -301,11 +302,11 @@ export const getPostsByUserIdService = async (postedBy: string, queryOption: Que
   } catch (error: any) {
     throw new Error(error.message);
   }
-}
+};
 
 export const getPostsWithYearService = async (queryOption: QueryOption, userId: string) => {
   try {
-    const year = queryOption.year || new Date().getFullYear()
+    const year = queryOption.year || new Date().getFullYear();
     const page = queryOption.page || 1;
     const pageSize = queryOption.pageSize || 20;
     const sortField = queryOption.sortField || 'createAt';
@@ -315,13 +316,14 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
     const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
 
     // Query documents created within this date range
-    const result = await post.find({
-      postedBy: userId,
-      createdAt: {
-        $gte: startDate,
-        $lte: endDate
-      }
-    })
+    const result = await post
+      .find({
+        postedBy: userId,
+        createdAt: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip((page - 1) * pageSize)
       .limit(pageSize)
@@ -331,11 +333,11 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
       postedBy: userId,
       createdAt: {
         $gte: startDate,
-        $lte: endDate
-      }
+        $lte: endDate,
+      },
     });
-    return { total, result }
+    return { total, result };
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
