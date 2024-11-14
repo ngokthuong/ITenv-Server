@@ -4,11 +4,39 @@ import { QueryOption } from '../types/QueryOption.type';
 
 export const createFriendRequest = async (data: any) => {
   try {
+    const { sendBy, receiver } = data;
+    // check friend exist
+    if ((await checkFriendRequestExisted(sendBy, receiver)))
+      throw new Error('Friend request existed!')
+    // check firend request to myself
+    if ((await checkFriendRequestToMyself(sendBy, receiver)))
+      throw new Error('Friend request not send to myself!')
     return await friend.create(data);
   } catch (error: any) {
     throw new Error(error.message);
   }
 };
+
+const checkFriendRequestToMyself = async (sendBy: string, receiver: string) => {
+  try {
+    if (sendBy === receiver)
+      return true
+    return false
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const checkFriendRequestExisted = async (sendBy: string, receiver: string) => {
+  try {
+    const result = await friend.findOne({ sendBy, receiver });
+    if (result)
+      return true
+    return false
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
 
 export const acceptFriendRequestService = async (_id: string, userId: string) => {
   try {
