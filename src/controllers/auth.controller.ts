@@ -27,7 +27,7 @@ export const createAndSendOtp = asyncHandler(async (req: any, res: any) => {
   }
   // checkemail function
   if (await checkAccountExisted(req.body.email)) {
-    return res.status(409).json({
+    return res.status(404).json({
       success: false,
       message: 'This email is already in user!',
     });
@@ -57,7 +57,7 @@ export const verifyAndRegisterController = asyncHandler(async (req: any, res: an
       message: result.message,
     });
   } catch (err: any) {
-    return res.status(400).json({
+    return res.status(500).json({
       success: false,
       message: err.message,
     });
@@ -94,7 +94,7 @@ export const loginController = asyncHandler(async (req: any, res: any, next) => 
       },
     });
   } catch (error: any) {
-    return res.status(401).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -184,7 +184,7 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
       newAccessToken: result?.newAccessToken,
     });
   } catch (error) {
-    return res.status(401).json({
+    return res.status(500).json({
       success: false,
       message: (error as Error).message,
     });
@@ -210,7 +210,7 @@ export const verifyOtpController = asyncHandler(async (req: any, res: any) => {
       message: result.message,
     });
   } catch (error: any) {
-    return res.status(400).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

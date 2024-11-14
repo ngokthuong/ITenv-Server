@@ -50,7 +50,7 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
         data: newPost,
 
       };
-      return res.status(200).json(response);
+      return res.status(201).json(response);
     }
   } catch (error: any) {
     const response: ResponseType<null> = {
@@ -115,10 +115,10 @@ export const votePostController = asyncHandler(async (req: AuthRequest, res: any
     if (userId) {
       const result = await votePostService(postId, userId, typeVote);
       if (result) return res.status(200).json({ success: true, message: 'success' });
-      return res.status(200).json({ success: false, message: 'failed' });
+      return res.status(400).json({ success: false, message: 'failed' });
     }
   } catch (error) {
-    return res.status(200).json({ success: false, message: 'failed' });
+    return res.status(500).json({ success: false, message: 'failed' });
   }
 });
 
@@ -234,7 +234,7 @@ export const sharePostToProfileController = asyncHandler(async (req: AuthRequest
       data: null,
       error: "Share post is not successfully",
     };
-    return res.status(500).json(response);
+    return res.status(400).json(response);
   } catch (error: any) {
     const response: ResponseType<null> = {
       success: false,
@@ -261,7 +261,7 @@ export const getPostsByUserIdController = asyncHandler(async (req: AuthRequest, 
       data: null,
       error: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 })
 

@@ -14,7 +14,8 @@ export const getNotificationByUserIdService = async (
       .find({ receivers: { $in: [userId] } })
       .sort({ [sortField]: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
     const total = await notification.countDocuments({ receivers: { $in: [userId] } });
     return { result, total };
   } catch (error: any) {

@@ -55,10 +55,10 @@ export const voteCommentController = asyncHandler(async (req: AuthRequest, res: 
     if (userId) {
       const result = await voteCommentService(commentId, userId, typeVote);
       if (result) return res.status(200).json({ success: true, message: 'success', data: result });
-      return res.status(200).json({ success: false, message: 'failed' });
+      return res.status(400).json({ success: false, message: 'failed' });
     }
   } catch (error) {
-    return res.status(200).json({ success: false, message: 'failed' });
+    return res.status(500).json({ success: false, message: 'failed' });
   }
 });
 
@@ -105,7 +105,7 @@ export const editCommentByIdController = asyncHandler(async (req: AuthRequest, r
       success: false,
       message: 'Failed to edit comment',
     };
-    return res.status(500).json(response);
+    return res.status(404).json(response);
   } catch (error: any) {
     const response: ResponseType<null> = {
       success: false,

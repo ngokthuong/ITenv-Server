@@ -80,8 +80,8 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
     const statusCondition = type === 'ALL' ? {} : { status: type };
     const friends = await Friend.find({
       $or: [{ sendBy: userId }, { receiver: userId }],
-      ...statusCondition,
       isDeleted: false,
+      ...statusCondition,
     });
     // const total = await Friend.countDocuments({ receiver: userId, ...statusCondition });
     // Tạo danh sách các friend IDs từ các bản ghi tìm được

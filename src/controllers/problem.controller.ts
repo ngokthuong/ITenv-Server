@@ -134,9 +134,9 @@ import { insertProblems } from '../services/problem.service';
 export const insertProblemsController = asyncHandler(async (req: any, res: any) => {
   try {
     await insertProblems();
-    return res.status(200).json({ message: 'success' });
+    return res.status(201).json({ message: 'success' });
   } catch (error: any) {
-    return res.status(400).json(error.message);
+    return res.status(500).json(error.message);
   }
 });
 
@@ -163,7 +163,7 @@ export const getProblems = asyncHandler(async (req: any, res: any) => {
     };
     return res.status(200).json(response);
   } catch (error: any) {
-    return res.status(400).json(error.message);
+    return res.status(500).json(error.message);
   }
 });
 

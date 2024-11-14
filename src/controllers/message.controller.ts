@@ -30,7 +30,7 @@ export const getAllMesssOfCvssByCvssIdController = asyncHandler(
         success: false,
         message: error.message,
       };
-      return res.status(400).json(response);
+      return res.status(500).json(response);
     }
   },
 );
@@ -57,7 +57,7 @@ export const addMessForConversationByUserIdController = asyncHandler(
         success: false,
         message: error.message,
       };
-      return res.status(400).json(response);
+      return res.status(500).json(response);
     }
   },
 );
@@ -79,7 +79,7 @@ export const recalledMessageBySenderController = asyncHandler(async (req: any, r
       success: false,
       message: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 });
 
@@ -98,6 +98,6 @@ export const seenMessageByUserIdController = asyncHandler(async (req: AuthReques
       success: false,
       message: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 });

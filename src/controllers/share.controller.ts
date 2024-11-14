@@ -12,7 +12,7 @@ export const deletePostSharedByIdController = asyncHandler(async (req: AuthReque
             data: deleted,
             message: "Delete a share post is successfully"
         };
-        return res.status(500).json(response);
+        return res.status(200).json(response);
 
     } catch (error: any) {
         const response: ResponseType<null> = {

@@ -20,7 +20,7 @@ export const getConversationsOfUserByUserIdController = asyncHandler(async (req:
             success: false,
             message: error.message
         }
-        return res.status(400).json(response)
+        return res.status(500).json(response)
     }
 });
 
@@ -36,14 +36,14 @@ export const createGroupChatController = asyncHandler(async (req: AuthRequest, r
             success: true,
             data: result,
         };
-        return res.status(200).json(response);
+        return res.status(201).json(response);
 
     } catch (error: any) {
         const response: ResponseType<null> = {
             success: false,
             message: error.message
         }
-        return res.status(400).json(response)
+        return res.status(500).json(response)
     }
 });
 
@@ -63,7 +63,7 @@ export const editConversationNameController = asyncHandler(async (req: AuthReque
             success: false,
             message: error.message
         }
-        return res.status(400).json(response)
+        return res.status(500).json(response)
     }
 });
 

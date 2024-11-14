@@ -74,7 +74,6 @@ export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Respons
     const responseData = await getCurrentUserService(req);
     res.json(responseData);
   } catch (error: any) {
-    res.status(404);
     throw new Error(error.message);
   }
 });

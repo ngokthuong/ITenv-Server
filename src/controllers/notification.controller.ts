@@ -15,7 +15,8 @@ export const getNotificationsByUserIdController = asyncHandler(
         page,
         pageSize,
       );
-      if (!result) {
+      console.log(result)
+      if (result == null) {
         return res
           .status(404)
           .json({ success: false, data: null, error: 'Notifications not found.' });
@@ -53,6 +54,6 @@ export const isSeenNotidicationController = asyncHandler(async (req: AuthRequest
       data: null,
       error: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 })

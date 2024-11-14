@@ -19,14 +19,14 @@ export const createFriendRequestConrtroller = asyncHandler(async (req: AuthReque
       success: true,
       data: result,
     };
-    return res.status(200).json(response);
+    return res.status(201).json(response);
   } catch (error: any) {
     const response: ResponseType<null> = {
       success: false,
       data: null,
       error: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 });
 
@@ -47,7 +47,7 @@ export const acceptFriendRequestController = asyncHandler(async (req: AuthReques
       data: null,
       error: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 });
 
@@ -68,7 +68,7 @@ export const rejectFriendRequestController = asyncHandler(async (req: AuthReques
       data: null,
       error: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 });
 
@@ -89,7 +89,7 @@ export const blockFriendController = asyncHandler(async (req: AuthRequest, res: 
       data: null,
       error: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 });
 
@@ -108,7 +108,7 @@ export const getFriendsByUserIdController = asyncHandler(async (req: any, res: a
       success: false,
       error: error.message,
     };
-    return res.status(400).json(response);
+    return res.status(500).json(response);
   }
 });
 
@@ -132,7 +132,7 @@ export const getFriendRequestByUserIdController = asyncHandler(
         success: false,
         error: error.message,
       };
-      return res.status(400).json(response);
+      return res.status(500).json(response);
     }
   },
 );
