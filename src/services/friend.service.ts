@@ -9,12 +9,10 @@ export const createFriendRequest = async (data: any) => {
     // Kiểm tra xem lời mời kết bạn đã tồn tại chưa
     const existingFriendRequest = await checkFriendRequestExisted(sendBy, receiver);
     if (existingFriendRequest) {
-
       // Nếu lời mời đã bị xóa mềm, cập nhật lại trạng thái
       if (existingFriendRequest.isDeleted) {
         return await updateFriendRequestExistedService(sendBy, receiver);
       } else {
-
         // Nếu lời mời vẫn tồn tại và chưa bị xóa, không cho phép tạo lại
         throw new Error('Friend request already exists!');
       }
@@ -42,7 +40,7 @@ const updateFriendRequestExistedService = async (sendBy: string, receiver: strin
         ],
       },
       { isdeleted: false, sendBy, receiver },
-      { new: true }
+      { new: true },
     );
     return result;
   } catch (error: any) {
@@ -66,13 +64,12 @@ const checkFriendRequestExisted = async (sendBy: string, receiver: string) => {
 
 const checkFriendRequestToMyself = async (sendBy: string, receiver: string) => {
   try {
-    if (sendBy === receiver)
-      return true
-    return false
+    if (sendBy === receiver) return true;
+    return false;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const acceptFriendRequestService = async (_id: string, userId: string) => {
   try {
@@ -133,6 +130,7 @@ export const getFriendsByUserIdService = async (userId: string) => {
     const total = await friend.countDocuments({
       $or: [{ sendBy: userId }, { receiver: userId }],
       status: EnumFriend.TYPE_ACCEPT,
+      isdeleted: false,
     });
     return { friends, total };
   } catch (error) {

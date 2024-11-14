@@ -140,7 +140,6 @@ export const insertProblemsController = asyncHandler(async (req: any, res: any) 
   }
 });
 
-
 export const getProblems = asyncHandler(async (req: any, res: any) => {
   const page = parseInt(req.query.page || 1);
   const limit = parseInt(req.query.limit || 10);
@@ -198,4 +197,3 @@ export const commentController = asyncHandler(async (req: any, res: any) => {
     console.log(error);
   }
 });
-
