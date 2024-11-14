@@ -47,16 +47,16 @@ export const getAllUsersService = async (queryOption: QueryOption) => {
   // Define the search query based on the search term
   const searchQuery = search
     ? {
-      $and: [
-        { isDeleted: false },
-        {
-          $or: [
-            { username: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-          ],
-        },
-      ],
-    }
+        $and: [
+          { isDeleted: false },
+          {
+            $or: [
+              { username: { $regex: search, $options: 'i' } },
+              { email: { $regex: search, $options: 'i' } },
+            ],
+          },
+        ],
+      }
     : { isDeleted: false };
 
   // Find users with pagination
@@ -71,7 +71,6 @@ export const getAllUsersService = async (queryOption: QueryOption) => {
   return { total, users };
 };
 
-
 //  get all friends
 
 export const getAllFriendsOfUserByTypeService = async (data: any) => {
@@ -81,7 +80,8 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
     const statusCondition = type === 'ALL' ? {} : { status: type };
     const friends = await Friend.find({
       $or: [{ sendBy: userId }, { receiver: userId }],
-      ...statusCondition, isdeleted: false
+      ...statusCondition,
+      isdeleted: false,
     });
     // const total = await Friend.countDocuments({ receiver: userId, ...statusCondition });
     // Tạo danh sách các friend IDs từ các bản ghi tìm được
@@ -127,7 +127,7 @@ export const getUsersForFriendPageService = async (
         friends,
         friendWithMe,
       };
-    })
+    }),
   );
   return result;
 };
@@ -172,11 +172,11 @@ export const getAllUserForAdminService = async (queryOption: QueryOption) => {
     const sortOrder = queryOption.sortOrder || 'asc';
 
     const result = await User.find({
-      username: { $regex: search, $options: 'i' }
+      username: { $regex: search, $options: 'i' },
     })
       .populate('Account', 'email password passwordChangeAt')
       .sort({
-        [sortField]: sortOrder === 'asc' ? 1 : -1
+        [sortField]: sortOrder === 'asc' ? 1 : -1,
       })
       .skip((page - 1) * pageSize)
       .limit(pageSize)
@@ -188,34 +188,43 @@ export const getAllUserForAdminService = async (queryOption: QueryOption) => {
   } catch (error: any) {
     throw new Error(error.message);
   }
-}
+};
 
 export const editProfileByUserIdService = async (data: any, userId: string) => {
   try {
-    const result = await User.findByIdAndUpdate({ _id: userId }, { username: data.username, dob: data.dob, phoneNumber: data.phoneNumber, gender: data.gender }, { new: true })
+    const result = await User.findByIdAndUpdate(
+      { _id: userId },
+      {
+        username: data.username,
+        dob: data.dob,
+        phoneNumber: data.phoneNumber,
+        gender: data.gender,
+      },
+      { new: true },
+    );
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const editAvatarByUserIdService = async (_id: string, avatar: string) => {
   try {
     // viet ham get u lieu phu hop
-    const result = await User.findByIdAndUpdate({ _id }, { avatar }, { new: true })
+    const result = await User.findByIdAndUpdate({ _id }, { avatar }, { new: true });
     return {
-      avatar: getInfoData({ fileds: ['avatar'], object: result })
-    }
+      ...getInfoData({ fileds: ['avatar'], object: result }),
+    };
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getDetailUserByIdService = async (_id: string) => {
   try {
     const result = await User.findById(_id);
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
