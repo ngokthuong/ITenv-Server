@@ -135,8 +135,8 @@ export const insertProblemsController = asyncHandler(async (req: any, res: any) 
   try {
     await insertProblems();
     res.status(200).json({ message: 'success' });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error: any) {
+    res.status(400).json(error.message);
   }
 });
 
@@ -163,8 +163,8 @@ export const getProblems = asyncHandler(async (req: any, res: any) => {
       success: true,
     };
     res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error: any) {
+    res.status(400).json(error.message);
   }
 });
 
