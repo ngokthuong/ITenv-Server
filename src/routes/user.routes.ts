@@ -20,7 +20,7 @@ router.get(ApiUsers.CURRENT_USER, verifyAccessToken, getCurrentUser);
 router.get(ApiUsers.ALL_USERS, getAllUserController);
 router.get(ApiUsers.ALL_FRIENDS, verifyAccessToken, isUser, getAllFriendsOfUserByTypeController);
 router.get(ApiUsers.ALL_USERS_FRIENDPAGE, verifyAccessToken, isUser, getUsersForFriendPageController);
-router.get(ApiUsers.SINGLE_USER_BY_ID, getUserByIdController);
+router.get(ApiUsers.SINGLE_USER_BY_ID, verifyAccessToken, isUser, getUserByIdController);
 router.put(ApiUsers.EDIT_MYPROFILE, verifyAccessToken, isUser, editProfileByUserIdController);
 router.put(ApiUsers.EDIT_AVATAR, verifyAccessToken, isUser, uploadCloud.single('image'), editAvatarByUserIdController);
 router.get(ApiUsers.USER_DETAIL, verifyAccessToken, isUser, getDetailUserByIdController);

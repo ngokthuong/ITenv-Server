@@ -123,7 +123,7 @@ export const getUsersForFriendPageService = async (
       });
 
       return {
-        ...user.toObject(),
+        ...user,
         friends,
         friendWithMe,
       };
@@ -132,7 +132,7 @@ export const getUsersForFriendPageService = async (
   return result;
 };
 
-export const getUserByIdService = async (userId: string) => {
+export const getUserByIdService = async (userId: string, currentUserId :string) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error('User not found');
@@ -140,8 +140,8 @@ export const getUserByIdService = async (userId: string) => {
   const account = await Account.findOne({ user: userId });
   const friendWithMe = await Friend.findOne({
     $or: [
-      { sendBy: userId, receiver: user._id },
-      { sendBy: user._id, receiver: userId },
+      { sendBy: currentUserId, receiver: user._id },
+      { sendBy: user._id, receiver: currentUserId },
     ],
   });
 
