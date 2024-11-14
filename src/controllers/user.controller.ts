@@ -16,7 +16,7 @@ import { ResponseType } from '../types/Response.type';
 
 // ----------------------------------------------------------_USER_---------------------------------------------------------------------
 // have page ( dùng để tìm friend với các type khác nhau)
-// dùng trong profile của user 
+// dùng trong profile của user
 export const getAllFriendsOfUserByTypeController = asyncHandler(
   async (req: AuthRequest, res: any) => {
     try {
@@ -110,7 +110,6 @@ export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Respons
 //   });
 // });
 
-
 export const getAllUserController = asyncHandler(async (req: AuthRequest, res: Response) => {
   const queryOption = req.query;
 
@@ -130,9 +129,10 @@ export const getAllUserController = asyncHandler(async (req: AuthRequest, res: R
   }
 });
 
-export const getUserByIdController = asyncHandler(async (req: any, res: Response) => {
+export const getUserByIdController = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.params.userId;
-  const user = await getUserByIdService(userId);
+  const currentUserId = req.user?.userId;
+  const user = await getUserByIdService(userId, currentUserId!);
 
   if (user) {
     res.status(200).json({
@@ -147,13 +147,16 @@ export const getUserByIdController = asyncHandler(async (req: any, res: Response
 export const editProfileByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
   const userId = req.user?.userId;
   const { username, dob, phoneNumber, gender } = req.body;
-  const result = await editProfileByUserIdService({ username, dob, phoneNumber, gender }, userId as string);
+  const result = await editProfileByUserIdService(
+    { username, dob, phoneNumber, gender },
+    userId as string,
+  );
   const response: ResponseType<typeof result> = {
     success: true,
-    data: result
-  }
+    data: result,
+  };
   return res.status(200).json(response);
-})
+});
 
 export const editAvatarByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
   const filePath = req.file?.path;
@@ -161,21 +164,20 @@ export const editAvatarByUserIdController = asyncHandler(async (req: AuthRequest
   const result = await editAvatarByUserIdService(userId as string, filePath as string);
   const response: ResponseType<typeof result> = {
     success: true,
-    data: result
-  }
+    data: result,
+  };
   return res.status(200).json(response);
-})
+});
 
 export const getDetailUserByIdController = asyncHandler(async (req: AuthRequest, res: any) => {
   const userId = req.user?.userId;
   const result = await getDetailUserByIdService(userId as string);
   const response: ResponseType<typeof result> = {
     success: true,
-    data: result
-  }
+    data: result,
+  };
   return res.status(200).json(response);
-})
-
+});
 
 // --------------------------------------------------------------_ADMIN_----------------------------------------------------------------
 
@@ -186,8 +188,8 @@ export const getAllUserForAdminController = asyncHandler(async (req: AuthRequest
     success: true,
     data: result,
     total: total,
-  }
+  };
   return res.status(200).json(response);
-})
+});
 
 // ----------------------------------------------------------_USER_&&_ADMIN_------------------------------------------------------------
