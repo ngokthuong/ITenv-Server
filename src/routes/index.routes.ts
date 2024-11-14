@@ -15,18 +15,18 @@ import messsageRouter from './message.routes';
 import conversationRouter from './conversation.routes';
 const initRoutes = (app: Express) => {
   // API
-  app.use('/api/account', authRouter);
-  app.use('/api/problem', problemRouter);
-  app.use('/api/user', userRouter);
-  app.use('/api/post', postRouter);
-  app.use('/api/storage/upload', uploadRouter);
-  app.use('/api/tag', tagRouter);
-  app.use('/api/comment', commentRouter);
-  app.use('/api/category', categoryRouter);
-  app.use('/api/friend', friendRouter);
-  app.use('/api/notification', notificationRouter);
-  app.use('/api/message', messsageRouter);
-  app.use('/api/conversation', conversationRouter);
+  app.use('/api/accounts', authRouter);
+  app.use('/api/problems', problemRouter);
+  app.use('/api/users', userRouter);
+  app.use('/api/posts', postRouter);
+  app.use('/api/storages', uploadRouter);
+  app.use('/api/tags', tagRouter);
+  app.use('/api/comments', commentRouter);
+  app.use('/api/categories', categoryRouter);
+  app.use('/api/friends', friendRouter);
+  app.use('/api/notifications', notificationRouter);
+  app.use('/api/messages', messsageRouter);
+  app.use('/api/conversations', conversationRouter);
   //  ko tim dc api
   app.use(notFound);
   app.use(errHandler);

@@ -26,5 +26,5 @@ router.put(ApiUsers.EDIT_AVATAR, verifyAccessToken, isUser, uploadCloud.single('
 router.get(ApiUsers.USER_DETAIL, verifyAccessToken, isUser, getDetailUserByIdController);
 
 
-router.get("/all/for-admin", verifyAccessToken, isAdmin, getAllUserForAdminController);
+// router.get("/for-admin", verifyAccessToken, isAdmin, getAllUserForAdminController);
 export default router;

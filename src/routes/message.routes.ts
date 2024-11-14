@@ -12,24 +12,24 @@ import uploader from '../config/cloudinary';
 const router = Router();
 
 router.post(
-  '/post-mess',
+  '',
   verifyAccessToken,
   isUser,
   uploader.fields([{ name: 'file', maxCount: 10 }]),
   addMessForConversationByUserIdController,
 );
 router.get(
-  '/get-mess/:conversationId',
+  '/:conversationId',
   verifyAccessToken,
   isUser,
   getAllMesssOfCvssByCvssIdController,
 );
 router.post(
-  '/recall-mess/:conversationId',
+  '/recall/:conversationId',
   verifyAccessToken,
   isUser,
   recalledMessageBySenderController,
 );
-router.post('/seen-mess', verifyAccessToken, isUser, seenMessageByUserIdController);
+router.post('/seen', verifyAccessToken, isUser, seenMessageByUserIdController);
 
 export default router;

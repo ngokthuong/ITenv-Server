@@ -6,7 +6,7 @@ import {
 } from '../controllers/upload.controller';
 const router = Router();
 
-router.post('/image', uploadCloud.single('image'), uploadSingleImageController);
-router.post('/delete-image', deleteImageController);
+router.post('', uploadCloud.single('image'), uploadSingleImageController);
+router.post('', deleteImageController);
 
 export default router;

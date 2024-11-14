@@ -68,7 +68,7 @@ export const getPostsWithCategoryIdAndTagsService = async (
     }
 
     const posts = await post
-      .find(querySearch)
+      .find({ ...querySearch, categoryId })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
@@ -229,16 +229,16 @@ export const searchPostsWithCategoryService = async (
         categoryId ? { categoryId } : {},
         queryOption.search
           ? {
-              $or: [
-                { title: { $regex: queryOption.search, $options: 'i' } },
-                {
-                  $and: [
-                    { content: { $regex: queryOption.search, $options: 'i' } },
-                    { title: { $exists: false } },
-                  ],
-                },
-              ],
-            }
+            $or: [
+              { title: { $regex: queryOption.search, $options: 'i' } },
+              {
+                $and: [
+                  { content: { $regex: queryOption.search, $options: 'i' } },
+                  { title: { $exists: false } },
+                ],
+              },
+            ],
+          }
           : {},
       ],
     };

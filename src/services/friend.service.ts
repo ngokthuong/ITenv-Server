@@ -5,32 +5,68 @@ import { QueryOption } from '../types/QueryOption.type';
 export const createFriendRequest = async (data: any) => {
   try {
     const { sendBy, receiver } = data;
-    // check friend exist
-    if ((await checkFriendRequestExisted(sendBy, receiver)))
-      throw new Error('Friend request existed!')
-    // check firend request to myself
-    if ((await checkFriendRequestToMyself(sendBy, receiver)))
-      throw new Error('Friend request not send to myself!')
+
+    // Kiểm tra xem lời mời kết bạn đã tồn tại chưa
+    const existingFriendRequest = await checkFriendRequestExisted(sendBy, receiver);
+    if (existingFriendRequest) {
+
+      // Nếu lời mời đã bị xóa mềm, cập nhật lại trạng thái
+      if (existingFriendRequest.isdeleted) {
+        return await updateFriendRequestExistedService(sendBy, receiver);
+      } else {
+
+        // Nếu lời mời vẫn tồn tại và chưa bị xóa, không cho phép tạo lại
+        throw new Error('Friend request already exists!');
+      }
+    }
+
+    // Kiểm tra lời mời kết bạn đến chính mình
+    if (await checkFriendRequestToMyself(sendBy, receiver)) {
+      throw new Error('Cannot send a friend request to yourself!');
+    }
+
+    // Tạo lời mời kết bạn mới
     return await friend.create(data);
   } catch (error: any) {
-    throw new Error(error.message);
+    throw new Error(error instanceof Error ? error.message : 'An unexpected error occurred');
+  }
+};
+
+const updateFriendRequestExistedService = async (sendBy: string, receiver: string) => {
+  try {
+    const result = await friend.findOneAndUpdate(
+      {
+        $or: [
+          { sendBy, receiver },
+          { sendBy: receiver, receiver: sendBy },
+        ],
+      },
+      { isdeleted: false, sendBy, receiver },
+      { new: true }
+    );
+    return result;
+  } catch (error: any) {
+    throw new Error('Failed to update friend request');
+  }
+};
+
+const checkFriendRequestExisted = async (sendBy: string, receiver: string) => {
+  try {
+    const result = await friend.findOne({
+      $or: [
+        { sendBy, receiver },
+        { sendBy: receiver, receiver: sendBy },
+      ],
+    });
+    return result;
+  } catch (error: any) {
+    throw new Error('Failed to check existing friend request');
   }
 };
 
 const checkFriendRequestToMyself = async (sendBy: string, receiver: string) => {
   try {
     if (sendBy === receiver)
-      return true
-    return false
-  } catch (error: any) {
-    throw new Error(error.message)
-  }
-}
-
-const checkFriendRequestExisted = async (sendBy: string, receiver: string) => {
-  try {
-    const result = await friend.findOne({ sendBy, receiver });
-    if (result)
       return true
     return false
   } catch (error: any) {
@@ -58,10 +94,10 @@ export const acceptFriendRequestService = async (_id: string, userId: string) =>
 
 export const rejectFriendRequestService = async (_id: string, userId: string) => {
   try {
-    return await friend.findOneAndDelete({
+    return await friend.findOneAndUpdate({
       _id: _id,
       $or: [{ sendBy: userId }, { receiver: userId }],
-    });
+    }, { isdeleted: true }, { new: true });
   } catch (error: any) {
     throw new Error(error.message);
   }

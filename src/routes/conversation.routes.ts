@@ -6,8 +6,8 @@ import { createGroupChatController, getConversationsOfUserByUserIdController } f
 
 const router = Router();
 
-router.get('/get', verifyAccessToken, isUser, getConversationsOfUserByUserIdController);
-router.post('/create', verifyAccessToken, isUser, createGroupChatController);
+router.get('', verifyAccessToken, isUser, getConversationsOfUserByUserIdController);
+router.post('', verifyAccessToken, isUser, createGroupChatController);
 
 
 export default router;
