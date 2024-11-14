@@ -47,16 +47,16 @@ export const getAllUsersService = async (queryOption: QueryOption) => {
   // Define the search query based on the search term
   const searchQuery = search
     ? {
-        $and: [
-          { isDeleted: false },
-          {
-            $or: [
-              { username: { $regex: search, $options: 'i' } },
-              { email: { $regex: search, $options: 'i' } },
-            ],
-          },
-        ],
-      }
+      $and: [
+        { isDeleted: false },
+        {
+          $or: [
+            { username: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+          ],
+        },
+      ],
+    }
     : { isDeleted: false };
 
   // Find users with pagination
