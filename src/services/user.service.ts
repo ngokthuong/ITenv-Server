@@ -47,16 +47,16 @@ export const getAllUsersService = async (queryOption: QueryOption) => {
   // Define the search query based on the search term
   const searchQuery = search
     ? {
-      $and: [
-        { isDeleted: false },
-        {
-          $or: [
-            { username: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-          ],
-        },
-      ],
-    }
+        $and: [
+          { isDeleted: false },
+          {
+            $or: [
+              { username: { $regex: search, $options: 'i' } },
+              { email: { $regex: search, $options: 'i' } },
+            ],
+          },
+        ],
+      }
     : { isDeleted: false };
 
   // Find users with pagination
@@ -116,9 +116,14 @@ export const getUsersForFriendPageService = async (
       });
 
       const friendWithMe = await Friend.findOne({
-        $or: [
-          { sendBy: userId, receiver: user._id },
-          { sendBy: user._id, receiver: userId },
+        $and: [
+          {
+            $or: [
+              { sendBy: userId, receiver: user._id },
+              { sendBy: user._id, receiver: userId },
+            ],
+          },
+          { isdeleted: false },
         ],
       });
 
@@ -132,16 +137,21 @@ export const getUsersForFriendPageService = async (
   return result;
 };
 
-export const getUserByIdService = async (userId: string, currentUserId :string) => {
+export const getUserByIdService = async (userId: string, currentUserId: string) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error('User not found');
   }
   const account = await Account.findOne({ user: userId });
   const friendWithMe = await Friend.findOne({
-    $or: [
-      { sendBy: currentUserId, receiver: user._id },
-      { sendBy: user._id, receiver: currentUserId },
+    $and: [
+      {
+        $or: [
+          { sendBy: currentUserId, receiver: user._id },
+          { sendBy: user._id, receiver: currentUserId },
+        ],
+      },
+      { isdeleted: false },
     ],
   });
 

@@ -17,7 +17,7 @@ import { isAdmin, isUser } from '../middlewares/verify_roles';
 const router = Router();
 
 router.post('', verifyAccessToken, isUser, createPostController);
-router.get('/:categoryId', getPostsWithCategoryIdAndTagsController);
+router.get('/category/:categoryId', getPostsWithCategoryIdAndTagsController);
 router.get('/:_id', getPostByIdController);
 // router.put('', verifyAccessToken, isUser, editPostByIdController);
 router.post('/vote/:_id', verifyAccessToken, isUser, votePostController);

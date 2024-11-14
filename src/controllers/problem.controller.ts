@@ -140,7 +140,6 @@ export const insertProblemsController = asyncHandler(async (req: any, res: any) 
   }
 });
 
-
 export const getProblems = asyncHandler(async (req: any, res: any) => {
   const page = parseInt(req.query.page || 1);
   const limit = parseInt(req.query.limit || 10);
@@ -162,9 +161,10 @@ export const getProblems = asyncHandler(async (req: any, res: any) => {
       data: problems,
       success: true,
     };
-    res.status(200).json(response);
+
+    return res.status(200).json(response);
   } catch (error: any) {
-    res.status(400).json(error.message);
+    return res.status(400).json(error.message);
   }
 });
 
@@ -198,4 +198,3 @@ export const commentController = asyncHandler(async (req: any, res: any) => {
     console.log(error);
   }
 });
-
