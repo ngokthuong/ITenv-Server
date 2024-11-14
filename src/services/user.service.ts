@@ -81,7 +81,7 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
     const friends = await Friend.find({
       $or: [{ sendBy: userId }, { receiver: userId }],
       ...statusCondition,
-      isdeleted: false,
+      isDeleted: false,
     });
     // const total = await Friend.countDocuments({ receiver: userId, ...statusCondition });
     // Tạo danh sách các friend IDs từ các bản ghi tìm được
@@ -116,10 +116,15 @@ export const getUsersForFriendPageService = async (
       });
 
       const friendWithMe = await Friend.findOne({
-        $or: [
-          { sendBy: userId, receiver: user._id },
-          { sendBy: user._id, receiver: userId },
-        ],
+        $and: [
+          {
+            $or: [
+              { sendBy: userId, receiver: user._id },
+              { sendBy: user._id, receiver: userId },
+            ]
+          },
+          { isDeleted: false }
+        ]
       });
 
       return {
@@ -132,19 +137,23 @@ export const getUsersForFriendPageService = async (
   return result;
 };
 
-export const getUserByIdService = async (userId: string, currentUserId :string) => {
+export const getUserByIdService = async (userId: string, currentUserId: string) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error('User not found');
   }
   const account = await Account.findOne({ user: userId });
   const friendWithMe = await Friend.findOne({
-    $or: [
-      { sendBy: currentUserId, receiver: user._id },
-      { sendBy: user._id, receiver: currentUserId },
+    $and: [
+      {
+        $or: [
+          { sendBy: currentUserId, receiver: user._id },
+          { sendBy: user._id, receiver: currentUserId },
+        ],
+      },
+      { isDeleted: false },
     ],
   });
-
   const responseData = {
     _id: user._id,
     username: user.username,

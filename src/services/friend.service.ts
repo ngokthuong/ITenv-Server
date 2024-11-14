@@ -11,7 +11,7 @@ export const createFriendRequest = async (data: any) => {
     if (existingFriendRequest) {
 
       // Nếu lời mời đã bị xóa mềm, cập nhật lại trạng thái
-      if (existingFriendRequest.isdeleted) {
+      if (existingFriendRequest.isDeleted) {
         return await updateFriendRequestExistedService(sendBy, receiver);
       } else {
 
@@ -96,7 +96,7 @@ export const rejectFriendRequestService = async (friendId: string, userId: strin
   try {
     return await friend.findOneAndUpdate({
       _id: friendId,
-      // $or: [{ sendBy: userId }, { receiver: userId }],
+      $or: [{ sendBy: userId }, { receiver: userId }],
     }, { isdeleted: true }, { new: true });
   } catch (error: any) {
     throw new Error(error.message);
@@ -124,6 +124,7 @@ export const getFriendsByUserIdService = async (userId: string) => {
       .find({
         $or: [{ sendBy: userId }, { receiver: userId }],
         status: EnumFriend.TYPE_ACCEPT,
+        isDeleted: false
       })
       .populate({
         path: 'sendBy receiver',

@@ -134,9 +134,9 @@ import { insertProblems } from '../services/problem.service';
 export const insertProblemsController = asyncHandler(async (req: any, res: any) => {
   try {
     await insertProblems();
-    res.status(200).json({ message: 'success' });
+    return res.status(200).json({ message: 'success' });
   } catch (error: any) {
-    res.status(400).json(error.message);
+    return res.status(400).json(error.message);
   }
 });
 
@@ -162,9 +162,9 @@ export const getProblems = asyncHandler(async (req: any, res: any) => {
       data: problems,
       success: true,
     };
-    res.status(200).json(response);
+    return res.status(200).json(response);
   } catch (error: any) {
-    res.status(400).json(error.message);
+    return res.status(400).json(error.message);
   }
 });
 
@@ -179,9 +179,9 @@ export const getSingleProblem = asyncHandler(async (req: any, res: any) => {
       data: problem,
       success: true,
     };
-    res.status(200).json(response);
+    return res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
