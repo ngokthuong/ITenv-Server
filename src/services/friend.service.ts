@@ -92,11 +92,11 @@ export const acceptFriendRequestService = async (_id: string, userId: string) =>
   }
 };
 
-export const rejectFriendRequestService = async (_id: string, userId: string) => {
+export const rejectFriendRequestService = async (friendId: string, userId: string) => {
   try {
     return await friend.findOneAndUpdate({
-      _id: _id,
-      $or: [{ sendBy: userId }, { receiver: userId }],
+      _id: friendId,
+      // $or: [{ sendBy: userId }, { receiver: userId }],
     }, { isdeleted: true }, { new: true });
   } catch (error: any) {
     throw new Error(error.message);

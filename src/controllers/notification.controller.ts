@@ -3,7 +3,7 @@ import { AuthRequest } from '../types/AuthRequest.type';
 import asyncHandler from 'express-async-handler';
 import { ResponseType } from '../types/Response.type';
 
-export const getNotificationByUserIdController = asyncHandler(
+export const getNotificationsByUserIdController = asyncHandler(
   async (req: AuthRequest, res: any) => {
     try {
       const userId = req.user?.userId;
