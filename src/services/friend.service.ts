@@ -39,7 +39,7 @@ const updateFriendRequestExistedService = async (sendBy: string, receiver: strin
           { sendBy: receiver, receiver: sendBy },
         ],
       },
-      { isdeleted: false, sendBy, receiver },
+      { isDeleted: false, sendBy, receiver, status: EnumFriend.TYPE_PENDING },
       { new: true },
     );
     return result;
@@ -91,10 +91,14 @@ export const acceptFriendRequestService = async (_id: string, userId: string) =>
 
 export const rejectFriendRequestService = async (friendId: string, userId: string) => {
   try {
-    return await friend.findOneAndUpdate({
-      _id: friendId,
-      $or: [{ sendBy: userId }, { receiver: userId }],
-    }, { isdeleted: true }, { new: true });
+    return await friend.findOneAndUpdate(
+      {
+        _id: friendId,
+        $or: [{ sendBy: userId }, { receiver: userId }],
+      },
+      { isDeleted: true },
+      { new: true },
+    );
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -121,7 +125,7 @@ export const getFriendsByUserIdService = async (userId: string) => {
       .find({
         $or: [{ sendBy: userId }, { receiver: userId }],
         status: EnumFriend.TYPE_ACCEPT,
-        isDeleted: false
+        isDeleted: false,
       })
       .populate({
         path: 'sendBy receiver',
