@@ -130,7 +130,7 @@ export const getFriendsByUserIdService = async (userId: string) => {
     const total = await friend.countDocuments({
       $or: [{ sendBy: userId }, { receiver: userId }],
       status: EnumFriend.TYPE_ACCEPT,
-      isdeleted: false,
+      isDeleted: false,
     });
     return { friends, total };
   } catch (error) {

@@ -24,7 +24,7 @@ router.post('/vote/:_id', verifyAccessToken, isUser, votePostController);
 // router.get('/search/:categoryId', searchPostWithCategoryIdController);
 router.delete('/:postId', verifyAccessToken, isUser, deletePostByIdController);
 router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileController);
-router.get('/:postedBy', verifyAccessToken, isUser, getPostsByUserIdController);
+router.get('/user/:postedBy', verifyAccessToken, isUser, getPostsByUserIdController);
 router.get('', verifyAccessToken, isUser, getPostsController);
 
 export default router;
