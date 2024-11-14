@@ -265,7 +265,7 @@ export const getPostsByUserIdController = asyncHandler(async (req: AuthRequest, 
   }
 })
 
-export const getPostsWithYearController = asyncHandler(async (req: AuthRequest, res: any) => {
+export const getPostsController = asyncHandler(async (req: AuthRequest, res: any) => {
   const queryOption = req.query;
   const userId = req.user?.userId
   const { total, result } = await getPostsWithYearService(queryOption, userId as string);
