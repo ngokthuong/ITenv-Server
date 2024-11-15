@@ -5,7 +5,6 @@ import { updateVoteStatus } from './vote.service';
 import comment from '../models/comment';
 import { getInfoData } from '../utils/getInfoData.utils';
 
-
 // GET CMT ( ALL )
 const getChildrenComments = async (commentId: string) => {
   const children = await Comment.find({ parentComment: commentId })
@@ -24,7 +23,7 @@ export const getCommentsByPostIdService = async (postId: string, page: number) =
   var skip = (page - 1) * limit;
   try {
     // Lấy bình luận gốc ( ko co parentcmt)
-    const comments = await Comment.find({ postId, parentComment: null }) // Bình luận không có cha
+    const comments = await Comment.find({ postId, parentComment: null, isDeleted: false }) // Bình luận không có cha
       .populate('commentBy', 'username avatar _id')
       .sort({ isAccepted: -1, vote: -1, createdAt: -1 })
       .skip(skip)
@@ -43,7 +42,12 @@ export const getCommentsByPostIdService = async (postId: string, page: number) =
 };
 
 // post && reply
-export const postCommentService = async (parentComment: string, content: string, postId: string, commentBy: string) => {
+export const postCommentService = async (
+  parentComment: string,
+  content: string,
+  postId: string,
+  commentBy: string,
+) => {
   try {
     const findParentComment = await comment.findById(parentComment);
     // check null
@@ -70,7 +74,7 @@ export const postCommentService = async (parentComment: string, content: string,
         commentBy,
         content,
         parentComment: findParentComment?.parentComment,
-        postId
+        postId,
       });
 
       return createdChildComment;
@@ -82,9 +86,10 @@ export const postCommentService = async (parentComment: string, content: string,
 
 export const voteCommentService = async (commentId: string, userId: string, typeVote: number) => {
   try {
-    let findComment = await Comment
-      .findById(commentId)
-      .populate('commentBy', 'username avatar _id');
+    let findComment = await Comment.findById(commentId).populate(
+      'commentBy',
+      'username avatar _id',
+    );
     const userObjectId = new mongoose.Types.ObjectId(userId);
     if (!findComment) {
       throw new Error('Post not found');
@@ -103,45 +108,47 @@ export const deleteCommentService = async (commentId: string): Promise<boolean> 
     const deleteComment = await comment.findByIdAndUpdate(
       commentId,
       { isDeleted: true },
-      { new: true }
+      { new: true },
     );
 
     return deleteComment !== null;
   } catch (error: any) {
     throw new Error('Failed to delete comment');
   }
-}
+};
 
 export const editCommentByIdService = async (commentId: string, content: string) => {
   try {
-    const currentComment = await comment.findOne({ _id: commentId, isDeleted: false })
+    const currentComment = await comment.findOne({ _id: commentId, isDeleted: false });
     if (currentComment)
-      return await comment.findByIdAndUpdate(commentId, { content: content }, { new: true })
-    else return null
+      return await comment
+        .findByIdAndUpdate(commentId, { content: content }, { new: true })
+        .populate('commentBy', 'username avatar _id');
+    else return null;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const resolveCommentInPostByUserIdService = async (_id: string, commentBy: string) => {
   try {
-    const result = await comment.findOneAndUpdate(
-      { _id, commentBy },
-      { resolve: true },
-      { new: true }
-    );
+    const result = await comment
+      .findOneAndUpdate({ _id, commentBy }, { resolve: true }, { new: true })
+      .populate('commentBy', 'username avatar _id');
 
     if (result && result.postId) {
-      const resolvePost = await post.findByIdAndUpdate(result.postId._id, { resolve: true }, { new: true });
+      const resolvePost = await post
+        .findByIdAndUpdate(result.postId._id, { resolve: true }, { new: true })
+        .populate('commentBy', 'username avatar _id');
       return {
         _id,
         postId: result?.postId,
         resolvePost: resolvePost?.resolve,
         ...getInfoData({ fileds: ['resolve'], object: result }),
-      }
+      };
     }
-    throw new Error('Reaolve comment in post fail!')
+    throw new Error('Reaolve comment in post fail!');
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
