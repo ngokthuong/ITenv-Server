@@ -146,7 +146,7 @@ export const getProblems = asyncHandler(async (req: any, res: any) => {
   var skip = (page - 1) * limit;
 
   try {
-    const problems = await Problem.find({})
+    const problems = await Problem.find({ isDeleted: false })
       .skip(skip)
       .limit(limit)
       .select('_id title level slug tags acceptance submitBy vote comment postAt createdAt')
@@ -170,7 +170,7 @@ export const getProblems = asyncHandler(async (req: any, res: any) => {
 export const getSingleProblem = asyncHandler(async (req: any, res: any) => {
   const { slug } = req.params;
   try {
-    const problem = await Problem.findOne({ slug: slug });
+    const problem = await Problem.findOne({ slug: slug, isDeleted: false });
     if (!problem) {
       return res.status(404).json({ message: 'Problem not found' });
     }

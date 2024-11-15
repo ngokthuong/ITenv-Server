@@ -69,7 +69,7 @@ export const getPostsWithCategoryIdAndTagsService = async (
     }
 
     const posts = await post
-      .find({ ...querySearch, categoryId })
+      .find({ ...querySearch, categoryId, isDeleted: false })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
@@ -292,7 +292,7 @@ export const getPostsByUserIdService = async (postedBy: string, queryOption: Que
     const skip = (page - 1) * limit;
 
     const result = await post
-      .find({ postedBy })
+      .find({ postedBy, isDeleted: false })
       .sort({ [sortField]: sortOrder === 'DESC' ? 1 : -1 })
       .populate('tags', 'name description type')
       .populate('postedBy', 'username avatar _id')
@@ -324,6 +324,7 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
           $gte: startDate,
           $lte: endDate,
         },
+        isDeleted: false
       })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip((page - 1) * pageSize)

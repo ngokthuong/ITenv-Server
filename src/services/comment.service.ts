@@ -24,7 +24,7 @@ export const getCommentsByPostIdService = async (postId: string, page: number) =
   var skip = (page - 1) * limit;
   try {
     // Lấy bình luận gốc ( ko co parentcmt)
-    const comments = await Comment.find({ postId, parentComment: null }) // Bình luận không có cha
+    const comments = await Comment.find({ postId, parentComment: null, isDeleted: false }) // Bình luận không có cha
       .populate('commentBy', 'username avatar _id')
       .sort({ isAccepted: -1, vote: -1, createdAt: -1 })
       .skip(skip)

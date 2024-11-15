@@ -31,6 +31,7 @@ export interface IProblem extends Document {
   postAt: Date;
   editAt?: Date;
   status: boolean;
+  isDeleted: boolean;
   category?: mongoose.Types.ObjectId[];
 }
 
@@ -73,6 +74,10 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
     },
     slug: {
       type: String,

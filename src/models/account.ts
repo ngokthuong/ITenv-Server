@@ -13,6 +13,7 @@ interface IAccount extends Document {
     passwordChangeAt?: Date;
     refreshToken: string;
     user: mongoose.Types.ObjectId;
+    isDeleted: boolean;
     isCorrectPassword(password: string): Promise<boolean>;
     createPassChangeToken(): Promise<string>;
 }
@@ -51,6 +52,10 @@ const accountSchema: Schema<IAccount> = new Schema({
     },
     refreshToken: {
         type: String
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,

@@ -11,7 +11,7 @@ export const getNotificationByUserIdService = async (
     const sortField = "createdAt";
     const sortOrder = "ASC";
     const result = await notification
-      .find({ receivers: { $in: [userId] } })
+      .find({ receivers: { $in: [userId] }, isDeleted: false })
       .sort({ [sortField]: -1 })
       .skip(skip)
       .limit(limit)

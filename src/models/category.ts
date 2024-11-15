@@ -9,7 +9,6 @@ interface ICategory extends Document {
     type: EnumTag;
     isDeleted: boolean;
     slug: string;
-
 }
 
 const CategorySchema: Schema<ICategory> = new Schema({

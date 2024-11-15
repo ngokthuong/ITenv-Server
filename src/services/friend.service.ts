@@ -152,7 +152,7 @@ export const getFriendRequestByUserIdService = async (
     const sortField = 'createdAt';
     const skip = (page - 1) * limit;
     const result = await friend
-      .find({ receiver, status: EnumFriend.TYPE_PENDING })
+      .find({ receiver, status: EnumFriend.TYPE_PENDING, isDeleted: false })
       .sort({ [sortField]: -1 })
       .skip(skip)
       .limit(limit)

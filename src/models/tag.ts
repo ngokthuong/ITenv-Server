@@ -7,7 +7,7 @@ interface ITag extends Document {
     description?: string;
     type?: EnumTag;
     slug: string;
-
+    isDeleted: boolean;
 }
 
 const TagSchema = new Schema<ITag>({
@@ -25,6 +25,10 @@ const TagSchema = new Schema<ITag>({
         type: String,
         required: true,
     },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true,
 });

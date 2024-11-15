@@ -142,7 +142,7 @@ export const getUserByIdService = async (userId: string, currentUserId: string) 
   if (!user) {
     throw new Error('User not found');
   }
-  const account = await Account.findOne({ user: userId });
+  const account = await Account.findOne({ user: userId, isDeleted: false });
   const friendWithMe = await Friend.findOne({
     $and: [
       {
@@ -231,7 +231,7 @@ export const editAvatarByUserIdService = async (_id: string, avatar: string) => 
 
 export const getDetailUserByIdService = async (_id: string) => {
   try {
-    const result = await User.findById(_id);
+    const result = await User.findOne({ _id, isDeleted: false });
     return result;
   } catch (error: any) {
     throw new Error(error.message);
