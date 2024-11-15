@@ -28,7 +28,7 @@ export const getCommentsByPostIdController = asyncHandler(async (req: any, res: 
 export const postCommentController = asyncHandler(async (req: AuthRequest, res: any) => {
   const { postId } = req.params;
   const postedBy = req.user?.userId;
-  // don't full 
+  // don't full
   const comment = req.body;
 
   if (!postedBy) {
@@ -38,7 +38,12 @@ export const postCommentController = asyncHandler(async (req: AuthRequest, res: 
     });
   }
   try {
-    const newComment = await postCommentService(comment.parentComment, comment.content, postId, postedBy);
+    const newComment = await postCommentService(
+      comment.parentComment,
+      comment.content,
+      postId,
+      postedBy,
+    );
     return res.status(201).json({
       success: true,
       data: newComment,
@@ -79,7 +84,6 @@ export const deleteCommentController = asyncHandler(async (req: AuthRequest, res
       message: 'Comment is not deleted',
     };
     return res.status(404).json(response);
-
   } catch (error: any) {
     const response: ResponseType<null> = {
       success: false,
@@ -114,16 +118,17 @@ export const editCommentByIdController = asyncHandler(async (req: AuthRequest, r
     };
     return res.status(500).json(response);
   }
-
 });
 
-export const resolveCommentInPostByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
-  const commentBy = req.user?.userId;
-  const { _id } = req.params;
-  const result = await resolveCommentInPostByUserIdService(_id as string, commentBy as string);
-  const response: ResponseType<typeof result> = {
-    success: true,
-    data: result
-  };
-  return res.status(200).json(response);
-})
+export const resolveCommentInPostByUserIdController = asyncHandler(
+  async (req: AuthRequest, res: any) => {
+    const commentBy = req.user?.userId;
+    const { _id } = req.params;
+    const result = await resolveCommentInPostByUserIdService(_id as string, commentBy as string);
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  },
+);
