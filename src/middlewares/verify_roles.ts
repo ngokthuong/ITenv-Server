@@ -15,3 +15,10 @@ export const isUser = (req: AuthRequest, res: any, next: NextFunction) => {
         throw new Error("Account is not User")
     next()
 }
+
+export const isAll = (req: AuthRequest, res: any, next: NextFunction) => {
+    const role_code = req.user?.role;
+    if (role_code === EnumRoleAccount.ROLE_ADMIN || role_code === EnumRoleAccount.ROLE_USER)
+        next()
+    throw new Error("Account isn't both User and Admin")
+}

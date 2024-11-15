@@ -7,14 +7,14 @@ import {
   voteCommentController,
 } from '../controllers/comment.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
-import { isUser } from '../middlewares/verify_roles';
+import { isAll, isUser } from '../middlewares/verify_roles';
 
 const router = Router();
 
 router.get('/:postId', getCommentsByPostIdController);
 
-router.post('/:postId', verifyAccessToken, postCommentController);
-router.post('/vote/:_id', verifyAccessToken, voteCommentController);
+router.post('/:postId', verifyAccessToken, isUser, postCommentController);
+router.post('/vote/:_id', verifyAccessToken, isUser, voteCommentController);
 router.put('/:_id', verifyAccessToken, isUser, editCommentByIdController);
 router.delete('/:_id', verifyAccessToken, isUser, deleteCommentController);
 

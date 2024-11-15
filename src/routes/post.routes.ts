@@ -12,7 +12,7 @@ import {
   votePostController,
 } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
-import { isAdmin, isUser } from '../middlewares/verify_roles';
+import { isAdmin, isAll, isUser } from '../middlewares/verify_roles';
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.get('/:_id', getPostByIdController);
 // router.put('', verifyAccessToken, isUser, editPostByIdController);
 router.post('/vote/:_id', verifyAccessToken, isUser, votePostController);
 // router.get('/search/:categoryId', searchPostWithCategoryIdController);
-router.delete('/:postId', verifyAccessToken, isUser, deletePostByIdController);
+router.delete('/:postId', verifyAccessToken, isAll, deletePostByIdController);
 router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileController);
 router.get('/user/:postedBy', verifyAccessToken, isUser, getPostsByUserIdController);
 router.get('', verifyAccessToken, isUser, getPostsController);

@@ -33,7 +33,7 @@ router.post(ApiAuth.FACEBOOK_OAUTH,);
 router.post(ApiAuth.LOGOUT, verifyAccessToken, logoutController);
 
 // REFRESH TOKEN
-router.post(ApiAuth.REFRESH_ACCESS_TOKEN, refreshAccessToken);
+router.post(ApiAuth.REFRESH_ACCESS_TOKEN, verifyAccessToken, isUser, refreshAccessToken);
 
 
 // ACCOUNT update

@@ -12,12 +12,12 @@ import {
   getUsersForFriendPageController,
 } from '../controllers/user.controller';
 import { ApiUsers } from '../enums/apiUser.enum';
-import { isAdmin, isUser } from '../middlewares/verify_roles';
+import { isAdmin, isAll, isUser } from '../middlewares/verify_roles';
 import uploadCloud from '../config/cloudinary';
 const router = Router();
 
 router.get(ApiUsers.USER_DETAIL, verifyAccessToken, isUser, getDetailUserByIdController);
-router.get(ApiUsers.CURRENT_USER, verifyAccessToken, getCurrentUser);
+router.get(ApiUsers.CURRENT_USER, verifyAccessToken, isAll, getCurrentUser);
 router.get(ApiUsers.ALL_USERS, getAllUserController);
 router.get(ApiUsers.ALL_FRIENDS, verifyAccessToken, isUser, getAllFriendsOfUserByTypeController);
 router.get(ApiUsers.ALL_USERS_FRIENDPAGE, verifyAccessToken, isUser, getUsersForFriendPageController);

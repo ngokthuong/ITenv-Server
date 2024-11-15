@@ -12,7 +12,7 @@ export const createCategoryController = asyncHandler(async (req: AuthRequest, re
             success: true,
             data: createCategory,
         };
-        return res.status(200).json(response);
+        return res.status(201).json(response);
     } catch (error: any) {
         const response: ResponseType<null> = {
             success: false,
