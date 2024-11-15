@@ -130,7 +130,7 @@ export const editCommentByIdService = async (commentId: string, content: string)
   }
 };
 
-export const resolveCommentInPostByUserIdService = async (_id: string) => {
+export const resolveCommentInPostByUserIdService = async (_id: string, postedBy: string) => {
   try {
     const result = await comment
       .findOneAndUpdate({ _id }, { resolve: true }, { new: true })
@@ -138,7 +138,7 @@ export const resolveCommentInPostByUserIdService = async (_id: string) => {
 
     if (result && result.postId) {
       const resolvePost = await post
-        .findByIdAndUpdate(result.postId._id, { resolve: true }, { new: true })
+        .findOneAndUpdate({ _id: result.postId._id, postedBy }, { resolve: true }, { new: true })
         .populate('commentBy', 'username avatar _id');
       return {
         _id,
