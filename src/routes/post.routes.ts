@@ -10,6 +10,7 @@ import {
   searchPostWithCategoryIdController,
   sharePostToProfileController,
   votePostController,
+  resolvePostByUserIdController,
 } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isAdmin, isAll, isUser } from '../middlewares/verify_roles';
@@ -26,5 +27,6 @@ router.delete('/:postId', verifyAccessToken, isAll, deletePostByIdController);
 router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileController);
 router.get('/user/:postedBy', verifyAccessToken, isUser, getPostsByUserIdController);
 router.get('', verifyAccessToken, isUser, getPostsController);
+router.post('/resolve/:_id', verifyAccessToken, isUser, resolvePostByUserIdController);
 
 export default router;

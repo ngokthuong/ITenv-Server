@@ -11,6 +11,7 @@ interface IComment extends Document {
   postId: mongoose.Types.ObjectId;
   problemId: mongoose.Types.ObjectId;
   children?: IComment[];
+  resolve: boolean,
   isDeleted: boolean
 }
 
@@ -57,6 +58,10 @@ const commentSchema: Schema<IComment> = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Comment'
     }],
+    resolve: {
+      type: Boolean,
+      default: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false

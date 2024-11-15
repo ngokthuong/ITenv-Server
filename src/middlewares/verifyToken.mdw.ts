@@ -21,6 +21,7 @@ export const verifyAccessToken = asyncHandler(
           return res.status(401).json({
             success: false,
             message: 'Invalid accessToken',
+            // message: err.message,
           });
         req.user = decode as CustomJwtPayload;
         next();

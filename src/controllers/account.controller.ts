@@ -12,3 +12,5 @@ export const getAllAccountByUserIdController = asyncHandler(async (req: AuthRequ
     }
     return res.status(200).json(response);
 })
+
+    

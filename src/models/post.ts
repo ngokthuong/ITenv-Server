@@ -11,6 +11,7 @@ export interface IPost extends Document {
   categoryId: mongoose.Types.ObjectId[];
   isAnonymous: boolean;
   isDeleted: boolean;
+  resolve: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +60,10 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
       },
     ],
     isAnonymous: {
+      type: Boolean,
+      default: false,
+    },
+    resolve: {
       type: Boolean,
       default: false,
     },

@@ -4,6 +4,7 @@ import {
   editCommentByIdService,
   getCommentsByPostIdService,
   postCommentService,
+  resolveCommentInPostByUserIdService,
   voteCommentService,
 } from '../services/comment.service';
 import { AuthRequest } from '../types/AuthRequest.type';
@@ -115,3 +116,14 @@ export const editCommentByIdController = asyncHandler(async (req: AuthRequest, r
   }
 
 });
+
+export const resolveCommentInPostByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const commentBy = req.user?.userId;
+  const { _id } = req.params;
+  const result = await resolveCommentInPostByUserIdService(_id as string, commentBy as string);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result
+  };
+  return res.status(200).json(response);
+})

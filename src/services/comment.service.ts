@@ -3,6 +3,7 @@ import Comment from '../models/comment';
 import post from '../models/post';
 import { updateVoteStatus } from './vote.service';
 import comment from '../models/comment';
+import { getInfoData } from '../utils/getInfoData.utils';
 
 
 // GET CMT ( ALL )
@@ -117,6 +118,29 @@ export const editCommentByIdService = async (commentId: string, content: string)
     if (currentComment)
       return await comment.findByIdAndUpdate(commentId, { content: content }, { new: true })
     else return null
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const resolveCommentInPostByUserIdService = async (_id: string, commentBy: string) => {
+  try {
+    const result = await comment.findOneAndUpdate(
+      { _id, commentBy },
+      { resolve: true },
+      { new: true }
+    );
+
+    if (result && result.postId) {
+      const resolvePost = await post.findByIdAndUpdate(result.postId._id, { resolve: true }, { new: true });
+      return {
+        _id,
+        postId: result?.postId,
+        resolvePost: resolvePost?.resolve,
+        ...getInfoData({ fileds: ['resolve'], object: result }),
+      }
+    }
+    throw new Error('Reaolve comment in post fail!')
   } catch (error: any) {
     throw new Error(error.message)
   }

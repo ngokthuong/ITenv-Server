@@ -10,6 +10,7 @@ import {
   getPostsByUserIdService,
   getPostsWithCategoryIdAndTagsService,
   getPostsWithYearService,
+  resolvePostByUserIdService,
   searchPostsWithCategoryService,
   sharePostToProfileService,
   votePostService,
@@ -273,6 +274,17 @@ export const getPostsController = asyncHandler(async (req: AuthRequest, res: any
     success: true,
     data: result,
     total
+  };
+  return res.status(200).json(response);
+})
+
+export const resolvePostByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const postedBy = req.user?.userId;
+  const { _id } = req.params;
+  const result = await resolvePostByUserIdService(_id as string, postedBy as string);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result
   };
   return res.status(200).json(response);
 })

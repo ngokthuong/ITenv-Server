@@ -7,6 +7,7 @@ import { updateVoteStatus } from './vote.service';
 import share from '../models/share';
 import message from '../models/message';
 import comment from '../models/comment';
+import { getInfoData } from '../utils/getInfoData.utils';
 // USER + ADMIN
 export const createPostService = async (data: any) => {
   try {
@@ -341,3 +342,17 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
     throw new Error(error.message);
   }
 };
+
+export const resolvePostByUserIdService = async (_id: string, postedBy: string) => {
+  try {
+    const result = await post.findOneAndUpdate({ _id: _id, postedBy: postedBy }, { resolve: true }, { new: true })
+    if (result)
+      return {
+        _id,
+        ...getInfoData({ fileds: ['resolve'], object: result }),
+      };
+    throw new Error("Post not found")
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}

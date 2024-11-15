@@ -274,13 +274,14 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
       refreshToken,
       process.env.JWT_SECRET as string,
       async (err: any, decode: any) => {
+
         if (err)
           return {
             success: false,
             message: 'Refresh token expired',
           };
         const account = await Account.findOne({
-          _id: decode._id,
+          _id: decode._accId,
           refreshToken: refreshToken,
         });
         return {
