@@ -1,24 +1,22 @@
-import { NextFunction } from "express"
-import { AuthRequest } from "../types/AuthRequest.type"
-import { EnumRoleAccount } from "../enums/schemaAccount.enum"
+import { NextFunction } from 'express';
+import { AuthRequest } from '../types/AuthRequest.type';
+import { EnumRoleAccount } from '../enums/schemaAccount.enum';
 
 export const isAdmin = (req: AuthRequest, res: any, next: NextFunction) => {
-    const role_code = req.user?.role
-    if (role_code !== EnumRoleAccount.ROLE_ADMIN)
-        throw new Error("Account is not Admin")
-    next()
-}
+  const role_code = req.user?.role;
+  if (role_code !== EnumRoleAccount.ROLE_ADMIN) throw new Error('Account is not Admin');
+  next();
+};
 
 export const isUser = (req: AuthRequest, res: any, next: NextFunction) => {
-    const role_code = req.user?.role
-    if (role_code !== EnumRoleAccount.ROLE_USER)
-        throw new Error("Account is not User")
-    next()
-}
+  const role_code = req.user?.role;
+  if (role_code !== EnumRoleAccount.ROLE_USER) throw new Error('Account is not User');
+  next();
+};
 
 export const isAll = (req: AuthRequest, res: any, next: NextFunction) => {
-    const role_code = req.user?.role;
-    if (role_code === EnumRoleAccount.ROLE_ADMIN || role_code === EnumRoleAccount.ROLE_USER)
-        next()
-    throw new Error("Account isn't both User and Admin")
-}
+  const role_code = req.user?.role;
+  if (role_code !== EnumRoleAccount.ROLE_ADMIN && role_code !== EnumRoleAccount.ROLE_USER)
+    throw new Error("Account isn't both User and Admin");
+  next();
+};
