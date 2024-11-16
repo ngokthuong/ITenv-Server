@@ -28,7 +28,7 @@ export const getAllMesssOfCvssByCvssIdService = async (
     const skip = (page - 1) * limit;
 
     const result = await message
-      .find({ conversationId, isRecalled: false, isDeleted: false })
+      .find({ conversationId, isDeleted: false })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
