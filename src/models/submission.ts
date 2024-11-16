@@ -12,6 +12,8 @@ export interface ISubmission extends Document {
     score: number;
     isAccepted: boolean;
     submitAt: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const codeSchema: Schema<ICode> = new mongoose.Schema({

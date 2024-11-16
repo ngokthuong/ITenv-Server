@@ -5,9 +5,11 @@ interface IShare extends Document {
     sharedBy: mongoose.Types.ObjectId;
     sharedToUser: mongoose.Types.ObjectId;
     sharedToCvstion: mongoose.Types.ObjectId;
-    shareToProfile: boolean;
+    shareToMyProfile: boolean;
     postId: mongoose.Types.ObjectId;
-    isDeleted: boolean
+    isDeleted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const ShareSchema: Schema<IShare> = new Schema({
@@ -24,7 +26,7 @@ const ShareSchema: Schema<IShare> = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Conversation',
     },
-    shareToProfile: {
+    shareToMyProfile: {
         type: Boolean,
         default: false,
     },

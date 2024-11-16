@@ -1,4 +1,4 @@
-import { getAllTagsService } from '../services/tag.service'
+import { createTagService, getAllTagsService } from '../services/tag.service'
 import { ResponseType } from '../types/Response.type'
 
 export const getAllTagsController = async (req: any, res: any) => {
@@ -20,3 +20,25 @@ export const getAllTagsController = async (req: any, res: any) => {
         return res.status(500).json(response);
     }
 };
+
+export const createTagController = async (req: any, res: any) => {
+    const { name, description, type } = req.body;
+    const tag = await createTagService({ name, description, type });
+    if (tag) {
+        const response: ResponseType<typeof tag> = {
+            success: true,
+            data: tag
+        }
+        return res.status(200).json(response);
+    }
+    const response: ResponseType<typeof tag> = {
+        success: false,
+        data: tag
+    }
+    return res.status(400).json(response);
+}
+
+export const deleteTagController = async (req: any, res: any) => {
+
+}
+

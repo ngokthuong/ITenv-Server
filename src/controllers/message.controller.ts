@@ -67,8 +67,8 @@ export const addMessForConversationByUserIdController = asyncHandler(
 export const recalledMessageBySenderController = asyncHandler(async (req: any, res: any) => {
   try {
     const sender = req.user?.userId;
-    const { messId } = req.body;
-    const result = await recalledMessageBySenderService(sender, messId);
+    const { messageId } = req.params;
+    const result = await recalledMessageBySenderService(sender, messageId);
     const response: ResponseType<typeof result> = {
       success: true,
       data: result,

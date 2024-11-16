@@ -6,8 +6,11 @@ interface ITag extends Document {
     name?: string;
     description?: string;
     type?: EnumTag;
+    // tu sinh slug
     slug: string;
     isDeleted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const TagSchema = new Schema<ITag>({

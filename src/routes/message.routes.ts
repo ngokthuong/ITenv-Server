@@ -25,7 +25,7 @@ router.get(
   getAllMesssOfCvssByCvssIdController,
 );
 router.post(
-  '/recall/:conversationId',
+  '/recall/:messageId',
   verifyAccessToken,
   isUser,
   recalledMessageBySenderController,
