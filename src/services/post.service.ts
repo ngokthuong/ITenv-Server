@@ -77,7 +77,7 @@ export const getPostsWithCategoryIdAndTagsService = async (
 
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
-        const totalComment = await comment.countDocuments({ postId: postItem._id });
+        const totalComment = await comment.countDocuments({ postId: postItem._id, isDeleted: false });
         if (!postItem.isAnonymous) {
           const populatedUser = await post.populate(postItem, [
             {
@@ -106,7 +106,7 @@ export const getPostsWithCategoryIdAndTagsService = async (
         }
       }),
     );
-    const totalPosts = await post.countDocuments({ categoryId });
+    const totalPosts = await post.countDocuments({ categoryId, isDeleted: false });
     return {
       posts: populatedPosts,
       totalPosts,
@@ -337,6 +337,7 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
         $gte: startDate,
         $lte: endDate,
       },
+      isDeleted: false
     });
     return { total, result };
   } catch (error: any) {
@@ -347,12 +348,7 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
 export const resolvePostByUserIdService = async (_id: string, postedBy: string) => {
   try {
     const result = await post.findOneAndUpdate({ _id: _id, postedBy: postedBy }, { resolve: true }, { new: true })
-    if (result)
-      return {
-        _id,
-        ...getInfoData({ fileds: ['resolve'], object: result }),
-      };
-    throw new Error("Post not found")
+    return !!result;
   } catch (error: any) {
     throw new Error(error.message)
   }

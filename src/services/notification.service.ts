@@ -16,7 +16,7 @@ export const getNotificationByUserIdService = async (
       .skip(skip)
       .limit(limit)
       .lean();
-    const total = await notification.countDocuments({ receivers: { $in: [userId] } });
+    const total = await notification.countDocuments({ receivers: { $in: [userId] }, isDeleted: false });
     return { result, total };
   } catch (error: any) {
     throw new Error(error.message)

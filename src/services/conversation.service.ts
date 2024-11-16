@@ -15,7 +15,7 @@ export const getConversationsOfUserByUserIdService = async (
     const sortOrder = 'ASC';
     const skip = (page - 1) * limit;
     const options = { sort: [['lastMessage?.createdAt', 'asc']] };
-    const totalCount = await conversation.countDocuments({ participants: userId });
+    const totalCount = await conversation.countDocuments({ participants: userId, isDeleted: false });
     const result = await conversation
       .find({ participants: userId, isDeleted: false })
       .populate('participants', '_id username avatar')
