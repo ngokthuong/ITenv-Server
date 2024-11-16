@@ -126,8 +126,8 @@ export const resolveCommentInPostByUserIdController = asyncHandler(
     const { _id } = req.params;
     const result = await resolveCommentInPostByUserIdService(_id as string, postedBy as string);
     const response: ResponseType<typeof result> = {
-      success: true,
-      data: result
+      success: result,
+      message: "Post resolved"
     };
     return res.status(200).json(response);
   },

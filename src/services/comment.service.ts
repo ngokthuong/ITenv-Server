@@ -134,20 +134,13 @@ export const resolveCommentInPostByUserIdService = async (_id: string, postedBy:
   try {
     const result = await comment
       .findOneAndUpdate({ _id }, { resolve: true }, { new: true })
-      .populate('commentBy', 'username avatar _id');
 
     if (result && result.postId) {
       const resolvePost = await post
         .findOneAndUpdate({ _id: result.postId._id, postedBy }, { resolve: true }, { new: true })
-        .populate('commentBy', 'username avatar _id');
-      return {
-        _id,
-        postId: result?.postId,
-        resolvePost: resolvePost?.resolve,
-        ...getInfoData({ fileds: ['resolve'], object: result }),
-      };
+      return !!resolvePost;
     }
-    throw new Error('Reaolve comment in post fail!');
+    throw new Error('Resolve comment in post fail!');
   } catch (error: any) {
     throw new Error(error.message);
   }
