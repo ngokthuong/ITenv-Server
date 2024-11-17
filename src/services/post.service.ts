@@ -8,6 +8,7 @@ import share from '../models/share';
 import message from '../models/message';
 import comment from '../models/comment';
 import { getInfoData } from '../utils/getInfoData.utils';
+import { Constants } from '../enums/constants.enum';
 // USER + ADMIN
 export const createPostService = async (data: any) => {
   try {
@@ -38,7 +39,11 @@ export const getPostsWithCategoryIdAndTagsService = async (
     const sortField = queryOption.sortField || 'createdAt';
     const sortOrder = queryOption.sortOrder || 'DESC';
     const skip = (page - 1) * limit;
-    const tagsRequest = queryOption.tags || [];
+    const tagsRequest = Array.isArray(queryOption.tags)
+      ? queryOption.tags
+      : queryOption.tags
+        ? [queryOption.tags]
+        : [];
     const searchRequest = queryOption.search || '';
     // create 1 condition
     const conditions = [];
@@ -68,12 +73,14 @@ export const getPostsWithCategoryIdAndTagsService = async (
       querySearch = {};
     }
 
-    const posts = await post
-      .find({ ...querySearch, categoryId, isDeleted: false })
-      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const posts = await findPostWithViewsOrVotesService(querySearch, categoryId, sortField, sortOrder, skip, limit)
+    console.log(posts)
+    // const posts = await post
+    //   .find({ ...querySearch, categoryId, isDeleted: false })
+    //   .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+    //   .skip(skip)
+    //   .limit(limit)
+    //   .lean();
 
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
@@ -89,7 +96,6 @@ export const getPostsWithCategoryIdAndTagsService = async (
             },
             {
               path: 'tags',
-              model: 'Tag',
               select: 'name description type',
             },
           ]);
@@ -101,7 +107,6 @@ export const getPostsWithCategoryIdAndTagsService = async (
           }
           const populatedTags = await post.populate(postItem, {
             path: 'tags',
-            model: 'Tag',
             select: 'name description type',
           });
           (populatedTags as any).totalComment = totalComment;
@@ -114,6 +119,53 @@ export const getPostsWithCategoryIdAndTagsService = async (
       posts: populatedPosts,
       totalPosts,
     };
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+const findPostWithViewsOrVotesService = async (
+  querySearch: any,
+  categoryId: string,
+  sortField: string,
+  sortOrder: string,
+  skip: number,
+  limit: number
+) => {
+  try {
+    const ObjectId = mongoose.Types.ObjectId;
+    const matchStage: any = {
+      ...querySearch,
+      categoryId: new ObjectId(categoryId),
+      isDeleted: false,
+    };
+
+    const addFieldsStage: any = {};
+    const sortStage: any = {};
+
+    if (sortField === Constants.VOTES) {
+      console.log('votes')
+      addFieldsStage.voteCount = { $size: '$vote' };
+      sortStage.voteCount = sortOrder === 'ASC' ? 1 : -1;
+    } else if (sortField === Constants.VIEWS) {
+      addFieldsStage.viewCount = { $size: '$view' };
+      sortStage.viewCount = sortOrder === 'ASC' ? 1 : -1;
+    } else {
+      sortStage.createdAt = sortOrder === 'ASC' ? 1 : -1;
+    }
+
+    const pipeline = [
+      { $match: matchStage },
+      { $addFields: addFieldsStage },
+      { $sort: sortStage },
+      { $skip: skip },
+      { $limit: limit },
+      // { $project: { voteCount: 0, viewCount: 0 } },
+    ];
+
+    const posts = await post.aggregate(pipeline);
+    console.log(posts)
+    return posts;
   } catch (error: any) {
     throw new Error(error.message);
   }
