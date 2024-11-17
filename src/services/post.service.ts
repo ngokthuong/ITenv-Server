@@ -36,14 +36,15 @@ export const getPostsWithCategoryIdAndTagsService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 20;
+    console.log(limit)
     const sortField = queryOption.sortField || 'createdAt';
     const sortOrder = queryOption.sortOrder || 'DESC';
     const skip = (page - 1) * limit;
     const tagsRequest = Array.isArray(queryOption.tags)
       ? queryOption.tags
       : queryOption.tags
-        ? [queryOption.tags]
-        : [];
+      ? [queryOption.tags]
+      : [];
     const searchRequest = queryOption.search || '';
     // create 1 condition
     const conditions = [];
@@ -73,8 +74,15 @@ export const getPostsWithCategoryIdAndTagsService = async (
       querySearch = {};
     }
 
-    const posts = await findPostWithViewsOrVotesService(querySearch, categoryId, sortField, sortOrder, skip, limit)
-    console.log(posts)
+    const posts = await findPostWithViewsOrVotesService(
+      querySearch,
+      categoryId,
+      sortField,
+      sortOrder,
+      skip,
+      limit,
+    );
+    console.log(posts);
     // const posts = await post
     //   .find({ ...querySearch, categoryId, isDeleted: false })
     //   .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
@@ -130,7 +138,7 @@ const findPostWithViewsOrVotesService = async (
   sortField: string,
   sortOrder: string,
   skip: number,
-  limit: number
+  limit: number,
 ) => {
   try {
     const ObjectId = mongoose.Types.ObjectId;
@@ -144,7 +152,7 @@ const findPostWithViewsOrVotesService = async (
     const sortStage: any = {};
 
     if (sortField === Constants.VOTES) {
-      console.log('votes')
+      console.log('votes');
       addFieldsStage.voteCount = { $size: '$vote' };
       sortStage.voteCount = sortOrder === 'ASC' ? 1 : -1;
     } else if (sortField === Constants.VIEWS) {
@@ -164,7 +172,7 @@ const findPostWithViewsOrVotesService = async (
     ];
 
     const posts = await post.aggregate(pipeline);
-    console.log(posts)
+    console.log(posts);
     return posts;
   } catch (error: any) {
     throw new Error(error.message);

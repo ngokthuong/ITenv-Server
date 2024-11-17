@@ -85,7 +85,6 @@ export const loginController = asyncHandler(async (req: any, res: any, next) => 
       });
     }
     return res.status(200).json({
-
       success: resultLoginService?.success,
       message: resultLoginService?.message,
       data: {
@@ -98,7 +97,6 @@ export const loginController = asyncHandler(async (req: any, res: any, next) => 
       success: false,
       message: error.message,
     });
-
   }
 });
 
@@ -170,7 +168,7 @@ export const logoutController = asyncHandler(async (req: any, res: any) => {
 export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
   // Get the token from cookies
   const refreshToken = req.cookies?.refreshToken;
-  console.log(refreshToken)
+  console.log(refreshToken);
   if (!refreshToken) {
     return res.status(400).json({
       success: false,
@@ -182,7 +180,7 @@ export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
     return res.status(200).json({
       success: result?.success,
       message: result?.message,
-      newAccessToken: result?.newAccessToken,
+      data: result?.newAccessToken,
     });
   } catch (error) {
     return res.status(500).json({
@@ -216,7 +214,7 @@ export const verifyOtpController = asyncHandler(async (req: any, res: any) => {
       message: error.message,
     });
   }
-})
+});
 
 export const resetPassController = asyncHandler(async (req: any, res: any) => {
   const result = await resetPassService(req);
@@ -225,4 +223,3 @@ export const resetPassController = asyncHandler(async (req: any, res: any) => {
     message: (await result).message,
   });
 });
-

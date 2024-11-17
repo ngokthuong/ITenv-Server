@@ -29,12 +29,11 @@ router.post(ApiAuth.VERIFY_SIGNUP, verifyAndRegisterController);
 router.post(ApiAuth.LOGIN, loginController);
 router.post(ApiAuth.GITHUB_OAUTH, githubOauthController);
 router.post(ApiAuth.GOOGLE_OAUTH, googleOauthController);
-router.post(ApiAuth.FACEBOOK_OAUTH,);
+router.post(ApiAuth.FACEBOOK_OAUTH);
 router.post(ApiAuth.LOGOUT, verifyAccessToken, logoutController);
 
 // REFRESH TOKEN
-router.post(ApiAuth.REFRESH_ACCESS_TOKEN, verifyAccessToken, isUser, refreshAccessToken);
-
+router.post(ApiAuth.REFRESH_ACCESS_TOKEN, refreshAccessToken);
 
 // ACCOUNT update
 router.get(ApiAuth.GET_ALL_ACCOUNT, verifyAccessToken, isUser, getAllAccountByUserIdController);
