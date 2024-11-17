@@ -1,4 +1,5 @@
 import uploadCloud from '../config/cloudinary';
+import conversation from '../models/conversation';
 import message from '../models/message';
 import { QueryOption } from '../types/QueryOption.type';
 import {
@@ -28,7 +29,7 @@ export const getAllMesssOfCvssByCvssIdService = async (
     const skip = (page - 1) * limit;
 
     const result = await message
-      .find({ conversationId, isRecalled: false, isDeleted: false })
+      .find({ conversationId, isDeleted: false })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
@@ -48,15 +49,27 @@ export const addMessForConvertationByUserIdService = async (
 ) => {
   try {
     let { receiver, content, conversationId, hasFile, hasText, parentMessage } = data;
+
     const recieverArray = Array.isArray(receiver) ? receiver : [receiver];
-    recieverArray.push(sender);
-    // have conversation
-    if (!(await findConversationByIdService(conversationId))) {
-      // create conversation
-      const result = await createConversationForTwoPeopleByUserService(sender, recieverArray);
-      conversationId = result._id.toString();
+
+    if (!conversationId) {
+      const findConversation = await conversation.findOne({
+        participants: { $all: [sender, ...recieverArray] },
+        isGroupChat: false,
+        isDeleted: false,
+      });
+
+      if (!findConversation) {
+        const result = await createConversationForTwoPeopleByUserService(sender, [
+          ...recieverArray,
+          sender,
+        ]);
+        conversationId = result._id.toString();
+      } else {
+        conversationId = findConversation?._id.toString()!;
+      }
     }
-    // add mess
+
     const newMess = await postMessageToConversationService({
       sender,
       conversationId,
@@ -65,8 +78,8 @@ export const addMessForConvertationByUserIdService = async (
       fileUrl,
       content,
       parentMessage,
+      isSeenBy: [sender],
     });
-    // update lastmess
     await updateLastmessByConversationIdService(conversationId, newMess._id as string);
     return newMess;
   } catch (error: any) {

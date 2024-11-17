@@ -77,7 +77,10 @@ export const getPostsWithCategoryIdAndTagsService = async (
 
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
-        const totalComment = await comment.countDocuments({ postId: postItem._id, isDeleted: false });
+        const totalComment = await comment.countDocuments({
+          postId: postItem._id,
+          isDeleted: false,
+        });
         if (!postItem.isAnonymous) {
           const populatedUser = await post.populate(postItem, [
             {
@@ -106,7 +109,7 @@ export const getPostsWithCategoryIdAndTagsService = async (
         }
       }),
     );
-    const totalPosts = await post.countDocuments({ categoryId, isDeleted: false });
+    const totalPosts = await post.countDocuments({ categoryId, isDeleted: false, ...querySearch });
     return {
       posts: populatedPosts,
       totalPosts,
@@ -230,16 +233,16 @@ export const searchPostsWithCategoryService = async (
         categoryId ? { categoryId } : {},
         queryOption.search
           ? {
-            $or: [
-              { title: { $regex: queryOption.search, $options: 'i' } },
-              {
-                $and: [
-                  { content: { $regex: queryOption.search, $options: 'i' } },
-                  { title: { $exists: false } },
-                ],
-              },
-            ],
-          }
+              $or: [
+                { title: { $regex: queryOption.search, $options: 'i' } },
+                {
+                  $and: [
+                    { content: { $regex: queryOption.search, $options: 'i' } },
+                    { title: { $exists: false } },
+                  ],
+                },
+              ],
+            }
           : {},
       ],
     };
@@ -324,7 +327,7 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
           $gte: startDate,
           $lte: endDate,
         },
-        isDeleted: false
+        isDeleted: false,
       })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip((page - 1) * pageSize)
@@ -337,7 +340,7 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
         $gte: startDate,
         $lte: endDate,
       },
-      isDeleted: false
+      isDeleted: false,
     });
     return { total, result };
   } catch (error: any) {
@@ -347,9 +350,13 @@ export const getPostsWithYearService = async (queryOption: QueryOption, userId: 
 
 export const resolvePostByUserIdService = async (_id: string, postedBy: string) => {
   try {
-    const result = await post.findOneAndUpdate({ _id: _id, postedBy: postedBy }, { resolve: true }, { new: true })
+    const result = await post.findOneAndUpdate(
+      { _id: _id, postedBy: postedBy },
+      { resolve: true },
+      { new: true },
+    );
     return !!result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};

@@ -2,7 +2,7 @@ import { Socket } from 'socket.io';
 import uploader, { cloudinaryConfig } from '../config/cloudinary';
 import { IMessage } from '../models/message';
 import { IUser } from '../models/user';
-import { messageSocket, seenMessage } from './message.socket';
+import { messageSocket, recallMessage, seenMessage } from './message.socket';
 import { notifySocket } from './notification.socket';
 export const socketFunctions = (socket: Socket, user: IUser) => {
   // socket.use(async (packet, next) => {
@@ -32,6 +32,10 @@ export const socketFunctions = (socket: Socket, user: IUser) => {
   socket.on(
     'seen_message',
     async (messageInfo: IMessage) => await seenMessage(socket, user, messageInfo),
+  );
+  socket.on(
+    'recall_message',
+    async (messageInfo: IMessage) => await recallMessage(socket, user, messageInfo),
   );
   socket.emit('welcome', { message: 'Welcome to the socket server!' });
 };

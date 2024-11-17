@@ -21,8 +21,8 @@ export const getConversationsOfUserByUserIdService = async (
       .populate('participants', '_id username avatar')
       .populate({
         path: 'lastMessage',
-        select: 'sender isSeenBy hasText hasFile content fileUrl createdAt',
-        match: { isRecalled: false, isDeleted: false },
+        select: 'sender isSeenBy hasText hasFile content fileUrl createdAt isRecalled isDeleted',
+        match: {  isDeleted: false },
         populate: { path: 'sender', select: '_id username avatar' },
       })
       .populate({ path: 'createdBy', select: '_id username avatar' })

@@ -43,8 +43,6 @@ export const addMessForConversationByUserIdController = asyncHandler(
     console.log(fileUrl);
     try {
       const sender = req.user?.userId as string;
-      let { reciever, content, conversationId, hasFile, hasText, parentMessage } = req.body;
-      console.log(reciever, content, conversationId, hasFile, hasText, parentMessage);
       const data = req.body;
       const result = await addMessForConvertationByUserIdService(data, sender, fileUrl);
       const response: ResponseType<typeof result> = {

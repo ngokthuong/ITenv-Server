@@ -158,7 +158,11 @@ export const getFriendRequestByUserIdService = async (
       .limit(limit)
       .populate({ path: 'sendBy receiver', select: '_id username avatar' })
       .lean();
-    const total = await friend.countDocuments({ receiver, status: EnumFriend.TYPE_PENDING, isDeleted: false });
+    const total = await friend.countDocuments({
+      receiver,
+      status: EnumFriend.TYPE_PENDING,
+      isDeleted: false,
+    });
     return { result, total };
   } catch (error: any) {
     throw new Error(error.message);
