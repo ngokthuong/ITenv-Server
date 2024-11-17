@@ -36,7 +36,6 @@ export const getPostsWithCategoryIdAndTagsService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 20;
-    console.log(limit)
     const sortField = queryOption.sortField || 'createdAt';
     const sortOrder = queryOption.sortOrder || 'DESC';
     const skip = (page - 1) * limit;
@@ -82,7 +81,6 @@ export const getPostsWithCategoryIdAndTagsService = async (
       skip,
       limit,
     );
-    console.log(posts);
     // const posts = await post
     //   .find({ ...querySearch, categoryId, isDeleted: false })
     //   .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
@@ -152,7 +150,6 @@ const findPostWithViewsOrVotesService = async (
     const sortStage: any = {};
 
     if (sortField === Constants.VOTES) {
-      console.log('votes');
       addFieldsStage.voteCount = { $size: '$vote' };
       sortStage.voteCount = sortOrder === 'ASC' ? 1 : -1;
     } else if (sortField === Constants.VIEWS) {
@@ -172,7 +169,6 @@ const findPostWithViewsOrVotesService = async (
     ];
 
     const posts = await post.aggregate(pipeline);
-    console.log(posts);
     return posts;
   } catch (error: any) {
     throw new Error(error.message);
@@ -237,7 +233,6 @@ export const getAllTagsInPostsWithCateService = async (categoryID: string) => {
 export const editPostByIdService = async (_id: string, data: any) => {
   try {
     const editPost = await post.findByIdAndUpdate(_id, data, { new: true });
-    console.log(editPost);
     if (data.isAnonymous) {
       return editPost;
     }

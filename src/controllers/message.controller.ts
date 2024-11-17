@@ -40,7 +40,6 @@ export const addMessForConversationByUserIdController = asyncHandler(
   async (req: AuthRequest, res: any) => {
     const files = req?.files as unknown as FilesObject;
     const fileUrl = files?.file?.map((file: UploadedFile) => file?.path);
-    console.log(fileUrl);
     try {
       const sender = req.user?.userId as string;
       const data = req.body;

@@ -168,7 +168,6 @@ export const logoutController = asyncHandler(async (req: any, res: any) => {
 export const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
   // Get the token from cookies
   const refreshToken = req.cookies?.refreshToken;
-  console.log(refreshToken);
   if (!refreshToken) {
     return res.status(400).json({
       success: false,

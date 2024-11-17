@@ -15,7 +15,6 @@ export const getNotificationsByUserIdController = asyncHandler(
         page,
         pageSize,
       );
-      console.log(result)
       if (result == null) {
         return res
           .status(404)

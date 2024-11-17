@@ -114,7 +114,6 @@ export const getAllUserController = asyncHandler(async (req: AuthRequest, res: R
 
   try {
     const { total, users } = await getAllUsersService(queryOption);
-    console.log(users);
     res.json({
       success: true,
       total,
