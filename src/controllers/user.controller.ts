@@ -50,10 +50,9 @@ export const getAllFriendsOfUserByTypeController = asyncHandler(
 export const getUsersForFriendPageController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
     const userId = req.user?.userId;
-    const page = parseInt((req.query.page as string) || '1');
-    const pageSize = parseInt((req.query.pageSize as string) || '20');
+    const queryOption = req.query;
 
-    const result = await getUsersForFriendPageService(userId as string, page, pageSize);
+    const result = await getUsersForFriendPageService(userId as string, queryOption);
     const response: ResponseType<typeof result> = {
       success: true,
       data: result,

@@ -27,16 +27,30 @@ export const getAllMesssOfCvssByCvssIdService = async (
     const sortField = queryOption.sortField || 'createdAt';
     const sortOrder = queryOption.sortOrder || 'DESC';
     const skip = (page - 1) * limit;
+    const search = queryOption?.search || '';
+
+    if (!conversationId) {
+      throw new Error('Conversation ID is required.');
+    }
 
     const result = await message
-      .find({ conversationId, isDeleted: false })
+      .find({
+        content: { $regex: search, $options: 'i' }
+        , conversationId
+        , isDeleted: false
+      })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
       .populate('sender', '_id username avatar')
       .lean();
-    // const totalMessages = await message.countDocuments({ conversationId });
-    return result.reverse();
+
+    const total = await message.countDocuments({
+      content: { $regex: search, $options: 'i' }
+      , conversationId
+      , isDeleted: false
+    })
+    return { result, total };
   } catch (error: any) {
     throw new Error(error.message);
   }

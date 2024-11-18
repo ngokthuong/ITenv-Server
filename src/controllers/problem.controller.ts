@@ -6,7 +6,7 @@ import pLimit from 'p-limit';
 import { ResponseType } from '../types/Response.type';
 import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
-import { insertProblems } from '../services/problem.service';
+import { getProblemsService, insertProblems } from '../services/problem.service';
 
 // export const insertProblems = asyncHandler(async (req: any, res: any) => {
 //   try {
@@ -140,33 +140,15 @@ export const insertProblemsController = asyncHandler(async (req: any, res: any) 
   }
 });
 
-export const getProblems = asyncHandler(async (req: any, res: any) => {
-  const page = parseInt(req.query.page || 1);
-  const limit = parseInt(req.query.limit || 10);
-  var skip = (page - 1) * limit;
-  const search = req.query.search || '';
-  try {
-    const problems = await Problem.find({
-      title: { $regex: search, $options: 'i' },
-    })
-      .skip(skip)
-      .limit(limit)
-      .select('_id title level slug tags acceptance submitBy vote comment postAt createdAt')
-      .populate({
-        path: 'tags',
-        select: '_id name',
-      });
-    var count = await Problem.countDocuments({});
-
-    let response: ResponseType<IProblem[]> = {
-      total: count,
-      data: problems,
-      success: true,
-    };
-    return res.status(200).json(response);
-  } catch (error: any) {
-    return res.status(500).json(error.message);
-  }
+export const getProblemsController = asyncHandler(async (req: any, res: any) => {
+  const queryOption = req.query;
+  const { result, total } = await getProblemsService(queryOption);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+    total
+  };
+  return res.status(200).json(response);
 });
 
 export const getSingleProblem = asyncHandler(async (req: any, res: any) => {

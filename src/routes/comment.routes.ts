@@ -13,7 +13,6 @@ import { isAll, isUser } from '../middlewares/verify_roles';
 const router = Router();
 
 router.get('/:postId', getCommentsByPostIdController);
-
 router.post('/:postId', verifyAccessToken, isUser, postCommentController);
 router.post('/vote/:_id', verifyAccessToken, isUser, voteCommentController);
 router.put('/:_id', verifyAccessToken, isUser, editCommentByIdController);

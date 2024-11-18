@@ -19,10 +19,11 @@ export const getAllMesssOfCvssByCvssIdController = asyncHandler(
     try {
       const conversationId = req.params.conversationId;
       const queryOption = req.query;
-      const result = await getAllMesssOfCvssByCvssIdService(conversationId, queryOption);
+      const { result, total } = await getAllMesssOfCvssByCvssIdService(conversationId, queryOption);
       const response: ResponseType<typeof result> = {
         success: true,
         data: result,
+        total: total
       };
       return res.status(200).json(response);
     } catch (error: any) {

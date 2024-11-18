@@ -100,12 +100,14 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
 
 export const getUsersForFriendPageService = async (
   userId: string,
-  page: number,
-  pageSize: number,
+  queryOption: QueryOption
 ) => {
+  const page = queryOption.page || 1;
+  const pageSize = queryOption.pageSize || 20;
+  const search = queryOption.search || ''
   const limit = pageSize;
   const skip = (page - 1) * limit;
-  const { users } = await getAllUsersService({ page, pageSize });
+  const { users } = await getAllUsersService({ page, pageSize, search });
   const result = await Promise.all(
     users.map(async (user) => {
       const friends = await getAllFriendsOfUserByTypeService({

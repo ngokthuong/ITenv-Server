@@ -149,6 +149,7 @@ export const getFriendRequestByUserIdService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = 20;
+    const search = queryOption?.search || '';
     const sortField = 'createdAt';
     const skip = (page - 1) * limit;
     const result = await friend
