@@ -42,8 +42,8 @@ export const getPostsWithCategoryIdAndTagsService = async (
     const tagsRequest = Array.isArray(queryOption.tags)
       ? queryOption.tags
       : queryOption.tags
-      ? [queryOption.tags]
-      : [];
+        ? [queryOption.tags]
+        : [];
     const searchRequest = queryOption.search || '';
     // create 1 condition
     const conditions = [];
@@ -243,16 +243,16 @@ export const searchPostsWithCategoryService = async (
         categoryId ? { categoryId } : {},
         queryOption.search
           ? {
-              $or: [
-                { title: { $regex: queryOption.search, $options: 'i' } },
-                {
-                  $and: [
-                    { content: { $regex: queryOption.search, $options: 'i' } },
-                    { title: { $exists: false } },
-                  ],
-                },
-              ],
-            }
+            $or: [
+              { title: { $regex: queryOption.search, $options: 'i' } },
+              {
+                $and: [
+                  { content: { $regex: queryOption.search, $options: 'i' } },
+                  { title: { $exists: false } },
+                ],
+              },
+            ],
+          }
           : {},
       ],
     };
@@ -289,9 +289,14 @@ const findPostWithViewsOrVotesService = async (
     const sortStage: any = {};
 
     if (sortField === Constants.VOTES) {
-      console.log('votes');
-      addFieldsStage.voteCount = { $size: '$vote' };
-      sortStage.voteCount = sortOrder === 'ASC' ? 1 : -1;
+      // Tính toán vote - downVote
+      addFieldsStage.voteBalance = {
+        $subtract: [
+          { $size: '$vote' },
+          { $size: '$downVote' }
+        ]
+      };
+      sortStage.voteBalance = sortOrder === 'ASC' ? 1 : -1;
     } else if (sortField === Constants.VIEWS) {
       addFieldsStage.viewCount = { $size: '$view' };
       sortStage.viewCount = sortOrder === 'ASC' ? 1 : -1;
@@ -314,6 +319,7 @@ const findPostWithViewsOrVotesService = async (
     throw new Error(error.message);
   }
 };
+
 export const deletePostServise = async (postId: string, postedBy: string) => {
   try {
     return await post.findOneAndUpdate(
