@@ -1,4 +1,3 @@
-
 import { result } from '../services/leetcode.service';
 import Problem, { IProblem } from '../models/problem';
 import Tag from '../models/tag';
@@ -76,7 +75,11 @@ const fetchEditorData = async (titleSlug: string) => {
     }
   `;
   const variablesEditor = { titleSlug };
-  const questionEditorResponse = await result('questionEditorData', graphqlQueryEditor, variablesEditor);
+  const questionEditorResponse = await result(
+    'questionEditorData',
+    graphqlQueryEditor,
+    variablesEditor,
+  );
   return questionEditorResponse.data.data.question.codeSnippets;
 };
 
@@ -110,18 +113,18 @@ export const insertProblems = async () => {
                 level: question.difficulty as EnumLevelProblem,
                 hints: question.hints,
                 status: question.status || false,
+                exampleTestcases: question.exampleTestcases,
                 tags: tags,
                 initialCode: codeEditorData,
               });
             }
           }
         }
-      })
+      }),
     );
   }
   await Promise.all(tasks);
 };
-
 
 export const getProblemsService = async (queryOption: QueryOption) => {
   try {
@@ -136,9 +139,10 @@ export const getProblemsService = async (queryOption: QueryOption) => {
       $or: [
         { title: { $regex: search, $options: 'i' } },
         { content: { $regex: search, $options: 'i' } },
-      ], isDeleted: false
+      ],
+      isDeleted: false,
     })
-      .sort({ [sortField]: sortOrder === "ASC" ? 1 : -1 })
+      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
       .select('_id title level slug tags acceptance submitBy vote comment postAt createdAt')
@@ -147,15 +151,15 @@ export const getProblemsService = async (queryOption: QueryOption) => {
         select: '_id name',
       });
     var total = await Problem.countDocuments({
-      isDeleted: false, $or: [
+      isDeleted: false,
+      $or: [
         { title: { $regex: search, $options: 'i' } },
         { content: { $regex: search, $options: 'i' } },
-      ]
+      ],
     });
 
-    return { result, total }
-
+    return { result, total };
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};

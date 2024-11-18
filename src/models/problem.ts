@@ -33,6 +33,7 @@ export interface IProblem extends Document {
   status: boolean;
   isDeleted: boolean;
   category?: mongoose.Types.ObjectId[];
+  exampleTestcases: string;
 }
 
 const initialCodeSchema: Schema<IInitialCode> = new mongoose.Schema({
@@ -77,7 +78,7 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     },
     isDeleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     slug: {
       type: String,
@@ -115,6 +116,7 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     },
     initialCode: [initialCodeSchema],
     testCase: testCaseSchema,
+    exampleTestcases: String,
     vote: [
       {
         type: mongoose.Schema.Types.ObjectId,
