@@ -130,51 +130,6 @@ export const getPostsWithCategoryIdAndTagsService = async (
   }
 };
 
-const findPostWithViewsOrVotesService = async (
-  querySearch: any,
-  categoryId: string,
-  sortField: string,
-  sortOrder: string,
-  skip: number,
-  limit: number,
-) => {
-  try {
-    const ObjectId = mongoose.Types.ObjectId;
-    const matchStage: any = {
-      ...querySearch,
-      categoryId: new ObjectId(categoryId),
-      isDeleted: false,
-    };
-
-    const addFieldsStage: any = {};
-    const sortStage: any = {};
-
-    if (sortField === Constants.VOTES) {
-      addFieldsStage.voteCount = { $size: '$vote' };
-      sortStage.voteCount = sortOrder === 'ASC' ? 1 : -1;
-    } else if (sortField === Constants.VIEWS) {
-      addFieldsStage.viewCount = { $size: '$view' };
-      sortStage.viewCount = sortOrder === 'ASC' ? 1 : -1;
-    } else {
-      sortStage.createdAt = sortOrder === 'ASC' ? 1 : -1;
-    }
-
-    const pipeline = [
-      { $match: matchStage },
-      { $addFields: addFieldsStage },
-      { $sort: sortStage },
-      { $skip: skip },
-      { $limit: limit },
-      // { $project: { voteCount: 0, viewCount: 0 } },
-    ];
-
-    const posts = await post.aggregate(pipeline);
-    return posts;
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
-};
-
 // USER
 export const getPostByIdService = async (postId: string) => {
   try {
