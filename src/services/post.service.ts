@@ -73,6 +73,12 @@ export const getPostsWithCategoryIdAndTagsService = async (
       querySearch = {};
     }
 
+    // const posts = await post
+    //   .find({ ...querySearch, categoryId, isDeleted: false })
+    //   .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+    //   .skip(skip)
+    //   .limit(limit)
+    //   .lean();
     const posts = await findPostWithViewsOrVotesService(
       querySearch,
       categoryId,
@@ -81,12 +87,6 @@ export const getPostsWithCategoryIdAndTagsService = async (
       skip,
       limit,
     );
-    // const posts = await post
-    //   .find({ ...querySearch, categoryId, isDeleted: false })
-    //   .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
-    //   .skip(skip)
-    //   .limit(limit)
-    //   .lean();
 
     const populatedPosts = await Promise.all(
       posts.map(async (postItem) => {
@@ -314,6 +314,51 @@ export const searchPostsWithCategoryService = async (
   }
 };
 
+const findPostWithViewsOrVotesService = async (
+  querySearch: any,
+  categoryId: string,
+  sortField: string,
+  sortOrder: string,
+  skip: number,
+  limit: number,
+) => {
+  try {
+    const ObjectId = mongoose.Types.ObjectId;
+    const matchStage: any = {
+      ...querySearch,
+      categoryId: new ObjectId(categoryId),
+      isDeleted: false,
+    };
+
+    const addFieldsStage: any = {};
+    const sortStage: any = {};
+
+    if (sortField === Constants.VOTES) {
+      console.log('votes');
+      addFieldsStage.voteCount = { $size: '$vote' };
+      sortStage.voteCount = sortOrder === 'ASC' ? 1 : -1;
+    } else if (sortField === Constants.VIEWS) {
+      addFieldsStage.viewCount = { $size: '$view' };
+      sortStage.viewCount = sortOrder === 'ASC' ? 1 : -1;
+    } else {
+      sortStage.createdAt = sortOrder === 'ASC' ? 1 : -1;
+    }
+    const pipeline = [
+      { $match: matchStage },
+      { $addFields: addFieldsStage },
+      { $sort: sortStage },
+      { $skip: +skip },
+      { $limit: +limit },
+      // { $project: { voteCount: 0, viewCount: 0 } },
+    ];
+
+    const posts = await post.aggregate(pipeline);
+    console.log(posts);
+    return posts;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
 export const deletePostServise = async (postId: string, postedBy: string) => {
   try {
     return await post.findOneAndUpdate(

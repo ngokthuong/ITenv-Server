@@ -144,9 +144,11 @@ export const getProblems = asyncHandler(async (req: any, res: any) => {
   const page = parseInt(req.query.page || 1);
   const limit = parseInt(req.query.limit || 10);
   var skip = (page - 1) * limit;
-
+  const search = req.query.search || '';
   try {
-    const problems = await Problem.find({ isDeleted: false })
+    const problems = await Problem.find({
+      title: { $regex: search, $options: 'i' },
+    })
       .skip(skip)
       .limit(limit)
       .select('_id title level slug tags acceptance submitBy vote comment postAt createdAt')
