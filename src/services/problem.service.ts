@@ -173,7 +173,7 @@ export const getProblemsService = async (queryOption: QueryOption) => {
   } catch (error: any) {
     throw new Error(error.message);
   }
-};
+}
 
 export const runCode = async (
   name: string,

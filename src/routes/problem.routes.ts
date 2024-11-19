@@ -23,4 +23,10 @@ router.get(ApiProblem.DETAIL_SUBMISSION, verifyAccessToken, getDetailSubmissionC
 router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, AverageProblemsPerUserController);
 // router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
 
+// ----------------------------------------------------------ADMIN----------------------------------------------------------------------
+router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, AverageProblemsPerUserController);
+// router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
+
+
+
 export default router;
