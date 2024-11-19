@@ -9,6 +9,7 @@ import message from '../models/message';
 import comment from '../models/comment';
 import { getInfoData } from '../utils/getInfoData.utils';
 import { Constants } from '../enums/constants.enum';
+import { any } from 'joi';
 // USER + ADMIN
 export const createPostService = async (data: any) => {
   try {
@@ -421,3 +422,56 @@ export const resolvePostByUserIdService = async (_id: string, postedBy: string) 
     throw new Error(error.message);
   }
 };
+
+export const postActivityDistributionService = async (queryOption: QueryOption) => {
+  try {
+    const month = queryOption.month || new Date().getMonth() + 1;
+    const year = queryOption.year || new Date().getFullYear();
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0);
+
+    const posts = await post.find({
+      createdAt: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      }, isDeleted: false
+    });
+
+    const result = processPostData(posts);
+
+    return result;
+
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const processPostData = async (posts: any[]) => {
+  try {
+    let totalPosts = posts.length;
+    let totalComments = 0;
+    let totalUpvotes = 0;
+    let totalDownvotes = 0;
+    let totalShares = 0;
+
+    // Dùng vòng lặp for...of để hỗ trợ async/await
+    for (const post of posts) {
+      const totalCommentsInPost = await comment.countDocuments({ postId: post._id, isDeleted: false });
+      totalComments += totalCommentsInPost;
+      totalUpvotes += parseInt(post.vote.length.toString());
+      totalDownvotes += parseInt(post.downVote.length.toString());
+      const totalSharesPost = await share.countDocuments({ postId: post._id, isDeleted: false });
+      totalShares += totalSharesPost;
+    }
+
+    return {
+      totalPosts,
+      totalComments,
+      totalUpvotes,
+      totalDownvotes,
+      totalShares,
+    };
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+}

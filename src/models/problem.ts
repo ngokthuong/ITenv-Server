@@ -28,6 +28,8 @@ export interface IProblem extends Document {
   testCase?: ITestCase;
   vote: mongoose.Types.ObjectId[];
   downVote: mongoose.Types.ObjectId[];
+  frontendQuestionId: string;
+  questionId: string;
   postAt: Date;
   editAt?: Date;
   status: boolean;
@@ -76,10 +78,6 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
       type: String,
       required: true,
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
     slug: {
       type: String,
       required: true,
@@ -96,7 +94,7 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     tags: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'Tag',
-      required: true,
+      // required: true,
     },
     acceptance: [
       {
@@ -110,6 +108,8 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    frontendQuestionId: String,
+    questionId: String,
     hint: {
       type: [String],
       required: false,
@@ -147,6 +147,10 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
         ref: 'Category',
       },
     ],
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
