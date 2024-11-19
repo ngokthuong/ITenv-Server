@@ -76,10 +76,6 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
       type: String,
       required: true,
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
     slug: {
       type: String,
       required: true,
@@ -96,7 +92,7 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     tags: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'Tag',
-      required: true,
+      // required: true,
     },
     acceptance: [
       {
@@ -147,6 +143,10 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
         ref: 'Category',
       },
     ],
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
   },
   { timestamps: true },
 );

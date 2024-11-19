@@ -11,6 +11,7 @@ import {
   sharePostToProfileController,
   votePostController,
   resolvePostByUserIdController,
+  postActivityDistributionController,
 } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isAdmin, isAll, isUser } from '../middlewares/verify_roles';
@@ -28,5 +29,10 @@ router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileContr
 router.get('/user/:postedBy', verifyAccessToken, isUser, getPostsByUserIdController);
 router.get('', verifyAccessToken, isUser, getPostsController);
 router.post('/resolve/:_id', verifyAccessToken, isUser, resolvePostByUserIdController);
+
+// ----------------------------------------------------------ADMIN----------------------------------------------------------------------
+// router.get('/activity/distribute', verifyAccessToken, isAdmin, postActivityDistributionController);
+router.get('/activity/distribute', postActivityDistributionController);
+
 
 export default router;

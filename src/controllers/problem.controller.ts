@@ -6,7 +6,9 @@ import pLimit from 'p-limit';
 import { ResponseType } from '../types/Response.type';
 import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
-import { getProblemsService, insertProblems } from '../services/problem.service';
+import { AverageProblemsPerUserService, getProblemsService, insertProblems } from '../services/problem.service';
+import { AuthRequest } from '../types/AuthRequest.type';
+
 
 // export const insertProblems = asyncHandler(async (req: any, res: any) => {
 //   try {
@@ -181,3 +183,16 @@ export const commentController = asyncHandler(async (req: any, res: any) => {
     console.log(error);
   }
 });
+
+
+
+// ----------------------------------------------------------ADMIN----------------------------------------------------------------------
+
+export const AverageProblemsPerUserController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const avgTotal = await AverageProblemsPerUserService();
+  const response: ResponseType<typeof avgTotal> = {
+    success: true,
+    total: avgTotal,
+  };
+  return res.status(200).json(response);
+})

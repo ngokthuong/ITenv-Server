@@ -5,6 +5,7 @@ import pLimit from 'p-limit';
 import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import { QueryOption } from '../types/QueryOption.type';
+import { getAllUsersService } from './user.service';
 
 const total = 3298;
 const limit = pLimit(40);
@@ -85,45 +86,49 @@ const fetchEditorData = async (titleSlug: string) => {
 
 // Function to insert problems into the database
 export const insertProblems = async () => {
-  const tasks = [];
-  for (let skip = 0; skip < total; skip += 100) {
-    tasks.push(
-      limit(async () => {
-        const questions = await fetchProblems(skip);
-        for (const question of questions) {
-          if (question) {
-            let tags: any[] = [];
-            const codeEditorData = await fetchEditorData(question.titleSlug);
+  console.log('problems')
+  try {
+    const tasks = [];
+    for (let skip = 0; skip < total; skip += 100) {
+      tasks.push(
+        limit(async () => {
+          const questions = await fetchProblems(skip);
+          for (const question of questions) {
+            if (question) {
+              let tags: any[] = [];
+              const codeEditorData = await fetchEditorData(question.titleSlug);
 
-            for (const tag of question.topicTags) {
-              const isExist = await Tag.findOne({ name: tag.name });
-              if (!isExist) {
-                const newTag = await Tag.create({ name: tag.name, type: EnumTag.TYPE_PROBLEM });
-                tags.push(newTag._id);
-              } else {
-                tags.push(isExist._id);
+              for (const tag of question.topicTags) {
+                const isExist = await Tag.findOne({ name: tag.name });
+                if (!isExist) {
+                  const newTag = await Tag.create({ name: tag.name, type: EnumTag.TYPE_PROBLEM });
+                  tags.push(newTag._id);
+                } else {
+                  tags.push(isExist._id);
+                }
+              }
+
+              if (!question.paidOnly) {
+                await Problem.create({
+                  title: question.title,
+                  slug: question.titleSlug,
+                  content: question.content,
+                  level: question.difficulty as EnumLevelProblem,
+                  hints: question.hints,
+                  status: question.status || false,
+                  tags: tags,
+                  initialCode: codeEditorData,
+                });
               }
             }
-
-            if (!question.paidOnly) {
-              await Problem.create({
-                title: question.title,
-                slug: question.titleSlug,
-                content: question.content,
-                level: question.difficulty as EnumLevelProblem,
-                hints: question.hints,
-                status: question.status || false,
-                exampleTestcases: question.exampleTestcases,
-                tags: tags,
-                initialCode: codeEditorData,
-              });
-            }
           }
-        }
-      }),
-    );
+        })
+      );
+    }
+    await Promise.all(tasks);
+  } catch (error: any) {
+    throw new Error(error.message)
   }
-  await Promise.all(tasks);
 };
 
 export const getProblemsService = async (queryOption: QueryOption) => {
@@ -162,4 +167,51 @@ export const getProblemsService = async (queryOption: QueryOption) => {
   } catch (error: any) {
     throw new Error(error.message);
   }
-};
+}
+
+// ----------------------------------------------------------ADMIN----------------------------------------------------------------------
+export const activeUsers = async () => {
+  try {
+    const result = await Problem.aggregate([
+      {
+        $match: {
+          acceptance: { $exists: true, $ne: [] }
+        }
+      },
+      {
+        $unwind: "$acceptance"
+      },
+      {
+        $group: {
+          _id: null,
+          uniqueUsers: { $addToSet: "$acceptance" }
+        }
+      },
+      {
+        $project: {
+          totalUsers: { $size: "$uniqueUsers" }
+        }
+      }
+    ]);
+
+    return result[0]?.totalUsers || 0;
+
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const AverageProblemsPerUserService = async () => {
+  try {
+    const totalSolvedProblems = await Problem.countDocuments({
+      acceptance: { $exists: true, $ne: [] } // Các bài toán có acceptance không rỗng
+    });
+    const total = await activeUsers();
+    if (total === 0) return 0;
+    const result = Math.round(totalSolvedProblems / total);
+    return result;
+  } catch (error: any) {
+    console.error('Error in AverageProblemsPerUserService:', error.message);
+    throw new Error(error.message)
+  }
+}

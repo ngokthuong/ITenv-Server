@@ -10,6 +10,7 @@ import {
   getPostsByUserIdService,
   getPostsWithCategoryIdAndTagsService,
   getPostsWithYearService,
+  postActivityDistributionService,
   resolvePostByUserIdService,
   searchPostsWithCategoryService,
   sharePostToProfileService,
@@ -282,6 +283,17 @@ export const resolvePostByUserIdController = asyncHandler(async (req: AuthReques
   const postedBy = req.user?.userId;
   const { _id } = req.params;
   const result = await resolvePostByUserIdService(_id as string, postedBy as string);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result
+  };
+  return res.status(200).json(response);
+})
+
+export const postActivityDistributionController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const queryOption = req.query;
+
+  const result = await postActivityDistributionService(queryOption);
   const response: ResponseType<typeof result> = {
     success: true,
     data: result
