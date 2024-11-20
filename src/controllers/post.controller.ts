@@ -10,6 +10,8 @@ import {
   getPostsByUserIdService,
   getPostsWithCategoryIdAndTagsService,
   getPostsWithYearService,
+  getTotalActivePostsService,
+  getTotalPostsService,
   postActivityDistributionService,
   resolvePostByUserIdService,
   searchPostsWithCategoryService,
@@ -297,6 +299,24 @@ export const postActivityDistributionController = asyncHandler(async (req: AuthR
   const response: ResponseType<typeof result> = {
     success: true,
     data: result
+  };
+  return res.status(200).json(response);
+})
+
+export const getTotalActivePostsController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const total = await getTotalActivePostsService();
+  const response: ResponseType<typeof total> = {
+    success: true,
+    total: total
+  };
+  return res.status(200).json(response);
+})
+
+export const getTotalPostsController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const total = await getTotalPostsService();
+  const response: ResponseType<typeof total> = {
+    success: true,
+    total: total
   };
   return res.status(200).json(response);
 })

@@ -6,7 +6,7 @@ import pLimit from 'p-limit';
 import { ResponseType } from '../types/Response.type';
 import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
-import { AverageProblemsPerUserService, getProblemsService, insertProblems } from '../services/problem.service';
+import { AverageProblemsPerUserService, getProblemsDataDistributionByYearService, getProblemsService, getTopProblemSolversService, getTotalActiveProblemsService, getTotalProblemsService, insertProblems } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 
 
@@ -193,6 +193,44 @@ export const AverageProblemsPerUserController = asyncHandler(async (req: AuthReq
   const response: ResponseType<typeof avgTotal> = {
     success: true,
     total: avgTotal,
+  };
+  return res.status(200).json(response);
+})
+
+export const getTotalActiveProblemsController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const total = await getTotalActiveProblemsService();
+  const response: ResponseType<typeof total> = {
+    success: true,
+    total: total
+  };
+  return res.status(200).json(response);
+})
+
+export const getTotalProblemsController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const total = await getTotalProblemsService();
+  const response: ResponseType<typeof total> = {
+    success: true,
+    total: total
+  };
+  return res.status(200).json(response);
+})
+
+
+export const getTopProblemSolversController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await getTopProblemSolversService();
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result
+  };
+  return res.status(200).json(response);
+})
+
+export const getProblemsDataDistributionByYearController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const queryOption = req.query;
+  const result = await getProblemsDataDistributionByYearService(queryOption);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result
   };
   return res.status(200).json(response);
 })

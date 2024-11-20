@@ -3,6 +3,8 @@ import {
   AverageProblemsPerUserController,
   getProblemsController,
   getSingleProblem,
+  getTotalActiveProblemsController,
+  getTotalProblemsController,
   insertProblemsController,
 } from '../controllers/problem.controller';
 import { ApiProblem } from '../enums/apiProblem.enum';
@@ -14,8 +16,9 @@ router.get(ApiProblem.GET_PROBLEMS, getProblemsController);
 router.get(ApiProblem.GET_SINGLE_PROBLEM, getSingleProblem);
 
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
-router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, AverageProblemsPerUserController);
-// router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
+router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
+router.get(ApiProblem.TOTAL_ACTIVE_PROBLEMS, verifyAccessToken, isAdmin, getTotalActiveProblemsController);
+router.get(ApiProblem.TOTAL_ALL_PROBLEMS, verifyAccessToken, isAdmin, getTotalProblemsController);
 
 
 

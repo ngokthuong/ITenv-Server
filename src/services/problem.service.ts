@@ -6,6 +6,8 @@ import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import { QueryOption } from '../types/QueryOption.type';
 import { getAllUsersService } from './user.service';
+import user from '../models/user';
+import submission from '../models/submission';
 
 const total = 3298;
 const limit = pLimit(40);
@@ -204,7 +206,7 @@ export const activeUsers = async () => {
 export const AverageProblemsPerUserService = async () => {
   try {
     const totalSolvedProblems = await Problem.countDocuments({
-      acceptance: { $exists: true, $ne: [] } // Các bài toán có acceptance không rỗng
+      acceptance: { $exists: true, $ne: [] }
     });
     const total = await activeUsers();
     if (total === 0) return 0;
@@ -212,6 +214,91 @@ export const AverageProblemsPerUserService = async () => {
     return result;
   } catch (error: any) {
     console.error('Error in AverageProblemsPerUserService:', error.message);
+    throw new Error(error.message)
+  }
+}
+
+// --------------------------------------------------------ADMIN----------------------------------------------------------------------
+export const getTotalActiveProblemsService = async () => {
+  try {
+    const total = await Problem.countDocuments({ isDeleted: false })
+    return total;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getTotalProblemsService = async () => {
+  try {
+    const total = await Problem.countDocuments({})
+    return total;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getTopProblemSolversService = async () => {
+  try {
+    const users = await user.find({ isDeleted: false });
+
+    const topProblemResolvers = [];
+
+    for (const user of users) {
+      try {
+        const submitCount = await submission.countDocuments({
+          submitBy: user._id,
+          isAccepted: true,
+        });
+        const userWithSubmitCount = { ...user.toObject(), submitCount };  // Sử dụng toObject() để tránh vấn đề với các thuộc tính Mongoose
+
+        topProblemResolvers.push(userWithSubmitCount);
+      } catch (error: any) {
+        console.error(`Error counting submissions for user ${user._id}:`, error.message);
+      }
+    }
+
+    // Sắp xếp mảng theo submitCount giảm dần
+    topProblemResolvers.sort((a, b) => b.submitCount - a.submitCount);
+
+    const top7 = topProblemResolvers.slice(0, 7);
+
+    return top7;
+  } catch (error: any) {
+    throw new Error(`Failed to get top problem solvers: ${error.message}`);
+  }
+};
+
+
+export const getProblemsDataDistributionByYearService = async (queryOption: QueryOption) => {
+  try {
+    const year = queryOption.year || new Date().getFullYear();
+    const months = Array.from({ length: 12 }, (_, index) => index + 1);
+    let results = [];
+
+    for (const month of months) {
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      const total = await getProblemsDataDistributionByMonth(startOfMonth, endOfMonth);
+      results.push({ month, total });
+    }
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const getProblemsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth: Date) => {
+  try {
+    const total = await submission.countDocuments({
+      isDeleted: false,
+      createdAt: {
+        $gte: startOfMonth,
+        $lte: endOfMonth
+      },
+      isAccepted: true
+    })
+    return total;
+  } catch (error: any) {
     throw new Error(error.message)
   }
 }

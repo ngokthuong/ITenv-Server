@@ -8,6 +8,8 @@ import {
   getAllUsersService,
   getCurrentUserService,
   getDetailUserByIdService,
+  getNewUsersByMonthService,
+  getNewUsersTodayService,
   getUserByIdService,
   getUsersForFriendPageService,
 } from '../services/user.service';
@@ -188,5 +190,23 @@ export const getAllUserForAdminController = asyncHandler(async (req: AuthRequest
   };
   return res.status(200).json(response);
 });
+
+export const getNewUsersByMonthController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const totalUsers = await getNewUsersByMonthService();
+  const response: ResponseType<null> = {
+    success: true,
+    total: totalUsers,
+  };
+  return res.status(200).json(response);
+})
+
+export const getNewUsersTodayController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const totalUsers = await getNewUsersTodayService();
+  const response: ResponseType<null> = {
+    success: true,
+    total: totalUsers,
+  };
+  return res.status(200).json(response);
+})
 
 // ----------------------------------------------------------_USER_&&_ADMIN_------------------------------------------------------------

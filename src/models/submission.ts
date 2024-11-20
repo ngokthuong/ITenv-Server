@@ -14,6 +14,7 @@ export interface ISubmission extends Document {
     submitAt: Date;
     createdAt: Date;
     updatedAt: Date;
+    isDeleted: boolean
 }
 
 const codeSchema: Schema<ICode> = new mongoose.Schema({
@@ -50,6 +51,10 @@ const submissionSchema: Schema<ISubmission> = new mongoose.Schema({
     submitAt: {
         type: Date,
         default: Date.now
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

@@ -5,6 +5,7 @@ import Friend from '../models/friend';
 import { EnumFriend } from '../enums/schemaFriend.enum';
 import { QueryOption } from '../types/QueryOption.type';
 import { getInfoData } from '../utils/getInfoData.utils';
+import user from '../models/user';
 
 export const getCurrentUserService = async (req: AuthRequest) => {
   const user = await User.findById(req?.user?.userId);
@@ -234,6 +235,46 @@ export const editAvatarByUserIdService = async (_id: string, avatar: string) => 
 export const getDetailUserByIdService = async (_id: string) => {
   try {
     const result = await User.findOne({ _id, isDeleted: false });
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+
+// --------------------------------------------------------ADMIN------------------------------------------------------------------------
+export const getNewUsersByMonthService = async () => {
+  try {
+    const month = new Date().getMonth() + 1;
+    const year = new Date().getFullYear();
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0);
+    const result = await user.countDocuments({
+      createdAt: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      }, isDeleted: false
+    });
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getNewUsersTodayService = async () => {
+  try {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const result = await user.countDocuments({
+      createdAt: {
+        $gte: startOfDay,
+        $lt: endOfDay,
+      },
+    });
+
     return result;
   } catch (error: any) {
     throw new Error(error.message);

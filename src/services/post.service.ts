@@ -475,3 +475,24 @@ const processPostData = async (posts: any[]) => {
     throw new Error(error.message);
   }
 }
+
+
+// ---------------------------------------------------ADMIN-----------------------------------------------------------------------
+
+export const getTotalActivePostsService = async () => {
+  try {
+    const total = await post.countDocuments({ isDeleted: false })
+    return total;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getTotalPostsService = async () => {
+  try {
+    const total = await post.countDocuments({})
+    return total;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}

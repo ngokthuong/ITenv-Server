@@ -15,6 +15,8 @@ export interface IUser extends Document {
   conversations: mongoose.Types.ObjectId;
   submitProblems: mongoose.Types.ObjectId;
   acceptedProblems: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
   isDeleted: boolean;
 }
 

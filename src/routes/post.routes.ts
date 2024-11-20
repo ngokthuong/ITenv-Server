@@ -12,6 +12,8 @@ import {
   votePostController,
   resolvePostByUserIdController,
   postActivityDistributionController,
+  getTotalActivePostsController,
+  getTotalPostsController,
 } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isAdmin, isAll, isUser } from '../middlewares/verify_roles';
@@ -31,8 +33,10 @@ router.get('', verifyAccessToken, isUser, getPostsController);
 router.post('/resolve/:_id', verifyAccessToken, isUser, resolvePostByUserIdController);
 
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
-// router.get('/activity/distribute', verifyAccessToken, isAdmin, postActivityDistributionController);
-router.get('/activity/distribute', postActivityDistributionController);
+router.get('/activity/distribute', verifyAccessToken, isAdmin, postActivityDistributionController);
+router.get('/total/active', verifyAccessToken, isAll, getTotalActivePostsController);
+router.get('/total/all', verifyAccessToken, isAll, getTotalPostsController);
+
 
 
 export default router;

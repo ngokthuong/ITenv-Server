@@ -34,6 +34,8 @@ export interface IProblem extends Document {
   isDeleted: boolean;
   category?: mongoose.Types.ObjectId[];
   exampleTestcases: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const initialCodeSchema: Schema<IInitialCode> = new mongoose.Schema({
