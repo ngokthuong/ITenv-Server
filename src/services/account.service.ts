@@ -367,6 +367,21 @@ const getAllAccountByUserIdService = async (userId: string) => {
   }
 }
 
+export const getAllAccountAndUserService = async () => {
+  try {
+    const Accounts = await Account.find({ isDeleted: false })
+      .populate('user', 'username avatar phoneNumber lastOnline dob gender');
+    let result: any[] = [];
+    await Accounts.map((account) => {
+      result.push(getInfoData({ fileds: ['_id', 'email', 'authenWith', 'user'], object: account }))
+    })
+    return result;
+
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
 export {
   verifyAndRegisterService,
   loginService,

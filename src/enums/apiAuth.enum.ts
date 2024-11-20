@@ -11,5 +11,6 @@ export enum ApiAuth {
     RESET_PASS = '/reset-pass',
     VERIFY_OTP = '/verify-otp',
 
-    GET_ALL_ACCOUNT = ''
+    GET_ALL_ACCOUNT = '',
+    GET_ALL_ACCOUNT_USER = '/users'
 }

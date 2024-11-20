@@ -280,3 +280,124 @@ export const getNewUsersTodayService = async () => {
     throw new Error(error.message);
   }
 };
+
+
+export const getTotalUserService = async () => {
+  try {
+    const total = await user.countDocuments({})
+    return total;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getTotalActiveUserService = async () => {
+  try {
+    const total = await user.countDocuments({ status: true })
+    return total;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getChurnUserRateService = async () => {
+  try {
+    const allUser = await user.find({ status: true });
+    const twoMonthsAgo = new Date();
+    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
+    const churnUsers = await User.find({
+      lastOnline: { $lt: twoMonthsAgo },
+    });
+
+    const churnUserCount = churnUsers.length;
+
+    const result = Math.round((churnUserCount / allUser.length) * 100);
+    return `${result}%`;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getUserGrowthService = async (queryOption: QueryOption) => {
+  try {
+    const year = queryOption.year || new Date().getFullYear();
+    const months = Array.from({ length: 12 }, (_, index) => index + 1);
+    let results = [];
+
+    for (const month of months) {
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      const total = await getUserGrowthServiceByMonth(startOfMonth, endOfMonth);
+      results.push({ month, total });
+    }
+    return results;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const getUserGrowthServiceByMonth = async (startOfMonth: Date, endOfMonth: Date) => {
+  try {
+    const result = await user.countDocuments({
+      createdAt: {
+        $gte: startOfMonth,
+        $lte: endOfMonth
+      }
+    })
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const userDemographicsService = async () => {
+  try {
+    const users = await user.find({})
+
+    let ageGroups = {
+      '18-24': 0,
+      '25-34': 0,
+      '35-44': 0,
+      '45-54': 0,
+      '55+': 0
+    };
+
+    users.forEach(async (user) => {
+      if (user.dob) {
+        const age = await calculateAge(user.dob);
+        if (age >= 18 && age <= 24) {
+          ageGroups['18-24']++;
+        } else if (age >= 25 && age <= 34) {
+          ageGroups['25-34']++;
+        } else if (age >= 35 && age <= 44) {
+          ageGroups['35-44']++;
+        } else if (age >= 45 && age <= 54) {
+          ageGroups['45-54']++;
+        } else if (age >= 55) {
+          ageGroups['55+']++;
+        }
+      }
+    });
+
+    return ageGroups;
+  } catch (error: any) {
+
+  }
+}
+
+
+const calculateAge = async (dob: Date) => {
+  try {
+    const today = new Date();
+    const birthDate = dob;
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const findMonth = today.getMonth() - birthDate.getMonth();
+    if (findMonth < 0 || (findMonth === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}

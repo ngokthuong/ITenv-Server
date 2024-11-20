@@ -6,12 +6,17 @@ import {
   getAllFriendsOfUserByTypeService,
   getAllUserForAdminService,
   getAllUsersService,
+  getChurnUserRateService,
   getCurrentUserService,
   getDetailUserByIdService,
   getNewUsersByMonthService,
   getNewUsersTodayService,
+  getTotalActiveUserService,
+  getTotalUserService,
   getUserByIdService,
+  getUserGrowthService,
   getUsersForFriendPageService,
+  userDemographicsService,
 } from '../services/user.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 import { ResponseType } from '../types/Response.type';
@@ -205,6 +210,52 @@ export const getNewUsersTodayController = asyncHandler(async (req: AuthRequest, 
   const response: ResponseType<null> = {
     success: true,
     total: totalUsers,
+  };
+  return res.status(200).json(response);
+})
+
+export const getTotalUserController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const totalUsers = await getTotalUserService();
+  const response: ResponseType<null> = {
+    success: true,
+    total: totalUsers,
+  };
+  return res.status(200).json(response);
+})
+
+export const getTotalActiveUserController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const totalUsers = await getTotalActiveUserService();
+  const response: ResponseType<null> = {
+    success: true,
+    total: totalUsers,
+  };
+  return res.status(200).json(response);
+})
+
+export const getChurnUserRateController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const churnRate = await getChurnUserRateService();
+  const response: ResponseType<typeof churnRate> = {
+    success: true,
+    data: churnRate,
+  };
+  return res.status(200).json(response);
+})
+
+export const getUserGrowthController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const queryOption = req.query;
+  const result = await getUserGrowthService(queryOption);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+  };
+  return res.status(200).json(response);
+})
+
+export const userDemographicsController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await userDemographicsService();
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
   };
   return res.status(200).json(response);
 })

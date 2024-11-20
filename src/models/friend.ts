@@ -8,6 +8,8 @@ export interface IFriend extends Document {
     isBlockBy: mongoose.Types.ObjectId;
     acceptedAt?: Date;
     isDeleted: boolean
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const friendSchema: Schema<IFriend> = new mongoose.Schema(

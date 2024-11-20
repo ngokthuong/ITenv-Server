@@ -8,6 +8,8 @@ export interface IConversation extends Document {
   groupName?: string;
   isDeleted?: boolean;
   lastMessage?: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const conversationSchema: Schema<IConversation> = new mongoose.Schema(

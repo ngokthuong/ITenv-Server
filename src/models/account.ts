@@ -14,6 +14,8 @@ interface IAccount extends Document {
     refreshToken: string;
     user: mongoose.Types.ObjectId;
     isDeleted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
     isCorrectPassword(password: string): Promise<boolean>;
     createPassChangeToken(): Promise<string>;
 }

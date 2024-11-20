@@ -5,6 +5,8 @@ interface IOtp extends Document {
     email: string;
     otp: string;
     expiredOtp: Date;
+    createdAt: Date;
+    updatedAt: Date;
     isCorrectOtp(otp: string): Promise<boolean>;
 }
 

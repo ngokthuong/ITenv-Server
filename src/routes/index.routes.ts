@@ -1,4 +1,4 @@
-import authRouter from './auth.routes';
+import authRouter from './account.routes';
 import problemRouter from './problem.routes';
 import userRouter from './user.routes';
 import { Express } from 'express';

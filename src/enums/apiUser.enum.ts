@@ -7,4 +7,12 @@ export enum ApiUsers {
     EDIT_MYPROFILE = '',
     EDIT_AVATAR = '/avatar',
     USER_DETAIL = '/detail',
+    NEW_USER_BY_MONTH = '/new/month',
+    NEW_USER_TODAY = '/new/today',
+    CHURN_USER_RATE = '/percent/churn-rate',
+    TOTAL_USER = '/total',
+    TOTAL_ACTIVE = '/total/active',
+    USER_GROWTH = '/growth',
+    USER_DEMOGRAPHICS = '/demographics'
+
 }

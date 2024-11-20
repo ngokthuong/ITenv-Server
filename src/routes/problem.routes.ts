@@ -21,14 +21,12 @@ router.get(ApiProblem.GET_SINGLE_PROBLEM, getSingleProblem);
 router.post(ApiProblem.RUNCODE, verifyAccessToken, runCodeController);
 router.post(ApiProblem.SUBMIT, verifyAccessToken, submitProblemController);
 router.get(ApiProblem.DETAIL_SUBMISSION, verifyAccessToken, getDetailSubmissionController);
-// ----------------------------------------------------------ADMIN----------------------------------------------------------------------
-router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, AverageProblemsPerUserController);
-// router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
 
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
 router.get(ApiProblem.TOTAL_ACTIVE_PROBLEMS, verifyAccessToken, isAdmin, getTotalActiveProblemsController);
 router.get(ApiProblem.TOTAL_ALL_PROBLEMS, verifyAccessToken, isAdmin, getTotalProblemsController);
+router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
 
 
 

@@ -12,6 +12,8 @@ export interface IMessage extends Document {
   isRecalled: boolean;
   isDeleted: boolean;
   parentMessage?: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const messageSchema: Schema<IMessage> = new mongoose.Schema(

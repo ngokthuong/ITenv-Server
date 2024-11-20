@@ -34,7 +34,7 @@ router.post('/resolve/:_id', verifyAccessToken, isUser, resolvePostByUserIdContr
 
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 router.get('/activity/distribute', verifyAccessToken, isAdmin, postActivityDistributionController);
-router.get('/total/active', verifyAccessToken, isAll, getTotalActivePostsController);
+router.get('/total/active', verifyAccessToken, isAdmin, getTotalActivePostsController);
 router.get('/total/all', verifyAccessToken, isAll, getTotalPostsController);
 
 

@@ -13,6 +13,8 @@ export interface INotification extends Document {
   message: mongoose.Types.ObjectId;
   receivers: mongoose.Types.ObjectId[];
   isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const notificationSchema: Schema<INotification> = new mongoose.Schema(

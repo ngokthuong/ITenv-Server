@@ -13,6 +13,8 @@ interface IComment extends Document {
   children?: IComment[];
   resolve: boolean,
   isDeleted: boolean
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const commentSchema: Schema<IComment> = new mongoose.Schema(
