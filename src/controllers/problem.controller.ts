@@ -6,7 +6,15 @@ import pLimit from 'p-limit';
 import { ResponseType } from '../types/Response.type';
 import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
-import { AverageProblemsPerUserService, getProblemsDataDistributionByYearService, getProblemsService, getTopProblemSolversService, getTotalActiveProblemsService, getTotalProblemsService, insertProblems } from '../services/problem.service';
+import {
+  AverageProblemsPerUserService,
+  getProblemsDataDistributionByYearService,
+  getProblemsService,
+  getTopProblemSolversService,
+  getTotalActiveProblemsService,
+  getTotalProblemsService,
+  insertProblems,
+} from '../services/problem.service';
 import {
   checkSubmissionStatus,
   runCode,
@@ -16,7 +24,7 @@ import {
 import { AuthRequest } from '../types/AuthRequest.type';
 import { SubmissionBody } from '../types/ProblemType.type';
 import axios from 'axios';
-
+import submission from '../models/submission';
 
 // export const insertProblems = asyncHandler(async (req: any, res: any) => {
 //   try {
@@ -243,9 +251,10 @@ export const runCodeController = asyncHandler(async (req: any, res: any) => {
   }
 });
 
-export const submitProblemController = asyncHandler(async (req: any, res: any) => {
+export const submitProblemController = asyncHandler(async (req: AuthRequest, res: any) => {
   const { lang, question_id, typed_code } = req.body;
   const { name: titleSlug } = req.params; // Validae input
+  const { userId } = req.user!;
   if (!titleSlug || !lang || !question_id || !typed_code) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
@@ -277,6 +286,24 @@ export const submitProblemController = asyncHandler(async (req: any, res: any) =
     if (retryCount >= maxRetries) {
       return res.status(408).json({ message: 'Submission status check timed out.' });
     }
+    const submissionDetailResponse = await submissionDetail(submissionId);
+    if (!submissionDetailResponse)
+      return res.status(400).json({ success: false, message: 'Submission detail not found' });
+    const problem = await Problem.findOne({ slug: titleSlug });
+    console.log('log', submissionDetailResponse?.data?.data?.submissionDetails);
+    await submission.create({
+      problem: problem?._id,
+      submitBy: userId,
+      submissionLeetcodeId: submissionId,
+      isAccepted:
+        !submissionDetailResponse?.data?.data?.submissionDetails?.runtimeError &&
+        !submissionDetailResponse?.data?.data?.submissionDetails?.compileError &&
+        submissionDetailResponse?.data?.data?.submissionDetails?.totalCorrect ===
+          submissionDetailResponse?.data?.data?.submissionDetails?.totalTestcases
+          ? true
+          : false,
+    });
+
     return res.status(200).json({ success: true, data: status?.data });
   } catch (error) {
     console.error('Error submitting problem:', error);
@@ -309,6 +336,19 @@ export const getDetailSubmissionController = asyncHandler(async (req: any, res: 
   }
 });
 
+export const getSubmissionsByUserIdController = asyncHandler(async (req: any, res: any) => {
+  const { userId } = req.params;
+  try {
+    const submissions = await submission
+      .find({ submitBy: userId })
+      .populate('problem', '_id title slug');
+    res.status(200).json({ success: true, data: submissions });
+  } catch (error) {
+    console.error('Error fetching submissions:', error);
+    res.status(500).json({ message: 'An error occurred while fetching submissions.' });
+  }
+});
+
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 
 export const AverageProblemsPerUserController = asyncHandler(async (req: AuthRequest, res: any) => {
@@ -324,36 +364,37 @@ export const getTotalActiveProblemsController = asyncHandler(async (req: AuthReq
   const total = await getTotalActiveProblemsService();
   const response: ResponseType<typeof total> = {
     success: true,
-    total: total
+    total: total,
   };
   return res.status(200).json(response);
-})
+});
 
 export const getTotalProblemsController = asyncHandler(async (req: AuthRequest, res: any) => {
   const total = await getTotalProblemsService();
   const response: ResponseType<typeof total> = {
     success: true,
-    total: total
+    total: total,
   };
   return res.status(200).json(response);
-})
-
+});
 
 export const getTopProblemSolversController = asyncHandler(async (req: AuthRequest, res: any) => {
   const result = await getTopProblemSolversService();
   const response: ResponseType<typeof result> = {
     success: true,
-    data: result
+    data: result,
   };
   return res.status(200).json(response);
-})
+});
 
-export const getProblemsDataDistributionByYearController = asyncHandler(async (req: AuthRequest, res: any) => {
-  const queryOption = req.query;
-  const result = await getProblemsDataDistributionByYearService(queryOption);
-  const response: ResponseType<typeof result> = {
-    success: true,
-    data: result
-  };
-  return res.status(200).json(response);
-})
+export const getProblemsDataDistributionByYearController = asyncHandler(
+  async (req: AuthRequest, res: any) => {
+    const queryOption = req.query;
+    const result = await getProblemsDataDistributionByYearService(queryOption);
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  },
+);
