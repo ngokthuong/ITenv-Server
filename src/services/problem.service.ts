@@ -119,6 +119,7 @@ export const insertProblems = async () => {
                   content: question.content,
                   level: question.difficulty as EnumLevelProblem,
                   hints: question.hints,
+                  exampleTestcases: question.exampleTestcases,
                   frontendQuestionId: question.frontendQuestionId,
                   questionId: codeEditorData.questionId,
                   status: question.status || false,
@@ -175,7 +176,7 @@ export const getProblemsService = async (queryOption: QueryOption) => {
   } catch (error: any) {
     throw new Error(error.message);
   }
-}
+};
 
 export const runCode = async (
   name: string,
@@ -365,26 +366,26 @@ export const AverageProblemsPerUserService = async () => {
     console.error('Error in AverageProblemsPerUserService:', error.message);
     throw new Error(error.message);
   }
-}
+};
 
 // --------------------------------------------------------ADMIN----------------------------------------------------------------------
 export const getTotalActiveProblemsService = async () => {
   try {
-    const total = await Problem.countDocuments({ isDeleted: false })
+    const total = await Problem.countDocuments({ isDeleted: false });
     return total;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getTotalProblemsService = async () => {
   try {
-    const total = await Problem.countDocuments({})
+    const total = await Problem.countDocuments({});
     return total;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getTopProblemSolversService = async () => {
   try {
@@ -398,7 +399,7 @@ export const getTopProblemSolversService = async () => {
           submitBy: user._id,
           isAccepted: true,
         });
-        const userWithSubmitCount = { ...user.toObject(), submitCount };  // Sử dụng toObject() để tránh vấn đề với các thuộc tính Mongoose
+        const userWithSubmitCount = { ...user.toObject(), submitCount }; // Sử dụng toObject() để tránh vấn đề với các thuộc tính Mongoose
 
         topProblemResolvers.push(userWithSubmitCount);
       } catch (error: any) {
@@ -417,7 +418,6 @@ export const getTopProblemSolversService = async () => {
   }
 };
 
-
 export const getProblemsDataDistributionByYearService = async (queryOption: QueryOption) => {
   try {
     const year = queryOption.year || new Date().getFullYear();
@@ -432,9 +432,9 @@ export const getProblemsDataDistributionByYearService = async (queryOption: Quer
     }
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const getProblemsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth: Date) => {
   try {
@@ -442,12 +442,12 @@ const getProblemsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth
       isDeleted: false,
       createdAt: {
         $gte: startOfMonth,
-        $lte: endOfMonth
+        $lte: endOfMonth,
       },
-      isAccepted: true
-    })
+      isAccepted: true,
+    });
     return total;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
