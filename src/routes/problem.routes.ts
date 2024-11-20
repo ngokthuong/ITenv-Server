@@ -20,7 +20,7 @@ router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
 router.get(ApiProblem.GET_PROBLEMS, getProblemsController);
 router.post(ApiProblem.RUNCODE, verifyAccessToken, runCodeController);
 router.post(ApiProblem.SUBMIT, verifyAccessToken, submitProblemController);
-router.get(ApiProblem.SUBMISSIONS,  getSubmissionsByUserIdController);
+router.get(ApiProblem.SUBMISSIONS, getSubmissionsByUserIdController);
 
 router.get(ApiProblem.DETAIL_SUBMISSION, verifyAccessToken, getDetailSubmissionController);
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
@@ -31,13 +31,20 @@ router.get(ApiProblem.GET_SINGLE_PROBLEM, getSingleProblem);
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, AverageProblemsPerUserController);
 // router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
->>>>>>> Stashed changes
 
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
-router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
-router.get(ApiProblem.TOTAL_ACTIVE_PROBLEMS, verifyAccessToken, isAdmin, getTotalActiveProblemsController);
+router.get(
+  ApiProblem.GET_AVGPROBLEMS_PER_USER,
+  verifyAccessToken,
+  isAdmin,
+  AverageProblemsPerUserController,
+);
+router.get(
+  ApiProblem.TOTAL_ACTIVE_PROBLEMS,
+  verifyAccessToken,
+  isAdmin,
+  getTotalActiveProblemsController,
+);
 router.get(ApiProblem.TOTAL_ALL_PROBLEMS, verifyAccessToken, isAdmin, getTotalProblemsController);
-
-
 
 export default router;
