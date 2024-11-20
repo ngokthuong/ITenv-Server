@@ -28,6 +28,8 @@ export interface IProblem extends Document {
   testCase?: ITestCase;
   vote: mongoose.Types.ObjectId[];
   downVote: mongoose.Types.ObjectId[];
+  frontendQuestionId: string;
+  questionId: string;
   postAt: Date;
   editAt?: Date;
   status: boolean;
@@ -108,6 +110,8 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    frontendQuestionId: String,
+    questionId: String,
     hint: {
       type: [String],
       required: false,
@@ -147,7 +151,7 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     ],
     isDeleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
   },
   { timestamps: true },

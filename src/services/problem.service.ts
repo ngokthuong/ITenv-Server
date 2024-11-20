@@ -6,6 +6,8 @@ import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import { QueryOption } from '../types/QueryOption.type';
 import { getAllUsersService } from './user.service';
+import axios from 'axios';
+import { SubmissionBody } from '../types/ProblemType.type';
 import user from '../models/user';
 import submission from '../models/submission';
 
@@ -83,12 +85,12 @@ const fetchEditorData = async (titleSlug: string) => {
     graphqlQueryEditor,
     variablesEditor,
   );
-  return questionEditorResponse.data.data.question.codeSnippets;
+  return questionEditorResponse.data.data.question;
 };
 
 // Function to insert problems into the database
 export const insertProblems = async () => {
-  console.log('problems')
+  console.log('problems');
   try {
     const tasks = [];
     for (let skip = 0; skip < total; skip += 100) {
@@ -117,19 +119,21 @@ export const insertProblems = async () => {
                   content: question.content,
                   level: question.difficulty as EnumLevelProblem,
                   hints: question.hints,
+                  frontendQuestionId: question.frontendQuestionId,
+                  questionId: codeEditorData.questionId,
                   status: question.status || false,
                   tags: tags,
-                  initialCode: codeEditorData,
+                  initialCode: codeEditorData.codeSnippets,
                 });
               }
             }
           }
-        })
+        }),
       );
     }
     await Promise.all(tasks);
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
 };
 
@@ -152,7 +156,9 @@ export const getProblemsService = async (queryOption: QueryOption) => {
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
-      .select('_id title level slug tags acceptance submitBy vote comment postAt createdAt')
+      .select(
+        '_id title level slug tags acceptance submitBy vote comment postAt createdAt frontendQuestionId',
+      )
       .populate({
         path: 'tags',
         select: '_id name',
@@ -171,42 +177,185 @@ export const getProblemsService = async (queryOption: QueryOption) => {
   }
 }
 
+export const runCode = async (
+  name: string,
+  submissionBody: SubmissionBody & { data_input: string },
+) => {
+  try {
+    console.log('Submitting problem:', name, submissionBody);
+    const response = await axios.post(
+      `https://leetcode.com/problems/${name}/interpret_solution/`,
+      {
+        lang: submissionBody.lang,
+        typed_code: submissionBody.typed_code,
+        question_id: submissionBody.question_id,
+        data_input: submissionBody.data_input,
+      },
+      {
+        headers: {
+          Host: 'leetcode.com',
+          Origin: 'https://leetcode.com',
+          'Content-Type': 'application/json',
+          'x-csrftoken': process.env.CSRF_TOKEN,
+          Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION}; csrftoken=${process.env.CSRF_TOKEN}`,
+          Referer: `https://leetcode.com/problems/${name}/interpret_solution/`,
+        },
+      },
+    );
+    return response;
+  } catch (error) {
+    console.error('Error during submission:', error);
+    throw error;
+  }
+};
+
+export const submit = async (name: string, submissionBody: SubmissionBody) => {
+  try {
+    console.log('Submitting problem:', name, submissionBody);
+    const response = await axios.post(
+      `https://leetcode.com/problems/${name}/submit/`,
+      {
+        lang: submissionBody.lang,
+        typed_code: submissionBody.typed_code,
+        question_id: submissionBody.question_id,
+      },
+      {
+        headers: {
+          Host: 'leetcode.com',
+          Origin: 'https://leetcode.com',
+          'Content-Type': 'application/json',
+          'x-csrftoken': process.env.CSRF_TOKEN,
+          Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION}; csrftoken=${process.env.CSRF_TOKEN}`,
+          Referer: `https://leetcode.com/problems/${name}/submit/`,
+        },
+      },
+    );
+    return response;
+  } catch (error) {
+    console.error('Error during submission:', error);
+    throw error;
+  }
+};
+
+export const checkSubmissionStatus = async (submissionId: string, titleSlug: string) => {
+  try {
+    console.log(submissionId, titleSlug);
+    const response = await axios.get(
+      `https://leetcode.com/submissions/detail/${submissionId}/check/`,
+
+      {
+        headers: {
+          Host: 'leetcode.com',
+          Origin: 'https://leetcode.com',
+          'Content-Type': 'application/json',
+          'x-csrftoken': process.env.CSRF_TOKEN,
+          Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION}; csrftoken=${process.env.CSRF_TOKEN}`,
+          Referer: `https://leetcode.com/problems/${titleSlug}`,
+        },
+      },
+    );
+    return response;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const submissionDetail = async (submissionId: number) => {
+  const graphqlQuery = `query submissionDetails($submissionId: Int!) {
+  submissionDetails(submissionId: $submissionId) {
+    runtime
+    runtimeDisplay
+    runtimePercentile
+    runtimeDistribution
+    memory
+    memoryDisplay
+    memoryPercentile
+    memoryDistribution
+    code
+    timestamp
+    statusCode
+    user {
+      username
+      profile {
+        realName
+        userAvatar
+      }
+    }
+    lang {
+      name
+      verboseName
+    }
+    question {
+      questionId
+      titleSlug
+      hasFrontendPreview
+    }
+    notes
+    flagType
+    topicTags {
+      tagId
+      slug
+      name
+    }
+    runtimeError
+    compileError
+    lastTestcase
+    codeOutput
+    expectedOutput
+    totalCorrect
+    totalTestcases
+    fullCodeOutput
+    testDescriptions
+    testBodies
+    testInfo
+    stdOutput
+  }
+}`;
+
+  const variables = { submissionId: submissionId };
+  try {
+    const submissionDetail = await result('submissionDetails', graphqlQuery, variables);
+    return submissionDetail;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 export const activeUsers = async () => {
   try {
     const result = await Problem.aggregate([
       {
         $match: {
-          acceptance: { $exists: true, $ne: [] }
-        }
+          acceptance: { $exists: true, $ne: [] },
+        },
       },
       {
-        $unwind: "$acceptance"
+        $unwind: '$acceptance',
       },
       {
         $group: {
           _id: null,
-          uniqueUsers: { $addToSet: "$acceptance" }
-        }
+          uniqueUsers: { $addToSet: '$acceptance' },
+        },
       },
       {
         $project: {
-          totalUsers: { $size: "$uniqueUsers" }
-        }
-      }
+          totalUsers: { $size: '$uniqueUsers' },
+        },
+      },
     ]);
 
     return result[0]?.totalUsers || 0;
-
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const AverageProblemsPerUserService = async () => {
   try {
     const totalSolvedProblems = await Problem.countDocuments({
-      acceptance: { $exists: true, $ne: [] }
+      acceptance: { $exists: true, $ne: [] }, // Các bài toán có acceptance không rỗng
     });
     const total = await activeUsers();
     if (total === 0) return 0;
@@ -214,7 +363,7 @@ export const AverageProblemsPerUserService = async () => {
     return result;
   } catch (error: any) {
     console.error('Error in AverageProblemsPerUserService:', error.message);
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
 }
 
