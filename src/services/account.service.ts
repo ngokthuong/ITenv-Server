@@ -387,10 +387,10 @@ export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
         existingData.authenWith.push(account.authenWith);
       } else {
         const Accounts = await Account.find({ email: account.email })
-          .populate('user', 'username avatar phoneNumber lastOnline dob gender');
+          .populate('user', 'username avatar phoneNumber lastOnline dob gender status');
 
         const authenWith = Accounts.map((acc) => acc.authenWith);
-        const data = getInfoData({ fileds: ['_id', 'email', 'user'], object: Accounts[0] });
+        const data = getInfoData({ fileds: ['_id', 'email', 'role', 'user'], object: Accounts[0] });
         emailMap.set(account.email, { ...data, authenWith });
       }
     }
