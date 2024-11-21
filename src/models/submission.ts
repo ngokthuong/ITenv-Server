@@ -12,7 +12,6 @@ export interface ISubmission extends Document {
   // score: number;
   isAccepted: boolean;
   submissionLeetcodeId: string;
-  submitAt: Date;
   createdAt: Date;
   updatedAt: Date;
   isDeleted: boolean;
@@ -52,10 +51,6 @@ const submissionSchema: Schema<ISubmission> = new mongoose.Schema(
     },
     submissionLeetcodeId: {
       type: String,
-    },
-    submitAt: {
-      type: Date,
-      default: Date.now,
     },
     isDeleted: {
       type: Boolean,

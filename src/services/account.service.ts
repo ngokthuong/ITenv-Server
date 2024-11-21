@@ -369,12 +369,29 @@ const getAllAccountByUserIdService = async (userId: string) => {
 
 export const getAllAccountAndUserService = async () => {
   try {
-    const Accounts = await Account.find({ isDeleted: false })
-      .populate('user', 'username avatar phoneNumber lastOnline dob gender');
+
+    const accounts = await Account.find({ isDeleted: false })
     let result: any[] = [];
-    await Accounts.map((account) => {
-      result.push(getInfoData({ fileds: ['_id', 'email', 'authenWith', 'user'], object: account }))
-    })
+    let authenWith: any[] = [];
+    for (const account of accounts) {
+      const Accounts = await Account.find({ email: account.email })
+        .populate('user', 'username avatar phoneNumber lastOnline dob gender');
+      if (Accounts.length > 1) {
+        Accounts.forEach((acc) => {
+          authenWith.push(acc.authenWith);
+        });
+        const data = getInfoData({ fileds: ['_id', 'email', 'user'], object: Accounts[0] })
+        const response = { ...data, authenWith }
+        authenWith = []
+        result.push(response);
+
+      }
+      authenWith.push(account.authenWith);
+      const data = getInfoData({ fileds: ['_id', 'email', 'user'], object: account })
+      const response = { ...data, authenWith }
+      result.push(response);
+      authenWith = []
+    }
     return result;
 
   } catch (error: any) {

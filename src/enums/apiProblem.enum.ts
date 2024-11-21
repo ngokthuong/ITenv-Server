@@ -12,4 +12,7 @@ export enum ApiProblem {
   GET_AVGPROBLEMS_PER_USER = '/average/per-user',
   TOTAL_ACTIVE_PROBLEMS = '/total/active',
   TOTAL_ALL_PROBLEMS = '/total/all',
+  SOLVER_PROBLEMS = '/solver',
+  USER_ENGAGEMENT_PROBLEMS = '/engagement',
+
 }

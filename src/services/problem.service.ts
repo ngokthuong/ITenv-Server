@@ -389,6 +389,7 @@ export const getTotalProblemsService = async () => {
 
 export const getTopProblemSolversService = async () => {
   try {
+    console.log('problems')
     const users = await user.find({ isDeleted: false });
 
     const topProblemResolvers = [];
@@ -410,9 +411,9 @@ export const getTopProblemSolversService = async () => {
     // Sắp xếp mảng theo submitCount giảm dần
     topProblemResolvers.sort((a, b) => b.submitCount - a.submitCount);
 
-    const top7 = topProblemResolvers.slice(0, 7);
+    const top10 = topProblemResolvers.slice(0, 10);
 
-    return top7;
+    return top10;
   } catch (error: any) {
     throw new Error(`Failed to get top problem solvers: ${error.message}`);
   }
@@ -422,16 +423,21 @@ export const getProblemsDataDistributionByYearService = async (queryOption: Quer
   try {
     const year = queryOption.year || new Date().getFullYear();
     const months = Array.from({ length: 12 }, (_, index) => index + 1);
-    let results = [];
+    let results: any[] = [];
+    console.log('Year:', year);
+    console.log('Months:', months);
 
     for (const month of months) {
-      const startOfMonth = new Date(year, month - 1, 1);
-      const endOfMonth = new Date(year, month, 0);
+      const startOfMonth = new Date(year, month - 1, 1); // Ngày đầu tháng
+      const endOfMonth = new Date(year, month, 0); // Ngày cuối tháng
+
       const total = await getProblemsDataDistributionByMonth(startOfMonth, endOfMonth);
       results.push({ month, total });
     }
-    return result;
+
+    return results;
   } catch (error: any) {
+    console.error('Error in getProblemsDataDistributionByYearService:', error.message);
     throw new Error(error.message);
   }
 };
@@ -440,14 +446,18 @@ const getProblemsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth
   try {
     const total = await submission.countDocuments({
       isDeleted: false,
+      isAccepted: true,
       createdAt: {
         $gte: startOfMonth,
         $lte: endOfMonth,
       },
-      isAccepted: true,
     });
+
+    console.log('Total submissions in month:', total);
     return total;
   } catch (error: any) {
+    console.error('Error in getProblemsDataDistributionByMonth:', error.message);
     throw new Error(error.message);
   }
 };
+

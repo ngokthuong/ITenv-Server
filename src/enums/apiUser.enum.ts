@@ -13,6 +13,6 @@ export enum ApiUsers {
     TOTAL_USER = '/total',
     TOTAL_ACTIVE = '/total/active',
     USER_GROWTH = '/growth',
-    USER_DEMOGRAPHICS = '/demographics'
-
+    USER_DEMOGRAPHICS = '/demographics',
+    SOLVER_PROBLEMS = '/solver',
 }

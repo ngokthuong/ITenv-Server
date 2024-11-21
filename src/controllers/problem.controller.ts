@@ -297,8 +297,8 @@ export const submitProblemController = asyncHandler(async (req: AuthRequest, res
       submissionLeetcodeId: submissionId,
       isAccepted:
         !submissionDetailResponse?.data?.data?.submissionDetails?.runtimeError &&
-        !submissionDetailResponse?.data?.data?.submissionDetails?.compileError &&
-        submissionDetailResponse?.data?.data?.submissionDetails?.totalCorrect ===
+          !submissionDetailResponse?.data?.data?.submissionDetails?.compileError &&
+          submissionDetailResponse?.data?.data?.submissionDetails?.totalCorrect ===
           submissionDetailResponse?.data?.data?.submissionDetails?.totalTestcases
           ? true
           : false,

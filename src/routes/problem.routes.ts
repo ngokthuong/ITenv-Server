@@ -3,8 +3,10 @@ import {
   AverageProblemsPerUserController,
   getDetailSubmissionController,
   getProblemsController,
+  getProblemsDataDistributionByYearController,
   getSingleProblem,
   getSubmissionsByUserIdController,
+  getTopProblemSolversController,
   getTotalActiveProblemsController,
   getTotalProblemsController,
   insertProblemsController,
@@ -16,18 +18,7 @@ import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isAdmin } from '../middlewares/verify_roles';
 
 const router = Router();
-router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
-router.get(ApiProblem.GET_PROBLEMS, getProblemsController);
-router.post(ApiProblem.RUNCODE, verifyAccessToken, runCodeController);
-router.post(ApiProblem.SUBMIT, verifyAccessToken, submitProblemController);
-router.get(ApiProblem.SUBMISSIONS, getSubmissionsByUserIdController);
 
-router.get(ApiProblem.DETAIL_SUBMISSION, verifyAccessToken, getDetailSubmissionController);
-
-router.get(ApiProblem.GET_SINGLE_PROBLEM, getSingleProblem);
-// ----------------------------------------------------------ADMIN----------------------------------------------------------------------
-router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, AverageProblemsPerUserController);
-// router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
 
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 router.get(
@@ -44,5 +35,26 @@ router.get(
 );
 router.get(ApiProblem.TOTAL_ALL_PROBLEMS, verifyAccessToken, isAdmin, getTotalProblemsController);
 router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
+router.get(ApiProblem.SOLVER_PROBLEMS, verifyAccessToken, isAdmin, getTopProblemSolversController)
+router.get(ApiProblem.USER_ENGAGEMENT_PROBLEMS, verifyAccessToken, isAdmin, getProblemsDataDistributionByYearController)
+
+
+// ----------------------------------------------------------USER-----------------------------------------------------------------
+
+router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
+router.get(ApiProblem.GET_PROBLEMS, getProblemsController);
+router.post(ApiProblem.RUNCODE, verifyAccessToken, runCodeController);
+router.post(ApiProblem.SUBMIT, verifyAccessToken, submitProblemController);
+router.get(ApiProblem.SUBMISSIONS, getSubmissionsByUserIdController);
+
+router.get(ApiProblem.DETAIL_SUBMISSION, verifyAccessToken, getDetailSubmissionController);
+
+router.get(ApiProblem.GET_SINGLE_PROBLEM, getSingleProblem);
+// ----------------------------------------------------------ADMIN----------------------------------------------------------------------
+router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, AverageProblemsPerUserController);
+// router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, AverageProblemsPerUserController);
+
+
+
 
 export default router;
