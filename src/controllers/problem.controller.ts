@@ -355,7 +355,7 @@ export const AverageProblemsPerUserController = asyncHandler(async (req: AuthReq
   const avgTotal = await AverageProblemsPerUserService();
   const response: ResponseType<typeof avgTotal> = {
     success: true,
-    total: avgTotal,
+    data: avgTotal,
   };
   return res.status(200).json(response);
 });
@@ -364,7 +364,7 @@ export const getTotalActiveProblemsController = asyncHandler(async (req: AuthReq
   const total = await getTotalActiveProblemsService();
   const response: ResponseType<typeof total> = {
     success: true,
-    total: total,
+    data: total,
   };
   return res.status(200).json(response);
 });
@@ -373,7 +373,7 @@ export const getTotalProblemsController = asyncHandler(async (req: AuthRequest, 
   const total = await getTotalProblemsService();
   const response: ResponseType<typeof total> = {
     success: true,
-    total: total,
+    data: total,
   };
   return res.status(200).json(response);
 });

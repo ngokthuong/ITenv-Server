@@ -224,10 +224,10 @@ export const getTotalUserController = asyncHandler(async (req: AuthRequest, res:
 })
 
 export const getTotalActiveUserController = asyncHandler(async (req: AuthRequest, res: any) => {
-  const totalUsers = await getTotalActiveUserService();
-  const response: ResponseType<null> = {
+  const data = await getTotalActiveUserService();
+  const response: ResponseType<typeof data> = {
     success: true,
-    total: totalUsers,
+    data: data,
   };
   return res.status(200).json(response);
 })
