@@ -203,25 +203,25 @@ export const getNewUsersByMonthController = asyncHandler(async (req: AuthRequest
     total: totalUsers,
   };
   return res.status(200).json(response);
-})
+});
 
 export const getNewUsersTodayController = asyncHandler(async (req: AuthRequest, res: any) => {
   const totalUsers = await getNewUsersTodayService();
-  const response: ResponseType<null> = {
+  const response: ResponseType<number> = {
     success: true,
-    total: totalUsers,
+    data: totalUsers,
   };
   return res.status(200).json(response);
-})
+});
 
 export const getTotalUserController = asyncHandler(async (req: AuthRequest, res: any) => {
   const totalUsers = await getTotalUserService();
-  const response: ResponseType<null> = {
+  const response: ResponseType<number> = {
     success: true,
-    total: totalUsers,
+    data: totalUsers,
   };
   return res.status(200).json(response);
-})
+});
 
 export const getTotalActiveUserController = asyncHandler(async (req: AuthRequest, res: any) => {
   const data = await getTotalActiveUserService();
@@ -230,7 +230,7 @@ export const getTotalActiveUserController = asyncHandler(async (req: AuthRequest
     data: data,
   };
   return res.status(200).json(response);
-})
+});
 
 export const getChurnUserRateController = asyncHandler(async (req: AuthRequest, res: any) => {
   const churnRate = await getChurnUserRateService();
@@ -239,7 +239,7 @@ export const getChurnUserRateController = asyncHandler(async (req: AuthRequest, 
     data: churnRate,
   };
   return res.status(200).json(response);
-})
+});
 
 export const getUserGrowthController = asyncHandler(async (req: AuthRequest, res: any) => {
   const queryOption = req.query;
@@ -249,7 +249,7 @@ export const getUserGrowthController = asyncHandler(async (req: AuthRequest, res
     data: result,
   };
   return res.status(200).json(response);
-})
+});
 
 export const userDemographicsController = asyncHandler(async (req: AuthRequest, res: any) => {
   const result = await userDemographicsService();
@@ -258,6 +258,6 @@ export const userDemographicsController = asyncHandler(async (req: AuthRequest, 
     data: result,
   };
   return res.status(200).json(response);
-})
+});
 
 // ----------------------------------------------------------_USER_&&_ADMIN_------------------------------------------------------------

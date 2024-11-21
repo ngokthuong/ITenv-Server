@@ -390,7 +390,7 @@ export const getTotalProblemsService = async () => {
 export const getTopProblemSolversService = async () => {
   try {
     console.log('problems')
-    const users = await user.find({ isDeleted: false });
+    const users = await user.find({ isDeleted: false }).select('_id username');
 
     const topProblemResolvers = [];
 
