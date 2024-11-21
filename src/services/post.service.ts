@@ -496,3 +496,39 @@ export const getTotalPostsService = async () => {
     throw new Error(error.message)
   }
 }
+
+export const getPostsDataDistributionByYearService = async (queryOption: QueryOption) => {
+  try {
+    const year = queryOption.year || new Date().getFullYear();
+    const months = Array.from({ length: 12 }, (_, index) => index + 1);
+    let results: any[] = [];
+
+    for (const month of months) {
+      const startOfMonth = new Date(year, month - 1, 1); // Ngày đầu tháng
+      const endOfMonth = new Date(year, month, 0); // Ngày cuối tháng
+      const total = await getPostsDataDistributionByMonth(startOfMonth, endOfMonth);
+      results.push({ month, total });
+    }
+
+    return results;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const getPostsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth: Date) => {
+  try {
+    const total = await post.countDocuments({
+      isDeleted: false,
+      createdAt: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      },
+    });
+
+    return total;
+
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};

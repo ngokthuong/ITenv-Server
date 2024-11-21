@@ -15,10 +15,7 @@ const verifyAndRegisterService = async (body: any) => {
   // verify OTP
   const verifyOtp = await verifyOtpService(email, otp);
   if (!verifyOtp.success)
-    return {
-      success: false,
-      message: 'verify OTP is error',
-    };
+    throw new Error("verify OTP is error")
   const newAccount = await registerAccount(body);
   return {
     success: newAccount ? true : false,

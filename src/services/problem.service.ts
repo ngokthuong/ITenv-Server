@@ -424,20 +424,17 @@ export const getProblemsDataDistributionByYearService = async (queryOption: Quer
     const year = queryOption.year || new Date().getFullYear();
     const months = Array.from({ length: 12 }, (_, index) => index + 1);
     let results: any[] = [];
-    console.log('Year:', year);
-    console.log('Months:', months);
 
     for (const month of months) {
       const startOfMonth = new Date(year, month - 1, 1); // Ngày đầu tháng
       const endOfMonth = new Date(year, month, 0); // Ngày cuối tháng
-
       const total = await getProblemsDataDistributionByMonth(startOfMonth, endOfMonth);
       results.push({ month, total });
     }
 
     return results;
+
   } catch (error: any) {
-    console.error('Error in getProblemsDataDistributionByYearService:', error.message);
     throw new Error(error.message);
   }
 };
@@ -453,10 +450,9 @@ const getProblemsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth
       },
     });
 
-    console.log('Total submissions in month:', total);
     return total;
+
   } catch (error: any) {
-    console.error('Error in getProblemsDataDistributionByMonth:', error.message);
     throw new Error(error.message);
   }
 };

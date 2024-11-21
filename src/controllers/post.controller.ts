@@ -8,6 +8,7 @@ import {
   editPostByIdService,
   getPostByIdService,
   getPostsByUserIdService,
+  getPostsDataDistributionByYearService,
   getPostsWithCategoryIdAndTagsService,
   getPostsWithYearService,
   getTotalActivePostsService,
@@ -317,6 +318,16 @@ export const getTotalPostsController = asyncHandler(async (req: AuthRequest, res
   const response: ResponseType<typeof total> = {
     success: true,
     total: total
+  };
+  return res.status(200).json(response);
+})
+
+export const getPostsDataDistributionByYearController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const queryOption = req.query;
+  const result = await getPostsDataDistributionByYearService(queryOption);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
   };
   return res.status(200).json(response);
 })
