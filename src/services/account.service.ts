@@ -9,6 +9,7 @@ import { sendEmail } from '../utils/sendEmail.utils';
 import crypto from 'crypto';
 import { passwordResetPass } from '../helper/joiSchemaRegister.helper';
 import { getInfoData } from '../utils/getInfoData.utils';
+import { QueryOption } from '../types/QueryOption.type';
 
 const verifyAndRegisterService = async (body: any) => {
   const { email, otp } = body;
@@ -364,37 +365,51 @@ const getAllAccountByUserIdService = async (userId: string) => {
   }
 }
 
-export const getAllAccountAndUserService = async () => {
+export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
   try {
+    const page = queryOption?.page || 1;
+    const limit = queryOption?.pageSize || 20;
+    const sortField = queryOption?.sortField || 'createdAt';
+    const sortOrder = queryOption?.sortOrder || 'ASC';
+    const skip = (page - 1) * limit;
 
     const accounts = await Account.find({ isDeleted: false })
-    let result: any[] = [];
-    let authenWith: any[] = [];
+      .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const emailMap = new Map<string, any>();
+
     for (const account of accounts) {
-      const Accounts = await Account.find({ email: account.email })
-        .populate('user', 'username avatar phoneNumber lastOnline dob gender');
-      if (Accounts.length > 1) {
-        Accounts.forEach((acc) => {
-          authenWith.push(acc.authenWith);
-        });
-        const data = getInfoData({ fileds: ['_id', 'email', 'user'], object: Accounts[0] })
-        const response = { ...data, authenWith }
-        authenWith = []
-        result.push(response);
+      const existingData = emailMap.get(account.email);
 
+      if (existingData) {
+        existingData.authenWith.push(account.authenWith);
+      } else {
+        const Accounts = await Account.find({ email: account.email })
+          .populate('user', 'username avatar phoneNumber lastOnline dob gender');
+
+        const authenWith = Accounts.map((acc) => acc.authenWith);
+        const data = getInfoData({ fileds: ['_id', 'email', 'user'], object: Accounts[0] });
+        emailMap.set(account.email, { ...data, authenWith });
       }
-      authenWith.push(account.authenWith);
-      const data = getInfoData({ fileds: ['_id', 'email', 'user'], object: account })
-      const response = { ...data, authenWith }
-      result.push(response);
-      authenWith = []
     }
-    return result;
 
+    const result = Array.from(emailMap.values());
+
+    const totalAccounts = await Account.countDocuments({ isDeleted: false });
+    const totalPages = Math.ceil(totalAccounts / limit);
+
+    return {
+      data: result,
+      total: totalAccounts,
+    };
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
+
+
 
 export {
   verifyAndRegisterService,

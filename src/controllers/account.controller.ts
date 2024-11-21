@@ -16,10 +16,12 @@ export const getAllAccountByUserIdController = asyncHandler(async (req: AuthRequ
 // -------------------------------------------------------------ADMIN-------------------------------------------------------------------
 
 export const getAllAccountAndUserController = asyncHandler(async (req: AuthRequest, res: any) => {
-    const result = await getAllAccountAndUserService();
-    const response: ResponseType<typeof result> = {
+    const queryOption = req.query;
+    const { data, total } = await getAllAccountAndUserService(queryOption);
+    const response: ResponseType<typeof data> = {
         success: true,
-        data: result
+        data: data,
+        total: total
     }
     return res.status(200).json(response);
 })

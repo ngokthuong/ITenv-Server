@@ -14,6 +14,7 @@ export const getConversationsOfUserByUserIdService = async (
     const sortField = queryOption.sortField || 'createdAt';
     const sortOrder = 'ASC';
     const skip = (page - 1) * limit;
+
     const options = { sort: [['lastMessage?.createdAt', 'asc']] };
     const totalCount = await conversation.countDocuments({ participants: userId, isDeleted: false });
     const result = await conversation
@@ -22,7 +23,7 @@ export const getConversationsOfUserByUserIdService = async (
       .populate({
         path: 'lastMessage',
         select: 'sender isSeenBy hasText hasFile content fileUrl createdAt isRecalled isDeleted',
-        match: {  isDeleted: false },
+        match: { isDeleted: false },
         populate: { path: 'sender', select: '_id username avatar' },
       })
       .populate({ path: 'createdBy', select: '_id username avatar' })
