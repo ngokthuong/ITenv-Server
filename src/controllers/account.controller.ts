@@ -1,7 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import { AuthRequest } from '../types/AuthRequest.type';
 import { ResponseType } from '../types/Response.type';
-import { getAllAccountAndUserService, getAllAccountByUserIdService } from '../services/account.service';
+import { editRoleUserInAccountService, getAllAccountAndUserService, getAllAccountByUserIdService } from '../services/account.service';
 
 export const getAllAccountByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
     const userId = req.user?.userId;
@@ -26,3 +26,15 @@ export const getAllAccountAndUserController = asyncHandler(async (req: AuthReque
     return res.status(200).json(response);
 })
 
+export const editRoleUserInAccountController = asyncHandler(async (req: AuthRequest, res: any) => {
+    const userId = req.params.userId;
+    const { role } = req.body;
+    const result = await editRoleUserInAccountService(userId as string, role);
+    if (result) {
+        const response: ResponseType<typeof result> = {
+            success: true,
+            data: result,
+        };
+        return res.status(200).json(response);
+    } else return res.status(400).json({ success: false, message: 'User not found' });
+});

@@ -12,5 +12,7 @@ export enum ApiAuth {
     VERIFY_OTP = '/verify-otp',
 
     GET_ALL_ACCOUNT = '',
-    GET_ALL_ACCOUNT_USER = '/users'
+    GET_ALL_ACCOUNT_USER = '/users',
+    EDIT_ROLE_USER = '/:userId/role',
+
 }

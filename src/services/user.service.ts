@@ -50,16 +50,16 @@ export const getAllUsersService = async (queryOption: QueryOption) => {
   // Define the search query based on the search term
   const searchQuery = search
     ? {
-        $and: [
-          { isDeleted: false },
-          {
-            $or: [
-              { username: { $regex: search, $options: 'i' } },
-              { email: { $regex: search, $options: 'i' } },
-            ],
-          },
-        ],
-      }
+      $and: [
+        { isDeleted: false },
+        {
+          $or: [
+            { username: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+          ],
+        },
+      ],
+    }
     : { isDeleted: false };
 
   // Find users with pagination
@@ -379,26 +379,9 @@ export const userDemographicsService = async () => {
     });
 
     return ageGroups;
-  } catch (error: any) {}
+  } catch (error: any) { }
 };
 
-export const editUserRoleService = async (userId: string, role: EnumRoleAccount) => {
-  try {
-    const result = await Account.updateMany(
-      { user: userId }, 
-      { $set: { role: role } },
-    );
-    console.log(result);
-    if (result.modifiedCount > 0) {
-      return { success: true, message: 'Role updated for all accounts.' };
-    } else {
-      return { success: false, message: 'No accounts found to update.' };
-    }
-  } catch (error) {
-    console.error(error);
-    return { success: false, message: 'Error updating role.' };
-  }
-};
 
 const calculateAge = async (dob: Date) => {
   try {

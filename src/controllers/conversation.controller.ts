@@ -14,7 +14,6 @@ export const getConversationsOfUserByUserIdController = asyncHandler(async (req:
             total: totalCount
         };
         return res.status(200).json(response);
-
     } catch (error: any) {
         const response: ResponseType<null> = {
             success: false,

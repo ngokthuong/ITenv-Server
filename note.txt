@@ -16,3 +16,7 @@ https://docs.google.com/spreadsheets/d/1mDYfyaO_uzccFJLwVg5_8qKHRsAIcA82Av6Ghcv7
 
 NOTE FIX:
     - sua api get total trong dashboard 
+
+
+    HOT FIX 
+    - register notfound 

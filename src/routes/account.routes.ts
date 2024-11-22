@@ -14,7 +14,7 @@ import {
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { ApiAuth } from '../enums/apiAuth.enum';
 import { isAdmin, isUser } from '../middlewares/verify_roles';
-import { getAllAccountAndUserController, getAllAccountByUserIdController } from '../controllers/account.controller';
+import { editRoleUserInAccountController, getAllAccountAndUserController, getAllAccountByUserIdController } from '../controllers/account.controller';
 
 const router = Router();
 
@@ -31,6 +31,9 @@ router.post(ApiAuth.GITHUB_OAUTH, githubOauthController);
 router.post(ApiAuth.GOOGLE_OAUTH, googleOauthController);
 router.post(ApiAuth.FACEBOOK_OAUTH);
 router.post(ApiAuth.LOGOUT, verifyAccessToken, logoutController);
+router.put(ApiAuth.EDIT_ROLE_USER, verifyAccessToken, isAdmin, editRoleUserInAccountController);
+
+
 
 // REFRESH TOKEN
 router.post(ApiAuth.REFRESH_ACCESS_TOKEN, refreshAccessToken);

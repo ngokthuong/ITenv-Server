@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { passwordResetPass } from '../helper/joiSchemaRegister.helper';
 import { getInfoData } from '../utils/getInfoData.utils';
 import { QueryOption } from '../types/QueryOption.type';
+import { EnumRoleAccount } from '../enums/schemaAccount.enum';
 
 const verifyAndRegisterService = async (body: any) => {
   const { email, otp } = body;
@@ -284,10 +285,10 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
           success: account ? true : false,
           newAccessToken: account
             ? await generateAccessToken(
-                account._id.toString(),
-                account.role,
-                account.user.toString(),
-              )
+              account._id.toString(),
+              account.role,
+              account.user.toString(),
+            )
             : 'refreshToken invalid',
           message: account ? 'New access token is created' : 'refreshToken invalid',
         };
@@ -410,6 +411,24 @@ export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
     throw new Error(error.message);
   }
 };
+
+
+// ------------------------------------------------------------ADMIN----------------------------------------------------
+export const editRoleUserInAccountService = async (userId: string, role: EnumRoleAccount) => {
+  try {
+    const result = await Account.updateMany(
+      { user: userId },
+      { $set: { role: role } }
+    ); console.log(result);
+    if (result.modifiedCount <= 0)
+      return { success: false, message: 'No accounts found to update.' };
+    return { success: true, message: 'Role updated for all accounts.' };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Error updating role.' };
+  }
+};
+
 
 export {
   verifyAndRegisterService,

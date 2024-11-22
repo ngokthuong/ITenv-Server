@@ -52,6 +52,7 @@ export const verifyAndRegisterController = asyncHandler(async (req: any, res: an
   try {
     // verify and create account
     const result = await verifyAndRegisterService(req.body);
+
     return res.status(200).json({
       success: result.success,
       message: result.message,
