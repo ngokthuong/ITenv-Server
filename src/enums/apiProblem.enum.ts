@@ -14,5 +14,7 @@ export enum ApiProblem {
   TOTAL_ALL_PROBLEMS = '/total/all',
   SOLVER_PROBLEMS = '/solver',
   USER_ENGAGEMENT_PROBLEMS = '/engagement',
+  DATA_PAGE = '/data/page',
+  DELETE_PROBLEM = '/deleted/:_id',
 
 }

@@ -10,6 +10,7 @@ import axios from 'axios';
 import { SubmissionBody } from '../types/ProblemType.type';
 import user from '../models/user';
 import submission from '../models/submission';
+import problem from '../models/problem';
 
 const total = 3298;
 const limit = pLimit(40);
@@ -158,7 +159,7 @@ export const getProblemsService = async (queryOption: QueryOption) => {
       .skip(skip)
       .limit(limit)
       .select(
-        '_id title level slug tags acceptance submitBy vote comment postAt createdAt frontendQuestionId',
+        '_id title level slug tags acceptance submitBy vote comment postAt createdAt frontendQuestionId isDeleted',
       )
       .populate({
         path: 'tags',
@@ -457,3 +458,50 @@ const getProblemsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth
   }
 };
 
+export const getAllTotalDataInProblemPageService = async () => {
+  try {
+    const totalProblems = await getTotalProblemsService();
+    const resolvedProblems = await getresolvedProblemsService();
+    const totalActivePorblems = await getTotalActiveProblemsService();
+    const totalBlockedProblems = await getTotalBlockedProblemsService();
+    const data = {
+      totalProblems,
+      resolvedProblems,
+      totalActivePorblems,
+      totalBlockedProblems
+    }
+
+    return data;
+
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const getTotalBlockedProblemsService = async () => {
+  try {
+    const result = await problem.countDocuments({ isDeleted: true });
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const getresolvedProblemsService = async () => {
+  try {
+    const result = await problem.countDocuments({ acceptance: { $ne: null } });
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+
+export const deletedProblemsByAdminService = async (_id: string) => {
+  try {
+    const result = await problem.findOneAndUpdate({ _id }, { isDeleted: true }, { new: true })
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}

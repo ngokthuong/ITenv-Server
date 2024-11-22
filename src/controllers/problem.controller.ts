@@ -8,6 +8,8 @@ import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import {
   AverageProblemsPerUserService,
+  deletedProblemsByAdminService,
+  getAllTotalDataInProblemPageService,
   getProblemsDataDistributionByYearService,
   getProblemsService,
   getTopProblemSolversService,
@@ -398,3 +400,23 @@ export const getProblemsDataDistributionByYearController = asyncHandler(
     return res.status(200).json(response);
   },
 );
+
+
+export const getAllTotalDataInProblemPageController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await getAllTotalDataInProblemPageService();
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+  };
+  return res.status(200).json(response);
+})
+
+export const deletedProblemsByAdminController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const _id = req.params._id;
+  const result = await deletedProblemsByAdminService(_id);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+  };
+  return res.status(200).json(response);
+})
