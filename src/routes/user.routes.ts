@@ -3,6 +3,7 @@ import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import {
   editAvatarByUserIdController,
   editProfileByUserIdController,
+  editUserRolecontroller,
   getAllFriendsOfUserByTypeController,
   getAllUserController,
   getAllUserForAdminController,
@@ -32,6 +33,7 @@ router.get(ApiUsers.TOTAL_ACTIVE, verifyAccessToken, isAdmin, getTotalActiveUser
 router.get(ApiUsers.CHURN_USER_RATE, verifyAccessToken, isAdmin, getChurnUserRateController);
 router.get(ApiUsers.USER_GROWTH, verifyAccessToken, isAdmin, getUserGrowthController);
 router.get(ApiUsers.USER_DEMOGRAPHICS, verifyAccessToken, isAdmin, userDemographicsController);
+router.put(ApiUsers.EDIT_ROLE_USER, verifyAccessToken, isAdmin, editUserRolecontroller);
 
 // ---------------------------------------------------------USER-----------------------------------------------------------------------
 router.get(ApiUsers.USER_DETAIL, verifyAccessToken, isUser, getDetailUserByIdController);

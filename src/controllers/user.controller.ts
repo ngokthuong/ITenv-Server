@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import {
   editAvatarByUserIdService,
   editProfileByUserIdService,
+  editUserRoleService,
   getAllFriendsOfUserByTypeService,
   getAllUserForAdminService,
   getAllUsersService,
@@ -259,6 +260,20 @@ export const userDemographicsController = asyncHandler(async (req: AuthRequest, 
   };
   return res.status(200).json(response);
 });
+
+export const editUserRolecontroller = asyncHandler(async (req: AuthRequest, res: any) => {
+  const userId = req.params.userId;
+  const { role } = req.body;
+  const result = await editUserRoleService(userId as string, role);
+  if (result) {
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  } else return res.status(400).json({ success: false, message: 'User not found' });
+});
+
 
 
 // ----------------------------------------------------------_USER_&&_ADMIN_------------------------------------------------------------
