@@ -399,20 +399,4 @@ const calculateAge = async (dob: Date) => {
 };
 
 
-export const editUserRoleService = async (userId: string, role: EnumRoleAccount) => {
-  try {
-    const result = await Account.updateMany(
-      { user: userId },
-      { $set: { role: role } },
-    );
-    console.log(result);
-    if (result.modifiedCount > 0) {
-      return { success: true, message: 'Role updated for all accounts.' };
-    } else {
-      return { success: false, message: 'No accounts found to update.' };
-    }
-  } catch (error) {
-    console.error(error);
-    return { success: false, message: 'Error updating role.' };
-  }
-};
+
