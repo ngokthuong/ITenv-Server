@@ -6,6 +6,8 @@ import { EnumFriend } from '../enums/schemaFriend.enum';
 import { QueryOption } from '../types/QueryOption.type';
 import { getInfoData } from '../utils/getInfoData.utils';
 import user from '../models/user';
+import mongoose from 'mongoose';
+import { EnumRoleAccount } from '../enums/schemaAccount.enum';
 
 export const getCurrentUserService = async (req: AuthRequest) => {
   const user = await User.findById(req?.user?.userId);
@@ -48,16 +50,16 @@ export const getAllUsersService = async (queryOption: QueryOption) => {
   // Define the search query based on the search term
   const searchQuery = search
     ? {
-      $and: [
-        { isDeleted: false },
-        {
-          $or: [
-            { username: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-          ],
-        },
-      ],
-    }
+        $and: [
+          { isDeleted: false },
+          {
+            $or: [
+              { username: { $regex: search, $options: 'i' } },
+              { email: { $regex: search, $options: 'i' } },
+            ],
+          },
+        ],
+      }
     : { isDeleted: false };
 
   // Find users with pagination
@@ -99,13 +101,10 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
   }
 };
 
-export const getUsersForFriendPageService = async (
-  userId: string,
-  queryOption: QueryOption
-) => {
+export const getUsersForFriendPageService = async (userId: string, queryOption: QueryOption) => {
   const page = queryOption.page || 1;
   const pageSize = queryOption.pageSize || 20;
-  const search = queryOption.search || ''
+  const search = queryOption.search || '';
   const limit = pageSize;
   const skip = (page - 1) * limit;
   const { users } = await getAllUsersService({ page, pageSize, search });
@@ -124,10 +123,10 @@ export const getUsersForFriendPageService = async (
             $or: [
               { sendBy: userId, receiver: user._id },
               { sendBy: user._id, receiver: userId },
-            ]
+            ],
           },
-          { isDeleted: false }
-        ]
+          { isDeleted: false },
+        ],
       });
 
       return {
@@ -241,7 +240,6 @@ export const getDetailUserByIdService = async (_id: string) => {
   }
 };
 
-
 // --------------------------------------------------------ADMIN------------------------------------------------------------------------
 export const getNewUsersByMonthService = async () => {
   try {
@@ -253,13 +251,14 @@ export const getNewUsersByMonthService = async () => {
       createdAt: {
         $gte: startOfMonth,
         $lte: endOfMonth,
-      }, isDeleted: false
+      },
+      isDeleted: false,
     });
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getNewUsersTodayService = async () => {
   try {
@@ -281,24 +280,23 @@ export const getNewUsersTodayService = async () => {
   }
 };
 
-
 export const getTotalUserService = async () => {
   try {
-    const total = await user.countDocuments({})
+    const total = await user.countDocuments({});
     return total;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getTotalActiveUserService = async () => {
   try {
-    const total = await user.countDocuments({ status: true })
+    const total = await user.countDocuments({ status: true });
     return total;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getChurnUserRateService = async () => {
   try {
@@ -315,9 +313,9 @@ export const getChurnUserRateService = async () => {
     const result = Math.round((churnUserCount / allUser.length) * 100);
     return `${result}%`;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getUserGrowthService = async (queryOption: QueryOption) => {
   try {
@@ -333,34 +331,34 @@ export const getUserGrowthService = async (queryOption: QueryOption) => {
     }
     return results;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const getUserGrowthServiceByMonth = async (startOfMonth: Date, endOfMonth: Date) => {
   try {
     const result = await user.countDocuments({
       createdAt: {
         $gte: startOfMonth,
-        $lte: endOfMonth
-      }
-    })
+        $lte: endOfMonth,
+      },
+    });
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const userDemographicsService = async () => {
   try {
-    const users = await user.find({})
+    const users = await user.find({});
 
     let ageGroups = {
       '18-24': 0,
       '25-34': 0,
       '35-44': 0,
       '45-54': 0,
-      '55+': 0
+      '55+': 0,
     };
 
     users.forEach(async (user) => {
@@ -381,11 +379,26 @@ export const userDemographicsService = async () => {
     });
 
     return ageGroups;
-  } catch (error: any) {
+  } catch (error: any) {}
+};
 
+export const editUserRoleService = async (userId: string, role: EnumRoleAccount) => {
+  try {
+    const result = await Account.updateMany(
+      { user: userId }, 
+      { $set: { role: role } },
+    );
+    console.log(result);
+    if (result.modifiedCount > 0) {
+      return { success: true, message: 'Role updated for all accounts.' };
+    } else {
+      return { success: false, message: 'No accounts found to update.' };
+    }
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Error updating role.' };
   }
-}
-
+};
 
 const calculateAge = async (dob: Date) => {
   try {
@@ -398,6 +411,6 @@ const calculateAge = async (dob: Date) => {
     }
     return age;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};

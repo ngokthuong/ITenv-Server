@@ -15,8 +15,7 @@ const verifyAndRegisterService = async (body: any) => {
   const { email, otp } = body;
   // verify OTP
   const verifyOtp = await verifyOtpService(email, otp);
-  if (!verifyOtp.success)
-    throw new Error("verify OTP is error")
+  if (!verifyOtp.success) throw new Error('verify OTP is error');
   const newAccount = await registerAccount(body);
   return {
     success: newAccount ? true : false,
@@ -30,7 +29,7 @@ const registerAccount = async (data: any): Promise<object> => {
   // check email is existed
   const account = await Account.create(data);
   const user = await User.create({
-    username: data.username
+    username: data.username,
   });
   account.user = user._id;
   return await account.save();
@@ -272,7 +271,6 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
       refreshToken,
       process.env.JWT_SECRET as string,
       async (err: any, decode: any) => {
-
         if (err)
           return {
             success: false,
@@ -286,10 +284,10 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
           success: account ? true : false,
           newAccessToken: account
             ? await generateAccessToken(
-              account._id.toString(),
-              account.role,
-              account.user.toString(),
-            )
+                account._id.toString(),
+                account.role,
+                account.user.toString(),
+              )
             : 'refreshToken invalid',
           message: account ? 'New access token is created' : 'refreshToken invalid',
         };
@@ -331,7 +329,7 @@ export const resetPassService = async (req: any) => {
   const { password, email } = req.body;
   const { error } = passwordResetPass.validate({
     newPassword: req.body.password,
-    email: req.body.email
+    email: req.body.email,
   });
   if (error)
     return {
@@ -354,16 +352,15 @@ const getAllAccountByUserIdService = async (userId: string) => {
     let result = { email: '', authenWith: [] as number[] };
     const Accounts = await Account.find({ user: userId });
     const data = Accounts.map((account) => {
-      if (!result.email)
-        result.email = account.email;
-      result.authenWith.push(account.authenWith)
-      getInfoData({ fileds: ['email', 'authenWith'], object: account })
-    })
+      if (!result.email) result.email = account.email;
+      result.authenWith.push(account.authenWith);
+      getInfoData({ fileds: ['email', 'authenWith'], object: account });
+    });
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
   try {
@@ -372,8 +369,11 @@ export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
     const sortField = queryOption?.sortField || 'createdAt';
     const sortOrder = queryOption?.sortOrder || 'ASC';
     const skip = (page - 1) * limit;
-
-    const accounts = await Account.find({ isDeleted: false })
+    const search = queryOption?.search || '';
+    const accounts = await Account.find({
+      email: { $regex: search, $options: 'i' },
+      isDeleted: false,
+    })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit);
@@ -386,8 +386,10 @@ export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
       if (existingData) {
         existingData.authenWith.push(account.authenWith);
       } else {
-        const Accounts = await Account.find({ email: account.email })
-          .populate('user', 'username avatar phoneNumber lastOnline dob gender status');
+        const Accounts = await Account.find({ email: account.email }).populate(
+          'user',
+          'username avatar phoneNumber lastOnline dob gender status',
+        );
 
         const authenWith = Accounts.map((acc) => acc.authenWith);
         const data = getInfoData({ fileds: ['_id', 'email', 'role', 'user'], object: Accounts[0] });
@@ -409,8 +411,6 @@ export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
   }
 };
 
-
-
 export {
   verifyAndRegisterService,
   loginService,
@@ -418,5 +418,5 @@ export {
   fetchGithubUserData,
   fetchGithubUserEmail,
   checkAccountExisted,
-  getAllAccountByUserIdService
+  getAllAccountByUserIdService,
 };

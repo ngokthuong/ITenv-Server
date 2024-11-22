@@ -50,7 +50,7 @@ export const getAllMesssOfCvssByCvssIdService = async (
       , conversationId
       , isDeleted: false
     })
-    return { result, total };
+    return { result : result.reverse(), total };
   } catch (error: any) {
     throw new Error(error.message);
   }
