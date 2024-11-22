@@ -6,6 +6,9 @@ import {
   createPostService,
   deletePostServise,
   editPostByIdService,
+  getAllTotalDataInPostPageService,
+  getDataDailyPostsTrendService,
+  getDatePostsOverviewService,
   getPostByIdService,
   getPostsByUserIdService,
   getPostsDataDistributionByYearService,
@@ -293,6 +296,8 @@ export const resolvePostByUserIdController = asyncHandler(async (req: AuthReques
   return res.status(200).json(response);
 })
 
+// --------------------------------------------------------------ADMIN------------------------------------------------------------------
+
 export const postActivityDistributionController = asyncHandler(async (req: AuthRequest, res: any) => {
   const queryOption = req.query;
 
@@ -331,3 +336,31 @@ export const getPostsDataDistributionByYearController = asyncHandler(async (req:
   };
   return res.status(200).json(response);
 })
+
+export const getAllTotalDataInPostPageController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await getAllTotalDataInPostPageService();
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+  };
+  return res.status(200).json(response);
+})
+
+export const getDataDailyPostsTrendController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await getDataDailyPostsTrendService();
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+  };
+  return res.status(200).json(response);
+})
+
+export const getDatePostsOverviewController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const result = await getDatePostsOverviewService();
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+  };
+  return res.status(200).json(response);
+})
+

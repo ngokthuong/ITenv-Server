@@ -15,6 +15,9 @@ import {
   getTotalActivePostsController,
   getTotalPostsController,
   getPostsDataDistributionByYearController,
+  getAllTotalDataInPostPageController,
+  getDataDailyPostsTrendController,
+  getDatePostsOverviewController,
 } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isAdmin, isAll, isUser } from '../middlewares/verify_roles';
@@ -26,7 +29,9 @@ router.get('/activity/distribute', verifyAccessToken, isAdmin, postActivityDistr
 router.get('/total/active', verifyAccessToken, isAdmin, getTotalActivePostsController);
 router.get('/total/all', verifyAccessToken, isAll, getTotalPostsController);
 router.get('/year/distribution', verifyAccessToken, isAll, getPostsDataDistributionByYearController);
-// router.get('/data/page', verifyAccessToken, isAdmin, getAllTotalDataInPostPageController);
+router.get('/data/page', verifyAccessToken, isAdmin, getAllTotalDataInPostPageController);
+router.get('/chart/trend', verifyAccessToken, isAdmin, getDataDailyPostsTrendController);
+router.get('/overview', verifyAccessToken, isAdmin, getDatePostsOverviewController);
 
 
 // ----------------------------------------------------------USER----------------------------------------------------------------------

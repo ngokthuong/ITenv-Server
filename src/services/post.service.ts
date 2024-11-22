@@ -10,6 +10,7 @@ import comment from '../models/comment';
 import { getInfoData } from '../utils/getInfoData.utils';
 import { Constants } from '../enums/constants.enum';
 import { any } from 'joi';
+import { startOfDay } from 'date-fns';
 // USER + ADMIN
 export const createPostService = async (data: any) => {
   try {
@@ -532,3 +533,101 @@ const getPostsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth: D
     throw new Error(error.message);
   }
 };
+
+
+export const getAllTotalDataInPostPageService = async () => {
+  try {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    const totalPost = await getTotalPostsService();
+    const totalNewPostsToday = await getNewPostTodayService(startOfDay, endOfDay);
+    const postBlocked = await getPostsBlockedService();
+    const postActive = await getTotalActivePostsService();
+    const data = {
+      totalPost,
+      totalNewPostsToday,
+      postBlocked,
+      postActive
+    }
+    return data;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const getPostsBlockedService = async () => {
+  try {
+    const result = await post.countDocuments({ isDeleted: true })
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const getNewPostTodayService = async (startOfDay: Date, endOfDay: Date) => {
+  try {
+    const result = await post.countDocuments({
+      createdAt: {
+        $gte: startOfDay,
+        $lt: endOfDay,
+      },
+    });
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+export const getDataDailyPostsTrendService = async () => {
+  try {
+    const today = new Date();
+    const sevenDaysArray: any[] = [];
+    const result: any[] = [];
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    // Tạo mảng chứa 7 ngày từ hq đến 6 ngày trước
+    for (let i = 1; i <= 7; i++) {
+      const day = new Date(today);
+      day.setDate(today.getDate() - i);
+      sevenDaysArray.push(day);
+    }
+
+    for (let i = 0; i < sevenDaysArray.length; i++) {
+      const currentDay = new Date(sevenDaysArray[i]);
+      const startOfDay = new Date(currentDay);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(currentDay);
+      endOfDay.setHours(23, 59, 59, 999);
+      const posts = await getNewPostTodayService(startOfDay, endOfDay);
+      const dayIndex = startOfDay.getDay();
+      result.push({ DayOfWeek: daysOfWeek[dayIndex], total: posts });
+    }
+    return result.reverse();
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+export const getDatePostsOverviewService = async () => {
+  try {
+    const year = new Date().getFullYear();
+    const months = Array.from({ length: 12 }, (_, index) => index + 1);
+    let results: any[] = [];
+
+    for (const month of months) {
+      const startOfMonth = new Date(year, month - 1, 1); // Ngày đầu tháng
+      const endOfMonth = new Date(year, month, 0); // Ngày cuối tháng
+      const total = await getPostsDataDistributionByMonth(startOfMonth, endOfMonth);
+      results.push({ month, total });
+    }
+
+    return results;
+
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
