@@ -14,8 +14,5 @@ export enum ApiUsers {
     TOTAL_ACTIVE = '/total/active',
     USER_GROWTH = '/growth',
     USER_DEMOGRAPHICS = '/demographics',
-    SOLVER_PROBLEMS = '/solver',
     EDIT_ROLE_USER = '/:userId/role',
-
-
 }
