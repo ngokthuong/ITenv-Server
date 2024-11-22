@@ -505,3 +505,51 @@ export const deletedProblemsByAdminService = async (_id: string) => {
     throw new Error(error.message)
   }
 }
+
+export const getDailysolvedProblemsService = async () => {
+  try {
+    const today = new Date();
+    const sevenDaysArray: any[] = [];
+    const result: any[] = [];
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    // Tạo mảng chứa 7 ngày từ hq đến 6 ngày trước
+    for (let i = 1; i <= 7; i++) {
+      const day = new Date(today);
+      day.setDate(today.getDate() - i);
+      sevenDaysArray.push(day);
+    }
+
+    for (let i = 0; i < sevenDaysArray.length; i++) {
+      const currentDay = new Date(sevenDaysArray[i]);
+      const startOfDay = new Date(currentDay);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(currentDay);
+      endOfDay.setHours(23, 59, 59, 999);
+      const totalProblems = await getSubmistedProblemsByDate(startOfDay, endOfDay);
+      const dayIndex = startOfDay.getDay();
+      result.push({ DayOfWeek: daysOfWeek[dayIndex], total: totalProblems });
+    }
+    return result.reverse();
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
+const getSubmistedProblemsByDate = async (startOfDay: Date, endOfDay: Date) => {
+  try {
+    const result = await submission.countDocuments({
+      isDeleted: false,
+      isAccepted: true,
+      createdAt: {
+        $gte: startOfDay,
+        $lt: endOfDay,
+      },
+    });
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+

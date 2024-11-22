@@ -3,6 +3,7 @@ import {
   AverageProblemsPerUserController,
   deletedProblemsByAdminController,
   getAllTotalDataInProblemPageController,
+  getDailysolvedProblemsController,
   getDetailSubmissionController,
   getProblemsController,
   getProblemsDataDistributionByYearController,
@@ -40,6 +41,7 @@ router.get(ApiProblem.GET_AVGPROBLEMS_PER_USER, verifyAccessToken, isAdmin, Aver
 router.get(ApiProblem.SOLVER_PROBLEMS, verifyAccessToken, isAdmin, getTopProblemSolversController)
 router.get(ApiProblem.USER_ENGAGEMENT_PROBLEMS, verifyAccessToken, isAdmin, getProblemsDataDistributionByYearController)
 router.get(ApiProblem.DATA_PAGE, verifyAccessToken, isAdmin, getAllTotalDataInProblemPageController);
+router.get(ApiProblem.DAILY_SOLVED_PROBLEMS, verifyAccessToken, isAdmin, getDailysolvedProblemsController);
 
 
 // ----------------------------------------------------------USER-----------------------------------------------------------------

@@ -16,5 +16,6 @@ export enum ApiProblem {
   USER_ENGAGEMENT_PROBLEMS = '/engagement',
   DATA_PAGE = '/data/page',
   DELETE_PROBLEM = '/deleted/:_id',
+  DAILY_SOLVED_PROBLEMS = '/chart/solved'
 
 }
