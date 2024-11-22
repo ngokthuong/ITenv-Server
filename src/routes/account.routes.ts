@@ -19,8 +19,8 @@ import { editRoleUserInAccountController, getAllAccountAndUserController, getAll
 const router = Router();
 
 // RESET PASS
-router.get(ApiAuth.FORGOT_PASS, forgotPassController);
-router.get(ApiAuth.VERIFY_OTP, verifyOtpController);
+router.post(ApiAuth.FORGOT_PASS, forgotPassController);
+router.post(ApiAuth.VERIFY_OTP, verifyOtpController);
 router.post(ApiAuth.RESET_PASS, resetPassController);
 
 // REGISTER & LOGIN & LOGOUT
