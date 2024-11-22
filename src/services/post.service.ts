@@ -44,8 +44,8 @@ export const getPostsWithCategoryIdAndTagsService = async (
     const tagsRequest = Array.isArray(queryOption.tags)
       ? queryOption.tags
       : queryOption.tags
-      ? [queryOption.tags]
-      : [];
+        ? [queryOption.tags]
+        : [];
     const searchRequest = queryOption.search || '';
     // create 1 condition
     const conditions = [];
@@ -245,16 +245,16 @@ export const searchPostsWithCategoryService = async (
         categoryId ? { categoryId } : {},
         queryOption.search
           ? {
-              $or: [
-                { title: { $regex: queryOption.search, $options: 'i' } },
-                {
-                  $and: [
-                    { content: { $regex: queryOption.search, $options: 'i' } },
-                    { title: { $exists: false } },
-                  ],
-                },
-              ],
-            }
+            $or: [
+              { title: { $regex: queryOption.search, $options: 'i' } },
+              {
+                $and: [
+                  { content: { $regex: queryOption.search, $options: 'i' } },
+                  { title: { $exists: false } },
+                ],
+              },
+            ],
+          }
           : {},
       ],
     };

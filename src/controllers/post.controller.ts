@@ -291,13 +291,13 @@ export const resolvePostByUserIdController = asyncHandler(async (req: AuthReques
 export const postActivityDistributionController = asyncHandler(async (req: AuthRequest, res: any) => {
   const queryOption = req.query;
 
-    const result = await postActivityDistributionService(queryOption);
-    const response: ResponseType<typeof result> = {
-      success: true,
-      data: result,
-    };
-    return res.status(200).json(response);
-  },
+  const result = await postActivityDistributionService(queryOption);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+  };
+  return res.status(200).json(response);
+},
 );
 
 export const getTotalActivePostsController = asyncHandler(async (req: AuthRequest, res: any) => {
