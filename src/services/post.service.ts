@@ -44,8 +44,8 @@ export const getPostsWithCategoryIdAndTagsService = async (
     const tagsRequest = Array.isArray(queryOption.tags)
       ? queryOption.tags
       : queryOption.tags
-        ? [queryOption.tags]
-        : [];
+      ? [queryOption.tags]
+      : [];
     const searchRequest = queryOption.search || '';
     // create 1 condition
     const conditions = [];
@@ -245,16 +245,16 @@ export const searchPostsWithCategoryService = async (
         categoryId ? { categoryId } : {},
         queryOption.search
           ? {
-            $or: [
-              { title: { $regex: queryOption.search, $options: 'i' } },
-              {
-                $and: [
-                  { content: { $regex: queryOption.search, $options: 'i' } },
-                  { title: { $exists: false } },
-                ],
-              },
-            ],
-          }
+              $or: [
+                { title: { $regex: queryOption.search, $options: 'i' } },
+                {
+                  $and: [
+                    { content: { $regex: queryOption.search, $options: 'i' } },
+                    { title: { $exists: false } },
+                  ],
+                },
+              ],
+            }
           : {},
       ],
     };
@@ -293,10 +293,7 @@ const findPostWithViewsOrVotesService = async (
     if (sortField === Constants.VOTES) {
       // Tính toán vote - downVote
       addFieldsStage.voteBalance = {
-        $subtract: [
-          { $size: '$vote' },
-          { $size: '$downVote' }
-        ]
+        $subtract: [{ $size: '$vote' }, { $size: '$downVote' }],
       };
       sortStage.voteBalance = sortOrder === 'ASC' ? 1 : -1;
     } else if (sortField === Constants.VIEWS) {
@@ -325,7 +322,7 @@ const findPostWithViewsOrVotesService = async (
 export const deletePostServise = async (postId: string, postedBy: string) => {
   try {
     return await post.findOneAndUpdate(
-      { _id: postId, postedBy: postedBy },
+      { _id: postId },
       { isDeleted: true },
       { new: true, runValidators: true },
     );
@@ -435,17 +432,17 @@ export const postActivityDistributionService = async (queryOption: QueryOption) 
       createdAt: {
         $gte: startOfMonth,
         $lte: endOfMonth,
-      }, isDeleted: false
+      },
+      isDeleted: false,
     });
 
     const result = processPostData(posts);
 
     return result;
-
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const processPostData = async (posts: any[]) => {
   try {
@@ -457,7 +454,10 @@ const processPostData = async (posts: any[]) => {
 
     // Dùng vòng lặp for...of để hỗ trợ async/await
     for (const post of posts) {
-      const totalCommentsInPost = await comment.countDocuments({ postId: post._id, isDeleted: false });
+      const totalCommentsInPost = await comment.countDocuments({
+        postId: post._id,
+        isDeleted: false,
+      });
       totalComments += totalCommentsInPost;
       totalUpvotes += parseInt(post.vote.length.toString());
       totalDownvotes += parseInt(post.downVote.length.toString());
@@ -475,28 +475,27 @@ const processPostData = async (posts: any[]) => {
   } catch (error: any) {
     throw new Error(error.message);
   }
-}
-
+};
 
 // ---------------------------------------------------ADMIN-----------------------------------------------------------------------
 
 export const getTotalActivePostsService = async () => {
   try {
-    const total = await post.countDocuments({ isDeleted: false })
+    const total = await post.countDocuments({ isDeleted: false });
     return total;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getTotalPostsService = async () => {
   try {
-    const total = await post.countDocuments({})
+    const total = await post.countDocuments({});
     return total;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getPostsDataDistributionByYearService = async (queryOption: QueryOption) => {
   try {
@@ -513,9 +512,9 @@ export const getPostsDataDistributionByYearService = async (queryOption: QueryOp
 
     return results;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const getPostsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth: Date) => {
   try {
@@ -528,7 +527,6 @@ const getPostsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth: D
     });
 
     return total;
-
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -631,3 +629,44 @@ export const getDatePostsOverviewService = async () => {
   }
 }
 
+
+export const getAllPostsService = async (queryOption: QueryOption) => {
+  try {
+    const page = queryOption.page || 1;
+    const pageSize = queryOption.pageSize || 10;
+    const search = queryOption.search || '';
+    const sortField = queryOption.sortField || 'createdAt';
+    const sortOrder = queryOption.sortOrder || 'DESC';
+    const searchCondition = search ? { title: { $regex: search, $options: 'i' } } : {};
+
+    const result = await post
+      .find(searchCondition)
+      .sort({ [sortField]: sortOrder === 'DESC' ? 1 : -1 })
+      .populate([
+        {
+          path: 'postedBy',
+          select: 'username email id avatar',
+        },
+        {
+          path: 'tags',
+          model: 'Tag',
+          select: 'name description type',
+        },
+        {
+          path: 'categoryId',
+          select: 'name _id',
+        },
+      ])
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean();
+
+    const total = await post.countDocuments(searchCondition);
+
+    return { total, result };
+  } catch (error: any) {
+    console.error('Error fetching posts:', error);
+
+    throw new Error(`Failed to fetch posts: ${error.message || 'Unknown error'}`);
+  }
+};

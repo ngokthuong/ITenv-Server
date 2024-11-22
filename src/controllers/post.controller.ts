@@ -9,6 +9,7 @@ import {
   getAllTotalDataInPostPageService,
   getDataDailyPostsTrendService,
   getDatePostsOverviewService,
+  getAllPostsService,
   getPostByIdService,
   getPostsByUserIdService,
   getPostsDataDistributionByYearService,
@@ -40,7 +41,6 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
         success: false,
         data: null,
         error: error.message,
-
       };
       return res.status(500).json(response);
     }
@@ -56,7 +56,6 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
       const response: ResponseType<typeof newPost> = {
         success: true,
         data: newPost,
-
       };
       return res.status(201).json(response);
     }
@@ -65,7 +64,6 @@ export const createPostController = asyncHandler(async (req: AuthRequest, res: a
       success: false,
       data: null,
       error: error.message,
-
     };
     return res.status(500).json(response);
   }
@@ -101,7 +99,6 @@ export const getPostByIdController = asyncHandler(async (req: any, res: any) => 
     const response: ResponseType<typeof data> = {
       success: true,
       data: data,
-
     };
     return res.status(200).json(response);
   } catch (error: any) {
@@ -109,7 +106,6 @@ export const getPostByIdController = asyncHandler(async (req: any, res: any) => 
       success: false,
       data: null,
       error: error.message,
-
     };
     return res.status(500).json(response);
   }
@@ -144,7 +140,6 @@ export const editPostByIdController = asyncHandler(async (req: AuthRequest, res:
         success: false,
         data: null,
         error: error.message,
-
       };
       return res.status(500).json(response);
     }
@@ -168,18 +163,17 @@ export const editPostByIdController = asyncHandler(async (req: AuthRequest, res:
       success: false,
       data: null,
       error: error.message,
-
     };
     return res.status(500).json(response);
   }
 });
 
-// 
+//
 // export const updateViewPost = asyncHandler(async (req: ))
 
 export const deletePostByIdController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
-    const postedBy = req.user?.userId;
+    const postedBy = req?.user?.userId;
     const postId = req.params.postId;
     if (postedBy && postId) {
       const deletePost = await deletePostServise(postId, postedBy);
@@ -194,21 +188,17 @@ export const deletePostByIdController = asyncHandler(async (req: AuthRequest, re
       success: false,
       data: null,
       error: error.message,
-
     };
     return res.status(500).json(response);
   }
 });
 
 // All
-// Search post 
+// Search post
 export const searchPostWithCategoryIdController = asyncHandler(async (req: any, res: any) => {
   try {
     const queryOption = req.query;
-    const searchPosts = await searchPostsWithCategoryService(
-      req.params.categoryId,
-      queryOption,
-    );
+    const searchPosts = await searchPostsWithCategoryService(req.params.categoryId, queryOption);
     const response: ResponseType<typeof searchPosts> = {
       success: true,
       data: searchPosts,
@@ -224,7 +214,7 @@ export const searchPostWithCategoryIdController = asyncHandler(async (req: any, 
   }
 });
 
-// Share post 
+// Share post
 export const sharePostToProfileController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
     const sharedBy = req.user?.userId;
@@ -240,7 +230,7 @@ export const sharePostToProfileController = asyncHandler(async (req: AuthRequest
     const response: ResponseType<null> = {
       success: false,
       data: null,
-      error: "Share post is not successfully",
+      error: 'Share post is not successfully',
     };
     return res.status(400).json(response);
   } catch (error: any) {
@@ -271,19 +261,19 @@ export const getPostsByUserIdController = asyncHandler(async (req: AuthRequest, 
     };
     return res.status(500).json(response);
   }
-})
+});
 
 export const getPostsController = asyncHandler(async (req: AuthRequest, res: any) => {
   const queryOption = req.query;
-  const userId = req.user?.userId
+  const userId = req.user?.userId;
   const { total, result } = await getPostsWithYearService(queryOption, userId as string);
   const response: ResponseType<typeof result> = {
     success: true,
     data: result,
-    total
+    total,
   };
   return res.status(200).json(response);
-})
+});
 
 export const resolvePostByUserIdController = asyncHandler(async (req: AuthRequest, res: any) => {
   const postedBy = req.user?.userId;
@@ -291,48 +281,61 @@ export const resolvePostByUserIdController = asyncHandler(async (req: AuthReques
   const result = await resolvePostByUserIdService(_id as string, postedBy as string);
   const response: ResponseType<typeof result> = {
     success: true,
-    data: result
+    data: result,
   };
   return res.status(200).json(response);
-})
+});
 
 // --------------------------------------------------------------ADMIN------------------------------------------------------------------
 
 export const postActivityDistributionController = asyncHandler(async (req: AuthRequest, res: any) => {
   const queryOption = req.query;
 
-  const result = await postActivityDistributionService(queryOption);
-  const response: ResponseType<typeof result> = {
-    success: true,
-    data: result
-  };
-  return res.status(200).json(response);
-})
+    const result = await postActivityDistributionService(queryOption);
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  },
+);
 
 export const getTotalActivePostsController = asyncHandler(async (req: AuthRequest, res: any) => {
   const total = await getTotalActivePostsService();
   const response: ResponseType<typeof total> = {
     success: true,
-    data: total
+    data: total,
   };
   return res.status(200).json(response);
-})
+});
 
 export const getTotalPostsController = asyncHandler(async (req: AuthRequest, res: any) => {
   const total = await getTotalPostsService();
   const response: ResponseType<typeof total> = {
     success: true,
-    data: total
+    data: total,
   };
   return res.status(200).json(response);
-})
+});
 
-export const getPostsDataDistributionByYearController = asyncHandler(async (req: AuthRequest, res: any) => {
+export const getPostsDataDistributionByYearController = asyncHandler(
+  async (req: AuthRequest, res: any) => {
+    const queryOption = req.query;
+    const result = await getPostsDataDistributionByYearService(queryOption);
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  },
+);
+export const getAllPostsController = asyncHandler(async (req: AuthRequest, res: any) => {
   const queryOption = req.query;
-  const result = await getPostsDataDistributionByYearService(queryOption);
+  const { result, total } = await getAllPostsService(queryOption);
   const response: ResponseType<typeof result> = {
     success: true,
     data: result,
+    total: total,
   };
   return res.status(200).json(response);
 })
