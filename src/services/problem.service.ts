@@ -147,14 +147,19 @@ export const getProblemsService = async (queryOption: QueryOption) => {
     const search = queryOption?.search || '';
     const sortField = queryOption.sortField || 'createdAt';
     const sortOrder = queryOption.sortOrder || 'DESC';
-
-    const result = await Problem.find({
+    const tags = queryOption.tags || [];
+    const query: any = {
+      isDeleted: false,
       $or: [
         { title: { $regex: search, $options: 'i' } },
         { content: { $regex: search, $options: 'i' } },
       ],
-      isDeleted: false,
-    })
+    };
+
+    if (tags.length > 0) {
+      query.tags = { $in: tags };
+    }
+    const result = await Problem.find(query)
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
@@ -165,13 +170,7 @@ export const getProblemsService = async (queryOption: QueryOption) => {
         path: 'tags',
         select: '_id name',
       });
-    var total = await Problem.countDocuments({
-      isDeleted: false,
-      $or: [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
-      ],
-    });
+    var total = await Problem.countDocuments(query);
 
     return { result, total };
   } catch (error: any) {
@@ -390,7 +389,7 @@ export const getTotalProblemsService = async () => {
 
 export const getTopProblemSolversService = async () => {
   try {
-    console.log('problems')
+    console.log('problems');
     const users = await user.find({ isDeleted: false }).select('_id username');
 
     const topProblemResolvers = [];
@@ -434,7 +433,6 @@ export const getProblemsDataDistributionByYearService = async (queryOption: Quer
     }
 
     return results;
-
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -452,7 +450,6 @@ const getProblemsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth
     });
 
     return total;
-
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -468,50 +465,56 @@ export const getAllTotalDataInProblemPageService = async () => {
       totalProblems,
       resolvedProblems,
       totalActivePorblems,
-      totalBlockedProblems
-    }
+      totalBlockedProblems,
+    };
 
     return data;
-
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const getTotalBlockedProblemsService = async () => {
   try {
     const result = await problem.countDocuments({ isDeleted: true });
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const getresolvedProblemsService = async () => {
   try {
     const result = await problem.countDocuments({ acceptance: { $ne: null } });
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
-
+};
 
 export const deletedProblemsByAdminService = async (_id: string) => {
   try {
-    const result = await problem.findOneAndUpdate({ _id }, { isDeleted: true }, { new: true })
+    const result = await problem.findOneAndUpdate({ _id }, { isDeleted: true }, { new: true });
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getDailysolvedProblemsService = async () => {
   try {
     const today = new Date();
     const sevenDaysArray: any[] = [];
     const result: any[] = [];
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const daysOfWeek = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
 
     // Tạo mảng chứa 7 ngày từ hq đến 6 ngày trước
     for (let i = 1; i <= 7; i++) {
@@ -533,9 +536,9 @@ export const getDailysolvedProblemsService = async () => {
     }
     return result.reverse();
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const getSubmistedProblemsByDate = async (startOfDay: Date, endOfDay: Date) => {
   try {
@@ -549,7 +552,6 @@ const getSubmistedProblemsByDate = async (startOfDay: Date, endOfDay: Date) => {
     });
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
-
+};

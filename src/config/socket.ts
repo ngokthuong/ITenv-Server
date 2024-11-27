@@ -25,22 +25,33 @@ export const setupSocket = (server: any) => {
   };
 
   const io = new SocketServer(server, socketOptions);
-
+  const disconnectTimeouts = new Map<string, NodeJS.Timeout>();
   io.on('connection', async (socket: Socket) => {
     const user = await authenticateSocket(socket);
     if (!user) {
       console.log('Authentication failed.');
       return;
     }
-    if (user._id) {
-      await updateUserStatus(user._id, socket);
-      socket.join(user._id.toString());
-      socketFunctions(socket, user);
+
+    const userId = user._id.toString();
+
+    if (disconnectTimeouts.has(userId)) {
+      clearTimeout(disconnectTimeouts.get(userId)!);
+      disconnectTimeouts.delete(userId);
     }
 
-    socket.on('disconnect', async () => {
-      console.log(`User disconnected: ${user._id}`);
-      await User.findByIdAndUpdate(user._id, { status: 0, lastOnline: new Date() });
+    await updateUserStatus(user._id, socket);
+    socket.join(userId);
+    socketFunctions(socket, user);
+
+    socket.on('disconnect', () => {
+      console.log(`User disconnected: ${userId}`);
+      const offlineDate = new Date();
+      const timeout = setTimeout(async () => {
+        await User.findByIdAndUpdate(user._id, { status: 0, lastOnline: offlineDate }),
+          disconnectTimeouts.delete(userId);
+      }, 1000 * 60);
+      disconnectTimeouts.set(userId, timeout);
     });
   });
 };

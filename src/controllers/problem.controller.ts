@@ -28,6 +28,7 @@ import { AuthRequest } from '../types/AuthRequest.type';
 import { SubmissionBody } from '../types/ProblemType.type';
 import axios from 'axios';
 import submission from '../models/submission';
+import problem from '../models/problem';
 
 // export const insertProblems = asyncHandler(async (req: any, res: any) => {
 //   try {
@@ -300,8 +301,8 @@ export const submitProblemController = asyncHandler(async (req: AuthRequest, res
       submissionLeetcodeId: submissionId,
       isAccepted:
         !submissionDetailResponse?.data?.data?.submissionDetails?.runtimeError &&
-          !submissionDetailResponse?.data?.data?.submissionDetails?.compileError &&
-          submissionDetailResponse?.data?.data?.submissionDetails?.totalCorrect ===
+        !submissionDetailResponse?.data?.data?.submissionDetails?.compileError &&
+        submissionDetailResponse?.data?.data?.submissionDetails?.totalCorrect ===
           submissionDetailResponse?.data?.data?.submissionDetails?.totalTestcases
           ? true
           : false,
@@ -351,7 +352,32 @@ export const getSubmissionsByUserIdController = asyncHandler(async (req: any, re
     res.status(500).json({ message: 'An error occurred while fetching submissions.' });
   }
 });
+export const getProblemActivitiesController = asyncHandler(async (req: any, res: any) => {
+  const { userId } = req.params;
+  const { year } = req.query || 2024;
 
+  try {
+    if (!year || isNaN(year)) {
+      return res.status(400).json({ message: 'Invalid year provided' });
+    }
+    const startOfYear = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endOfYear = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    const activities = await submission
+      .find({
+        submitBy: userId,
+        createdAt: {
+          $gte: startOfYear,
+          $lt: endOfYear,
+        },
+      })
+      .select('createdAt -_id');
+    res.status(200).json({ success: true, data: activities });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error', error });
+  }
+});
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 
 export const AverageProblemsPerUserController = asyncHandler(async (req: AuthRequest, res: any) => {
@@ -402,15 +428,16 @@ export const getProblemsDataDistributionByYearController = asyncHandler(
   },
 );
 
-
-export const getAllTotalDataInProblemPageController = asyncHandler(async (req: AuthRequest, res: any) => {
-  const result = await getAllTotalDataInProblemPageService();
-  const response: ResponseType<typeof result> = {
-    success: true,
-    data: result,
-  };
-  return res.status(200).json(response);
-})
+export const getAllTotalDataInProblemPageController = asyncHandler(
+  async (req: AuthRequest, res: any) => {
+    const result = await getAllTotalDataInProblemPageService();
+    const response: ResponseType<typeof result> = {
+      success: true,
+      data: result,
+    };
+    return res.status(200).json(response);
+  },
+);
 
 export const deletedProblemsByAdminController = asyncHandler(async (req: AuthRequest, res: any) => {
   const _id = req.params._id;
@@ -420,7 +447,7 @@ export const deletedProblemsByAdminController = asyncHandler(async (req: AuthReq
     data: result,
   };
   return res.status(200).json(response);
-})
+});
 
 export const getDailysolvedProblemsController = asyncHandler(async (req: AuthRequest, res: any) => {
   const result = await getDailysolvedProblemsService();
@@ -429,4 +456,4 @@ export const getDailysolvedProblemsController = asyncHandler(async (req: AuthReq
     data: result,
   };
   return res.status(200).json(response);
-})
+});

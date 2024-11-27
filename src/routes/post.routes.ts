@@ -19,6 +19,7 @@ import {
   getDataDailyPostsTrendController,
   getDatePostsOverviewController,
   getAllPostsController,
+  getPostActivitiesController,
 } from '../controllers/post.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isAdmin, isAll, isUser } from '../middlewares/verify_roles';
@@ -30,11 +31,15 @@ router.get('/all', verifyAccessToken, isAdmin, getAllPostsController);
 router.get('/activity/distribute', verifyAccessToken, isAdmin, postActivityDistributionController);
 router.get('/total/active', verifyAccessToken, isAdmin, getTotalActivePostsController);
 router.get('/total/all', verifyAccessToken, isAll, getTotalPostsController);
-router.get('/year/distribution', verifyAccessToken, isAll, getPostsDataDistributionByYearController);
+router.get(
+  '/year/distribution',
+  verifyAccessToken,
+  isAll,
+  getPostsDataDistributionByYearController,
+);
 router.get('/data/page', verifyAccessToken, isAdmin, getAllTotalDataInPostPageController);
 router.get('/chart/trend', verifyAccessToken, isAdmin, getDataDailyPostsTrendController);
 router.get('/overview', verifyAccessToken, isAdmin, getDatePostsOverviewController);
-
 
 // ----------------------------------------------------------USER----------------------------------------------------------------------
 router.post('', verifyAccessToken, isUser, createPostController);
@@ -48,9 +53,6 @@ router.post('/share/:postId', verifyAccessToken, isUser, sharePostToProfileContr
 router.get('/user/:postedBy', verifyAccessToken, isUser, getPostsByUserIdController);
 router.get('', verifyAccessToken, isUser, getPostsController);
 router.post('/resolve/:_id', verifyAccessToken, isUser, resolvePostByUserIdController);
-
-
-
-
+router.get('/post-activities/:userId', verifyAccessToken, getPostActivitiesController);
 
 export default router;

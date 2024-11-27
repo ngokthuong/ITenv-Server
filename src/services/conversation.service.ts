@@ -16,17 +16,20 @@ export const getConversationsOfUserByUserIdService = async (
     const skip = (page - 1) * limit;
 
     const options = { sort: [['lastMessage?.createdAt', 'asc']] };
-    const totalCount = await conversation.countDocuments({ participants: userId, isDeleted: false });
+    const totalCount = await conversation.countDocuments({
+      participants: userId,
+      isDeleted: false,
+    });
     const result = await conversation
       .find({ participants: userId, isDeleted: false })
-      .populate('participants', '_id username avatar')
+      .populate('participants', '_id username avatar status lastOnline')
       .populate({
         path: 'lastMessage',
         select: 'sender isSeenBy hasText hasFile content fileUrl createdAt isRecalled isDeleted',
         match: { isDeleted: false },
         populate: { path: 'sender', select: '_id username avatar' },
       })
-      .populate({ path: 'createdBy', select: '_id username avatar' })
+      .populate({ path: 'createdBy', select: '_id username avatar ' })
       .skip(skip)
       .limit(limit)
       .lean();

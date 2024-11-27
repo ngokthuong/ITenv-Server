@@ -21,7 +21,6 @@ export const messageSocket = async (
   try {
     const conversation = await findConversationByIdService(messageInfo?.conversationId!);
     conversation?.participants?.forEach((participant) => {
-      console.log(participant._id.toString());
       socket.to(participant._id.toString()).emit('message', {
         data: messageInfo,
       });

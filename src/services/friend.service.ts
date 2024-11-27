@@ -22,9 +22,12 @@ export const createFriendRequest = async (data: any) => {
     if (await checkFriendRequestToMyself(sendBy, receiver)) {
       throw new Error('Cannot send a friend request to yourself!');
     }
+    const friendRequest = await friend.create(data);
+    const populatedFriendRequest = await friend
+      .findById(friendRequest._id)
+      .populate({ path: 'sendBy receiver', select: '_id username avatar' });
 
-    // Tạo lời mời kết bạn mới
-    return await friend.create(data);
+    return populatedFriendRequest;
   } catch (error: any) {
     throw new Error(error instanceof Error ? error.message : 'An unexpected error occurred');
   }
@@ -32,16 +35,24 @@ export const createFriendRequest = async (data: any) => {
 
 const updateFriendRequestExistedService = async (sendBy: string, receiver: string) => {
   try {
-    const result = await friend.findOneAndUpdate(
-      {
-        $or: [
-          { sendBy, receiver },
-          { sendBy: receiver, receiver: sendBy },
-        ],
-      },
-      { isDeleted: false, sendBy, receiver, status: EnumFriend.TYPE_PENDING },
-      { new: true },
-    );
+    const result = await friend
+      .findOneAndUpdate(
+        {
+          $or: [
+            { sendBy, receiver },
+            { sendBy: receiver, receiver: sendBy },
+          ],
+        },
+        {
+          isDeleted: false,
+          sendBy,
+          receiver,
+          status: EnumFriend.TYPE_PENDING,
+          createdAt: new Date(),
+        },
+        { new: true },
+      )
+      .populate('receiver sendBy', '_id username avatar');
     return result;
   } catch (error: any) {
     throw new Error('Failed to update friend request');
@@ -73,17 +84,21 @@ const checkFriendRequestToMyself = async (sendBy: string, receiver: string) => {
 
 export const acceptFriendRequestService = async (_id: string, userId: string) => {
   try {
-    return await friend.findOneAndUpdate(
-      {
-        _id: _id,
-        $or: [{ sendBy: userId }, { receiver: userId }],
-      },
-      {
-        status: EnumFriend.TYPE_ACCEPT,
-        acceptedAt: new Date(),
-      },
-      { new: true },
-    );
+    const friendRequest = await friend
+      .findOneAndUpdate(
+        {
+          _id: _id,
+          $or: [{ sendBy: userId }, { receiver: userId }],
+        },
+        {
+          status: EnumFriend.TYPE_ACCEPT,
+          acceptedAt: new Date(),
+        },
+        { new: true },
+      )
+      .populate('sendBy receiver', '_id username avatar');
+    if (friendRequest) return friendRequest;
+    else return null;
   } catch (error: any) {
     throw new Error(error.message);
   }

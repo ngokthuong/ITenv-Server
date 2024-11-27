@@ -3,6 +3,7 @@ import { AuthRequest } from '../types/AuthRequest.type';
 import {
   addMessForConvertationByUserIdService,
   getAllMesssOfCvssByCvssIdService,
+  getMyConversationWithUserService,
   recalledMessageBySenderService,
   seenMessageByUserIdService,
 } from '../services/message.service';
@@ -23,7 +24,7 @@ export const getAllMesssOfCvssByCvssIdController = asyncHandler(
       const response: ResponseType<typeof result> = {
         success: true,
         data: result,
-        total: total
+        total: total,
       };
       return res.status(200).json(response);
     } catch (error: any) {
@@ -99,3 +100,17 @@ export const seenMessageByUserIdController = asyncHandler(async (req: AuthReques
     return res.status(500).json(response);
   }
 });
+
+export const getMyConversationWithUserController = asyncHandler(
+  async (req: AuthRequest, res: any) => {
+    const userId = req?.user?.userId;
+    const friendId = req.params.userId;
+    const queryOptions = req.query;
+    try {
+      const result = await getMyConversationWithUserService(userId!, friendId!, queryOptions);
+      res.status(200).json({ success: true, data: result?.result, total: result?.total || 0 });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to get conversation' });
+    }
+  },
+);

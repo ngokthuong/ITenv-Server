@@ -34,7 +34,7 @@ export const acceptFriendRequestController = asyncHandler(async (req: AuthReques
   try {
     const userId = req.user?.userId;
     const { friendId } = req.body;
-    const acceptFriend = acceptFriendRequestService(friendId, userId as string);
+    const acceptFriend = await acceptFriendRequestService(friendId, userId as string);
     const response: ResponseType<typeof acceptFriend> = {
       success: true,
       data: acceptFriend,

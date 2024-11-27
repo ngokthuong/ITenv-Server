@@ -4,6 +4,7 @@ import { IMessage } from '../models/message';
 import { IUser } from '../models/user';
 import { messageSocket, recallMessage, seenMessage } from './message.socket';
 import { notifySocket } from './notification.socket';
+import { acceptFriendSocket, createFriendRequestSocket } from './friend.socket';
 export const socketFunctions = (socket: Socket, user: IUser) => {
   // socket.use(async (packet, next) => {
   //   const [eventName, messageInfo] = packet;
@@ -37,5 +38,7 @@ export const socketFunctions = (socket: Socket, user: IUser) => {
     'recall_message',
     async (messageInfo: IMessage) => await recallMessage(socket, user, messageInfo),
   );
+  socket.on('accept_friend', async (friend) => await acceptFriendSocket(socket, user, friend));
+  socket.on('add_friend', async (friend) => await createFriendRequestSocket(socket, user, friend));
   socket.emit('welcome', { message: 'Welcome to the socket server!' });
 };

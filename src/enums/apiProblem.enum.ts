@@ -2,6 +2,7 @@ export enum ApiProblem {
   INSERT_PROBLEMS = '',
   GET_PROBLEMS = '',
   GET_SINGLE_PROBLEM = '/:slug',
+  PROBLEM_ACTIVITIES = '/problem-activities/:userId',
 
   RUNCODE = '/:name/run',
   SUBMIT = '/:name/submit',
@@ -16,6 +17,5 @@ export enum ApiProblem {
   USER_ENGAGEMENT_PROBLEMS = '/engagement',
   DATA_PAGE = '/data/page',
   DELETE_PROBLEM = '/deleted/:_id',
-  DAILY_SOLVED_PROBLEMS = '/chart/solved'
-
+  DAILY_SOLVED_PROBLEMS = '/chart/solved',
 }

@@ -44,8 +44,8 @@ export const getPostsWithCategoryIdAndTagsService = async (
     const tagsRequest = Array.isArray(queryOption.tags)
       ? queryOption.tags
       : queryOption.tags
-        ? [queryOption.tags]
-        : [];
+      ? [queryOption.tags]
+      : [];
     const searchRequest = queryOption.search || '';
     // create 1 condition
     const conditions = [];
@@ -64,6 +64,7 @@ export const getPostsWithCategoryIdAndTagsService = async (
         tags: { $all: tagsRequest },
       });
     }
+    console.log(tagsRequest);
     // create querySearch use to in function find()
     let querySearch = {};
     if (conditions.length > 0) {
@@ -245,16 +246,16 @@ export const searchPostsWithCategoryService = async (
         categoryId ? { categoryId } : {},
         queryOption.search
           ? {
-            $or: [
-              { title: { $regex: queryOption.search, $options: 'i' } },
-              {
-                $and: [
-                  { content: { $regex: queryOption.search, $options: 'i' } },
-                  { title: { $exists: false } },
-                ],
-              },
-            ],
-          }
+              $or: [
+                { title: { $regex: queryOption.search, $options: 'i' } },
+                {
+                  $and: [
+                    { content: { $regex: queryOption.search, $options: 'i' } },
+                    { title: { $exists: false } },
+                  ],
+                },
+              ],
+            }
           : {},
       ],
     };
@@ -312,7 +313,6 @@ const findPostWithViewsOrVotesService = async (
     ];
 
     const posts = await post.aggregate(pipeline);
-    console.log(posts);
     return posts;
   } catch (error: any) {
     throw new Error(error.message);
@@ -532,7 +532,6 @@ const getPostsDataDistributionByMonth = async (startOfMonth: Date, endOfMonth: D
   }
 };
 
-
 export const getAllTotalDataInPostPageService = async () => {
   try {
     const startOfDay = new Date();
@@ -547,22 +546,22 @@ export const getAllTotalDataInPostPageService = async () => {
       totalPost,
       totalNewPostsToday,
       postBlocked,
-      postActive
-    }
+      postActive,
+    };
     return data;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const getPostsBlockedService = async () => {
   try {
-    const result = await post.countDocuments({ isDeleted: true })
+    const result = await post.countDocuments({ isDeleted: true });
     return result;
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 const getNewPostTodayService = async (startOfDay: Date, endOfDay: Date) => {
   try {
@@ -583,7 +582,15 @@ export const getDataDailyPostsTrendService = async () => {
     const today = new Date();
     const sevenDaysArray: any[] = [];
     const result: any[] = [];
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const daysOfWeek = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
 
     // Tạo mảng chứa 7 ngày từ hq đến 6 ngày trước
     for (let i = 1; i <= 7; i++) {
@@ -605,9 +612,9 @@ export const getDataDailyPostsTrendService = async () => {
     }
     return result.reverse();
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
 
 export const getDatePostsOverviewService = async () => {
   try {
@@ -623,12 +630,10 @@ export const getDatePostsOverviewService = async () => {
     }
 
     return results;
-
   } catch (error: any) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
-
+};
 
 export const getAllPostsService = async (queryOption: QueryOption) => {
   try {

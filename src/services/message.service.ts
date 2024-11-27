@@ -35,9 +35,9 @@ export const getAllMesssOfCvssByCvssIdService = async (
 
     const result = await message
       .find({
-        content: { $regex: search, $options: 'i' }
-        , conversationId
-        , isDeleted: false
+        content: { $regex: search, $options: 'i' },
+        conversationId,
+        isDeleted: false,
       })
       .sort({ [sortField]: sortOrder === 'ASC' ? 1 : -1 })
       .skip(skip)
@@ -46,11 +46,11 @@ export const getAllMesssOfCvssByCvssIdService = async (
       .lean();
 
     const total = await message.countDocuments({
-      content: { $regex: search, $options: 'i' }
-      , conversationId
-      , isDeleted: false
-    })
-    return { result : result.reverse(), total };
+      content: { $regex: search, $options: 'i' },
+      conversationId,
+      isDeleted: false,
+    });
+    return { result: result.reverse(), total };
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -123,5 +123,25 @@ export const seenMessageByUserIdService = async (userId: string, messageId: stri
     return result;
   } catch (error: any) {
     throw new Error(error.message);
+  }
+};
+
+export const getMyConversationWithUserService = async (
+  currentUserId: string,
+  userId: string,
+  queryOption: QueryOption,
+) => {
+  try {
+    const conv = await conversation.findOne({
+      participants: { $all: [currentUserId, userId] },
+      isGroupChat: false,
+      isDeleted: false,
+    });
+    if (conv) {
+      const result = await getAllMesssOfCvssByCvssIdService(conv._id.toString(), queryOption);
+      return result;
+    } else return null;
+  } catch (error) {
+    throw new Error((error as Error).message);
   }
 };
