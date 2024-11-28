@@ -129,12 +129,30 @@ export const notifySocket = async (
               : 'rejected'
           } your friend request</span>`,
         });
-        
+
         await newNotification.save();
         for (const receiverId of newNotification.receivers) {
           socket.to(receiverId.toString()).emit('receive_notification_friend', newNotification);
         }
         break;
+
+      case NotificationTypeEnum.ADMIN_NOTIFICATION:
+        newNotification = new notification({
+          postedBy: user._id,
+          notificationType: notificationReq.notificationType,
+          content: `<strong>${notificationReq.title}</strong> <br> ${notificationReq.content}`,
+          receivers: !notificationReq.receiverId?.includes('ALL') ? notificationReq.receiverId : null,
+          isGlobal: notificationReq.receiverId?.includes('ALL'),
+        });
+        await newNotification.save();
+        if (notificationReq?.receiverId?.includes('ALL')) {
+          socket.broadcast.emit('receive_notification', newNotification);
+        } else {
+          for (const receiverId of newNotification.receivers) {
+            socket.to(receiverId.toString()).emit('receive_notification', newNotification);
+          }
+        }
+
       default:
         console.error('Unknown notification type');
     }

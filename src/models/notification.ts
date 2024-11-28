@@ -12,6 +12,7 @@ export interface INotification extends Document {
   comment: mongoose.Types.ObjectId;
   message: mongoose.Types.ObjectId;
   receivers: mongoose.Types.ObjectId[];
+  isGlobal: boolean;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -29,6 +30,10 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
     },
     content: {
       type: String,
+    },
+    isGlobal: {
+      type: Boolean,
+      default: false,
     },
     isSeen: {
       type: Boolean,
@@ -52,7 +57,7 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
       //   },
     },
     message: {
-      type: mongoose.Schema.Types.ObjectId
+      type: mongoose.Schema.Types.ObjectId,
     },
     receivers: [mongoose.Schema.Types.ObjectId],
 
@@ -66,8 +71,8 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
     },
     isDeleted: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   { timestamps: true },
 );

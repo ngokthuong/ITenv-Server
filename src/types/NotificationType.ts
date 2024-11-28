@@ -6,5 +6,7 @@ export type NotificationRequestType = {
   commentId?: string;
   content?: string;
   relationshipId?: string;
+  title?: string;
+  receiverId?: string[];
   // problemId?: string;
 };

@@ -70,7 +70,18 @@ export const createConversationForTwoPeopleByUserService = async (
       participants: participantId,
       isGroupChat: false,
     };
-    const result = await Conversation.create(data);
+    const createdConversation = await Conversation.create(data);
+
+    const result = await Conversation.findById(createdConversation._id)
+      .populate('participants', '_id username avatar status lastOnline')
+      .populate({
+        path: 'lastMessage',
+        select: 'sender isSeenBy hasText hasFile content fileUrl createdAt isRecalled isDeleted',
+        match: { isDeleted: false },
+        populate: { path: 'sender', select: '_id username avatar' },
+      })
+      .populate({ path: 'createdBy', select: '_id username avatar' });
+
     return result;
   } catch (error: any) {
     throw new Error(error.message);

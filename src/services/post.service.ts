@@ -64,7 +64,6 @@ export const getPostsWithCategoryIdAndTagsService = async (
         tags: { $all: tagsRequest },
       });
     }
-    console.log(tagsRequest);
     // create querySearch use to in function find()
     let querySearch = {};
     if (conditions.length > 0) {

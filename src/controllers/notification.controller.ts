@@ -1,4 +1,7 @@
-import { getNotificationByUserIdService, isSeenNotidicationService } from '../services/notification.service';
+import {
+  getNotificationByUserIdService,
+  isSeenNotidicationService,
+} from '../services/notification.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 import asyncHandler from 'express-async-handler';
 import { ResponseType } from '../types/Response.type';
@@ -40,7 +43,7 @@ export const getNotificationsByUserIdController = asyncHandler(
 
 export const isSeenNotidicationController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
-    const { notificationId } = req.body
+    const { notificationId } = req.body;
     const result = await isSeenNotidicationService(notificationId);
     const response: ResponseType<typeof result> = {
       success: true,
@@ -55,4 +58,4 @@ export const isSeenNotidicationController = asyncHandler(async (req: AuthRequest
     };
     return res.status(500).json(response);
   }
-})
+});

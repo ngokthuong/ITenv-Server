@@ -65,7 +65,7 @@ export const addMessForConvertationByUserIdService = async (
     let { receiver, content, conversationId, hasFile, hasText, parentMessage } = data;
 
     const recieverArray = Array.isArray(receiver) ? receiver : [receiver];
-
+    let getConversation = null;
     if (!conversationId) {
       const findConversation = await conversation.findOne({
         participants: { $all: [sender, ...recieverArray] },
@@ -78,7 +78,8 @@ export const addMessForConvertationByUserIdService = async (
           ...recieverArray,
           sender,
         ]);
-        conversationId = result._id.toString();
+        getConversation = result;
+        conversationId = result?._id?.toString();
       } else {
         conversationId = findConversation?._id.toString()!;
       }
@@ -95,7 +96,10 @@ export const addMessForConvertationByUserIdService = async (
       isSeenBy: [sender],
     });
     await updateLastmessByConversationIdService(conversationId, newMess._id as string);
-    return newMess;
+    const conversationObject = getConversation ? getConversation.toObject() : null;
+    const newMessObject = newMess.toObject();
+    console.log({ ...newMessObject, conversation: conversationObject });
+    return { ...newMessObject, conversation: conversationObject };
   } catch (error: any) {
     throw new Error(error.message);
   }
