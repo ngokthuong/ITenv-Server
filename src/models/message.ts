@@ -14,6 +14,7 @@ export interface IMessage extends Document {
   parentMessage?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  notificationMessage: boolean;
 }
 
 const messageSchema: Schema<IMessage> = new mongoose.Schema(
@@ -63,6 +64,10 @@ const messageSchema: Schema<IMessage> = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Message',
       required: false,
+    },
+    notificationMessage: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true },

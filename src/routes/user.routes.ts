@@ -45,11 +45,10 @@ router.get(
   getUsersForFriendPageController,
 );
 router.get(ApiUsers.SINGLE_USER_BY_ID, verifyAccessToken, isUser, getUserByIdController);
-router.put(ApiUsers.EDIT_MYPROFILE, verifyAccessToken, isUser, editProfileByUserIdController);
+router.put(ApiUsers.EDIT_MYPROFILE, verifyAccessToken, editProfileByUserIdController);
 router.put(
   ApiUsers.EDIT_AVATAR,
   verifyAccessToken,
-  isUser,
   uploadCloud.single('image'),
   editAvatarByUserIdController,
 );

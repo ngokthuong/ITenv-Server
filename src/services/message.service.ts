@@ -11,7 +11,13 @@ import {
 
 export const postMessageToConversationService = async (data: any) => {
   try {
-    return (await message.create(data)).populate('sender', '_id username avatar');
+    const conversation = await findConversationByIdService(data.conversationId);
+    if (!conversation) {
+      throw new Error('Conversation not found.');
+    }
+    if (conversation.participants.includes(data.sender))
+      return (await message.create(data)).populate('sender', '_id username avatar');
+    else throw new Error('You are not a member in this conversation.');
   } catch (error: any) {
     throw new Error(error.message);
   }

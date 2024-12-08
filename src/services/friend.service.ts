@@ -1,4 +1,5 @@
 import { EnumFriend } from '../enums/schemaFriend.enum';
+import conversation from '../models/conversation';
 import friend from '../models/friend';
 import { QueryOption } from '../types/QueryOption.type';
 
@@ -134,25 +135,97 @@ export const blockFriendRequestService = async (_id: string, blockBy: string) =>
   }
 };
 
-export const getFriendsByUserIdService = async (userId: string) => {
+export const getFriendsByUserIdService = async (userId: string, queryOption: QueryOption) => {
   try {
+    const { page = 1, pageSize = 10, search } = queryOption;
+
+    // Build search filter for friends
+    const searchFilter = search
+      ? {
+          $or: [
+            { 'sendBy.username': { $regex: search, $options: 'i' } },
+            { 'receiver.username': { $regex: search, $options: 'i' } },
+          ],
+        }
+      : {};
+
+    // Fetch friends with pagination and search
     const friends = await friend
       .find({
         $or: [{ sendBy: userId }, { receiver: userId }],
         status: EnumFriend.TYPE_ACCEPT,
         isDeleted: false,
+        ...searchFilter,
+      })
+      .populate({
+        path: 'sendBy receiver',
+        select: '_id username avatar',
+      })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    // Total count for pagination
+    const total = await friend.countDocuments({
+      $or: [{ sendBy: userId }, { receiver: userId }],
+      status: EnumFriend.TYPE_ACCEPT,
+      isDeleted: false,
+      ...searchFilter,
+    });
+
+    return { friends, total };
+  } catch (error) {
+    return { friends: [], total: 0 };
+  }
+};
+
+export const getFriendsOutsiteGroupChatService = async (
+  userId: string,
+  conversationId: string,
+  queryOption: QueryOption,
+) => {
+  try {
+    const { page = 1, pageSize = 10, search } = queryOption;
+
+    const findConversation = await conversation.findById(conversationId).select('participants');
+    if (!findConversation) {
+      throw new Error('Conversation not found');
+    }
+
+    const groupParticipants = findConversation.participants.map((participant: any) =>
+      participant.toString(),
+    );
+
+    const searchFilter = search
+      ? {
+          $or: [
+            { 'sendBy.username': { $regex: search, $options: 'i' } },
+            { 'receiver.username': { $regex: search, $options: 'i' } },
+          ],
+        }
+      : {};
+
+    const friends = await friend
+      .find({
+        $or: [{ sendBy: userId }, { receiver: userId }],
+        status: EnumFriend.TYPE_ACCEPT,
+        isDeleted: false,
+        ...searchFilter,
       })
       .populate({
         path: 'sendBy receiver',
         select: '_id username avatar',
       });
-    const total = await friend.countDocuments({
-      $or: [{ sendBy: userId }, { receiver: userId }],
-      status: EnumFriend.TYPE_ACCEPT,
-      isDeleted: false,
-    });
-    return { friends, total };
-  } catch (error) {
+
+    const filteredFriends = friends.filter(
+      (f) =>
+        (f.sendBy && !groupParticipants.includes(f.sendBy._id.toString())) ||
+        (f.receiver && !groupParticipants.includes(f.receiver._id.toString())),
+    );
+    const paginatedFriends = filteredFriends.slice((page - 1) * pageSize, page * pageSize);
+
+    return { friends: paginatedFriends, total: filteredFriends.length };
+  } catch (error: any) {
+    console.error(error.message);
     return { friends: [], total: 0 };
   }
 };

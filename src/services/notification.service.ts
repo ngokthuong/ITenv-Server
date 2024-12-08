@@ -23,6 +23,7 @@ export const getNotificationByUserIdService = async (
       .sort({ [sortField]: -1 })
       .skip(skip)
       .limit(limit)
+      .populate('postedBy', '_id username avatar')
       .lean();
     const total = await notification.countDocuments(query);
     return { result, total };

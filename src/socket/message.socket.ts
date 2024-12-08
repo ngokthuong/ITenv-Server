@@ -12,6 +12,8 @@ import {
 } from '../services/message.service';
 import message, { IMessage } from '../models/message';
 import conversation from '../models/conversation';
+import notification from '../models/notification';
+import { NotificationTypeEnum } from '../enums/notification.enum';
 
 export const messageSocket = async (
   socket: Socket,
@@ -55,4 +57,43 @@ export const recallMessage = async (socket: Socket, user: IUser, messageInfo: IM
   } catch (error) {
     console.log(error);
   }
+};
+
+export const createGroupChat = async (socket: Socket, user: IUser, conversation: any) => {
+  conversation.participants?.forEach((participant: any) => {
+    socket.to(participant._id.toString()).emit('create_group', conversation);
+  });
+};
+
+export const removeMemberFromGroupChat = async (
+  socket: Socket,
+  user: IUser,
+  data: { conversation: any; memberId: string },
+) => {
+  data.conversation.participants?.forEach((participant: any) => {
+    socket.to(participant._id.toString()).emit('remove_member', data);
+  });
+  const newNotification = new notification({
+    postedBy: user._id,
+    notificationType: NotificationTypeEnum.OTHER_NOTIFICATION,
+    content: `${user.username} kicked you from ${data.conversation.groupName}.`,
+    receivers: [data.memberId],
+  });
+  await newNotification.save();
+  socket.to(data.memberId).emit('receive_notification', newNotification);
+};
+export const addMemberToGroupChat = async (
+  socket: Socket,
+  user: IUser,
+  data: { conversation: any; memberIds: string[] },
+) => {
+  data.conversation.participants?.forEach((participant: any) => {
+    socket.to(participant._id.toString()).emit('add_member', data);
+  });
+};
+
+export const updateConversation = async (socket: Socket, user: IUser, conversation: any) => {
+  conversation.participants?.forEach((participant: any) => {
+    socket.to(participant._id.toString()).emit('update_conversation', conversation);
+  });
 };
