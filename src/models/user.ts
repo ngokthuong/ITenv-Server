@@ -10,11 +10,11 @@ export interface IUser extends Document {
   gender?: EnumGengerUser;
   status: Boolean;
   lastOnline: Date;
-  followerId: mongoose.Types.ObjectId;
-  notifications: mongoose.Types.ObjectId;
-  conversations: mongoose.Types.ObjectId;
-  submitProblems: mongoose.Types.ObjectId;
-  acceptedProblems: mongoose.Types.ObjectId;
+  // followerId: mongoose.Types.ObjectId;
+  // notifications: mongoose.Types.ObjectId;
+  // conversations: mongoose.Types.ObjectId;
+  // submitProblems: mongoose.Types.ObjectId;
+  // acceptedProblems: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   isDeleted: boolean;
@@ -46,26 +46,26 @@ const userSchema = new Schema<IUser>(
     lastOnline: {
       type: Date,
     },
-    followerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-    notifications: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Notification',
-    },
-    conversations: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Conversation',
-    },
-    submitProblems: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Problem',
-    },
-    acceptedProblems: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Problem',
-    },
+    // followerId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'User',
+    // },
+    // notifications: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'Notification',
+    // },
+    // conversations: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'Conversation',
+    // },
+    // submitProblems: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'Problem',
+    // },
+    // acceptedProblems: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'Problem',
+    // },
     isDeleted: {
       type: Boolean,
       default: false

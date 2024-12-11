@@ -13,9 +13,9 @@ export const schema = Joi.object({
     email: Joi.string()
         .pattern(new RegExp(`^[a-zA-Z0-9._%+-]+@(${domainPattern})$`))
         .required(),
-    username: Joi.string().required(),
+    username: Joi.string().min(2).max(30).required(),
     authenWith: Joi.number().valid(0).required(),
-    password: Joi.string().required().min(6),
+    password: Joi.string().min(6).max(30).required()
 });
 
 export const passwordResetPass = Joi.object({

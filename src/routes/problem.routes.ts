@@ -73,7 +73,8 @@ router.get(ApiProblem.SUBMISSIONS, getSubmissionsByUserIdController);
 router.get(ApiProblem.PROBLEM_ACTIVITIES, getProblemActivitiesController);
 router.get(ApiProblem.DETAIL_SUBMISSION, verifyAccessToken, getDetailSubmissionController);
 
-router.get(ApiProblem.GET_SINGLE_PROBLEM,  getSingleProblem);
+router.get(ApiProblem.GET_SINGLE_PROBLEM, getSingleProblem);
+router.get(ApiProblem.DETAIL_SUBMISSION, verifyAccessToken, getDetailSubmissionController);
 router.post(ApiProblem.DELETE_PROBLEM, deletedProblemsByAdminController);
 
 export default router;

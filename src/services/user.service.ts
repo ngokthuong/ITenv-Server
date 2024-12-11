@@ -203,7 +203,7 @@ export const getAllUserForAdminService = async (queryOption: QueryOption) => {
 
 export const editProfileByUserIdService = async (data: any, userId: string) => {
   try {
-    const result = await User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       { _id: userId },
       {
         username: data.username,
@@ -213,7 +213,25 @@ export const editProfileByUserIdService = async (data: any, userId: string) => {
       },
       { new: true },
     );
-    return result;
+
+    const account = await Account.findOne({ user: userId });
+
+    const responseData = {
+      _id: user?._id,
+      username: user?.username,
+      dob: user?.dob,
+      phoneNumber: user?.phoneNumber,
+      avatar: user?.avatar,
+      gender: user?.gender,
+      status: user?.status,
+      lastOnline: user?.lastOnline,
+      email: account?.email,
+      role: account?.role,
+      isBlocked: account?.isBlocked,
+    };
+
+    return responseData;
+
   } catch (error: any) {
     throw new Error(error.message);
   }

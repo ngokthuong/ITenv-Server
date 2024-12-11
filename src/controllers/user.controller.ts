@@ -76,12 +76,8 @@ export const getUsersForFriendPageController = asyncHandler(async (req: AuthRequ
 });
 
 export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
-  try {
     const responseData = await getCurrentUserService(req);
     res.json(responseData);
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
 });
 // export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) => {
 //   const { page = 1, limit = 10, search = '' } = req.query;
