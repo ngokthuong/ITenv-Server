@@ -76,8 +76,8 @@ export const getUsersForFriendPageController = asyncHandler(async (req: AuthRequ
 });
 
 export const getCurrentUser = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const responseData = await getCurrentUserService(req);
-    res.json(responseData);
+  const responseData = await getCurrentUserService(req);
+  res.json(responseData);
 });
 // export const getAllUser = asyncHandler(async (req: AuthRequest, res: Response) => {
 //   const { page = 1, limit = 10, search = '' } = req.query;
@@ -255,7 +255,5 @@ export const userDemographicsController = asyncHandler(async (req: AuthRequest, 
   };
   return res.status(200).json(response);
 });
-
-
 
 // ----------------------------------------------------------_USER_&&_ADMIN_------------------------------------------------------------

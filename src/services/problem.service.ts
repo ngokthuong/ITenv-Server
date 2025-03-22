@@ -12,19 +12,20 @@ import user from '../models/user';
 import submission from '../models/submission';
 import problem from '../models/problem';
 
-const total = 3298;
-const limit = pLimit(40);
+const total = 10;
+const limit = pLimit(2);
 
 // Function to fetch problems
 const fetchProblems = async (skip: number) => {
-  const variables = {
-    categorySlug: '',
-    limit: 100,
-    skip: skip,
-    filters: {},
-  };
+  try {
+    const variables = {
+      categorySlug: '',
+      limit: 100,
+      skip: skip,
+      filters: {},
+    };
 
-  const graphqlQuery = `
+    const graphqlQuery = `
     query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
       problemsetQuestionList: questionList(
         categorySlug: $categorySlug
@@ -59,13 +60,17 @@ const fetchProblems = async (skip: number) => {
     }
   `;
 
-  const response = await result('problemsetQuestionList', graphqlQuery, variables);
-  return response.data.data.problemsetQuestionList.questions;
+    const response = await result('problemsetQuestionList', graphqlQuery, variables);
+    return response.data.data.problemsetQuestionList.questions;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
 };
 
 // Function to fetch editor data for a problem
 const fetchEditorData = async (titleSlug: string) => {
-  const graphqlQueryEditor = `
+  try {
+    const graphqlQueryEditor = `
     query questionEditorData($titleSlug: String!) {
       question(titleSlug: $titleSlug) {
         questionId
@@ -80,13 +85,16 @@ const fetchEditorData = async (titleSlug: string) => {
       }
     }
   `;
-  const variablesEditor = { titleSlug };
-  const questionEditorResponse = await result(
-    'questionEditorData',
-    graphqlQueryEditor,
-    variablesEditor,
-  );
-  return questionEditorResponse.data.data.question;
+    const variablesEditor = { titleSlug };
+    const questionEditorResponse = await result(
+      'questionEditorData',
+      graphqlQueryEditor,
+      variablesEditor,
+    );
+    return questionEditorResponse.data.data.question;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
 };
 
 // Function to insert problems into the database
@@ -94,26 +102,40 @@ export const insertProblems = async () => {
   console.log('problems');
   try {
     const tasks = [];
-    for (let skip = 0; skip < total; skip += 100) {
+    for (let skip = 0; skip < total; skip += 1) {
       tasks.push(
         limit(async () => {
           const questions = await fetchProblems(skip);
+          console.log('questions.');
+          console.log(questions);
           for (const question of questions) {
             if (question) {
               let tags: any[] = [];
               const codeEditorData = await fetchEditorData(question.titleSlug);
-
+              if (!codeEditorData) {
+                console.log('No editor data for', question.titleSlug);
+                continue;
+              }
               for (const tag of question.topicTags) {
+                console.log('questions');
+                console.log(tag.name);
                 const isExist = await Tag.findOne({ name: tag.name });
+                console.log('isExist');
+                console.log(isExist);
+
                 if (!isExist) {
+                  console.log('push1');
                   const newTag = await Tag.create({ name: tag.name, type: EnumTag.TYPE_PROBLEM });
+                  console.log('push1');
                   tags.push(newTag._id);
                 } else {
+                  console.log('push2');
                   tags.push(isExist._id);
                 }
               }
 
               if (!question.paidOnly) {
+                console.log('save');
                 await Problem.create({
                   title: question.title,
                   slug: question.titleSlug,
@@ -133,9 +155,10 @@ export const insertProblems = async () => {
         }),
       );
     }
-    await Promise.all(tasks);
+    return await Promise.all(tasks);
   } catch (error: any) {
-    throw new Error(error.message);
+    console.error('Insert problems failed:', error);
+    throw new Error(`Insert problems failed: ${error.message}`);
   }
 };
 

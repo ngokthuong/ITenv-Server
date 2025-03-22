@@ -7,4 +7,4 @@ const router = Router();
 router.post('', verifyAccessToken, isAdmin, createTagController);
 router.get('', getAllTagsController);
 
-export default router
+export default router;

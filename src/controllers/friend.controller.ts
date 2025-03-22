@@ -99,7 +99,7 @@ export const getFriendsByUserIdController = asyncHandler(async (req: any, res: a
     const userId = req.params.userId;
     const queryOption = req.query;
     const { friends, total } = await getFriendsByUserIdService(userId, queryOption);
-    
+
     const response: ResponseType<typeof friends> = {
       success: true,
       data: friends,

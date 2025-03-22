@@ -14,7 +14,11 @@ import {
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { ApiAuth } from '../enums/apiAuth.enum';
 import { isAdmin, isUser } from '../middlewares/verify_roles';
-import { editRoleUserInAccountController, getAllAccountAndUserController, getAllAccountByUserIdController } from '../controllers/account.controller';
+import {
+  editRoleUserInAccountController,
+  getAllAccountAndUserController,
+  getAllAccountByUserIdController,
+} from '../controllers/account.controller';
 
 const router = Router();
 
@@ -33,15 +37,17 @@ router.post(ApiAuth.FACEBOOK_OAUTH);
 router.post(ApiAuth.LOGOUT, verifyAccessToken, logoutController);
 router.put(ApiAuth.EDIT_ROLE_USER, verifyAccessToken, isAdmin, editRoleUserInAccountController);
 
-
-
 // REFRESH TOKEN
 router.post(ApiAuth.REFRESH_ACCESS_TOKEN, refreshAccessToken);
 
 // ACCOUNT update
 router.get(ApiAuth.GET_ALL_ACCOUNT, verifyAccessToken, isUser, getAllAccountByUserIdController);
 // ADMIN
-router.get(ApiAuth.GET_ALL_ACCOUNT_USER, verifyAccessToken, isAdmin, getAllAccountAndUserController);
-
+router.get(
+  ApiAuth.GET_ALL_ACCOUNT_USER,
+  verifyAccessToken,
+  isAdmin,
+  getAllAccountAndUserController,
+);
 
 export default router;

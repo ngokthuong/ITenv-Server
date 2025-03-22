@@ -32,8 +32,8 @@ export const notifySocket = async (
               notificationReq.notificationType === NotificationTypeEnum.VOTE_POST
                 ? 'voted'
                 : notificationReq.notificationType === NotificationTypeEnum.DOWNVOTE_POST
-                ? 'downvoted'
-                : 'shared'
+                  ? 'downvoted'
+                  : 'shared'
             } on your post.`,
           });
           await newNotification.save();
@@ -141,7 +141,9 @@ export const notifySocket = async (
           postedBy: user._id,
           notificationType: notificationReq.notificationType,
           content: `<strong>${notificationReq.title}</strong> <br> ${notificationReq.content}`,
-          receivers: !notificationReq.receiverId?.includes('ALL') ? notificationReq.receiverId : null,
+          receivers: !notificationReq.receiverId?.includes('ALL')
+            ? notificationReq.receiverId
+            : null,
           isGlobal: notificationReq.receiverId?.includes('ALL'),
         });
         await newNotification.save();

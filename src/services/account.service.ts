@@ -285,10 +285,10 @@ export const refreshAccessTokenService = async (refreshToken: string) => {
           success: account ? true : false,
           newAccessToken: account
             ? await generateAccessToken(
-              account._id.toString(),
-              account.role,
-              account.user.toString(),
-            )
+                account._id.toString(),
+                account.role,
+                account.user.toString(),
+              )
             : 'refreshToken invalid',
           message: account ? 'New access token is created' : 'refreshToken invalid',
         };
@@ -412,14 +412,11 @@ export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
   }
 };
 
-
 // ------------------------------------------------------------ADMIN----------------------------------------------------
 export const editRoleUserInAccountService = async (userId: string, role: EnumRoleAccount) => {
   try {
-    const result = await Account.updateMany(
-      { user: userId },
-      { $set: { role: role } }
-    ); console.log(result);
+    const result = await Account.updateMany({ user: userId }, { $set: { role: role } });
+    console.log(result);
     if (result.modifiedCount <= 0)
       return { success: false, message: 'No accounts found to update.' };
     return { success: true, message: 'Role updated for all accounts.' };
@@ -428,7 +425,6 @@ export const editRoleUserInAccountService = async (userId: string, role: EnumRol
     return { success: false, message: 'Error updating role.' };
   }
 };
-
 
 export {
   verifyAndRegisterService,

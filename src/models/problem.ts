@@ -82,7 +82,6 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
     },
     content: {
       type: String,

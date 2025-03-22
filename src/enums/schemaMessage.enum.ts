@@ -1,4 +1,4 @@
 export enum EnumMessage {
-    TYPE_TEXT = "Text",
-    TYPE_FILE = "File"
+  TYPE_TEXT = 'Text',
+  TYPE_FILE = 'File',
 }

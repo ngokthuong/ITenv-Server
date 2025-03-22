@@ -18,18 +18,8 @@ router.post(
   uploader.fields([{ name: 'file', maxCount: 10 }]),
   addMessForConversationByUserIdController,
 );
-router.get(
-  '/:conversationId',
-  verifyAccessToken,
-  isUser,
-  getAllMesssOfCvssByCvssIdController,
-);
-router.post(
-  '/recall/:messageId',
-  verifyAccessToken,
-  isUser,
-  recalledMessageBySenderController,
-);
+router.get('/:conversationId', verifyAccessToken, isUser, getAllMesssOfCvssByCvssIdController);
+router.post('/recall/:messageId', verifyAccessToken, isUser, recalledMessageBySenderController);
 router.post('/seen', verifyAccessToken, isUser, seenMessageByUserIdController);
 
 export default router;

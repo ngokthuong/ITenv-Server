@@ -50,16 +50,16 @@ export const getAllUsersService = async (queryOption: QueryOption) => {
   // Define the search query based on the search term
   const searchQuery = search
     ? {
-      $and: [
-        { isDeleted: false },
-        {
-          $or: [
-            { username: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-          ],
-        },
-      ],
-    }
+        $and: [
+          { isDeleted: false },
+          {
+            $or: [
+              { username: { $regex: search, $options: 'i' } },
+              { email: { $regex: search, $options: 'i' } },
+            ],
+          },
+        ],
+      }
     : { isDeleted: false };
 
   // Find users with pagination
@@ -231,7 +231,6 @@ export const editProfileByUserIdService = async (data: any, userId: string) => {
     };
 
     return responseData;
-
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -397,9 +396,8 @@ export const userDemographicsService = async () => {
     });
 
     return ageGroups;
-  } catch (error: any) { }
+  } catch (error: any) {}
 };
-
 
 const calculateAge = async (dob: Date) => {
   try {
@@ -415,6 +413,3 @@ const calculateAge = async (dob: Date) => {
     throw new Error(error.message);
   }
 };
-
-
-

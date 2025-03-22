@@ -132,12 +132,14 @@ export const editCommentByIdService = async (commentId: string, content: string)
 
 export const resolveCommentInPostByUserIdService = async (_id: string, postedBy: string) => {
   try {
-    const result = await comment
-      .findOneAndUpdate({ _id }, { resolve: true }, { new: true })
+    const result = await comment.findOneAndUpdate({ _id }, { resolve: true }, { new: true });
 
     if (result && result.postId) {
-      const resolvePost = await post
-        .findOneAndUpdate({ _id: result.postId._id, postedBy }, { resolve: true }, { new: true })
+      const resolvePost = await post.findOneAndUpdate(
+        { _id: result.postId._id, postedBy },
+        { resolve: true },
+        { new: true },
+      );
       return !!resolvePost;
     }
     throw new Error('Resolve comment in post fail!');

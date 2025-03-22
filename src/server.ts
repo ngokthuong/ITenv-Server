@@ -9,7 +9,7 @@ import { connection, setupSocket } from './config';
 import initRoutes from './routes/index.routes';
 import { logEvents } from './helper/logEvents';
 import { errHandler } from './middlewares/handelError.mdw';
-import { countConnect } from './helper/check.connect'
+import { countConnect } from './helper/check.connect';
 
 dotenv.config();
 
@@ -22,10 +22,9 @@ app.use(
   }),
 );
 
-
 //  nén các phản hồi HTTP từ server trước khi gửi chúng về cho client.
 app.use(compression());
-countConnect()
+countConnect();
 // phân tích các cookie gửi từ client trong yêu cầu HTTP.
 app.use(cookieParser());
 // phân tích dữ liệu JSON từ body của các yêu cầu HTTP.

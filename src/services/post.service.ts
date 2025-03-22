@@ -44,8 +44,8 @@ export const getPostsWithCategoryIdAndTagsService = async (
     const tagsRequest = Array.isArray(queryOption.tags)
       ? queryOption.tags
       : queryOption.tags
-      ? [queryOption.tags]
-      : [];
+        ? [queryOption.tags]
+        : [];
     const searchRequest = queryOption.search || '';
     // create 1 condition
     const conditions = [];
