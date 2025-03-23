@@ -49,7 +49,7 @@ export const notifySocket = async (
       case NotificationTypeEnum.DOWNVOTE_COMMENT:
         const getComment = await comment.findById(notificationReq.commentId);
         if (getComment) {
-          const commentBy = getComment.commentBy;
+          const commentBy = getComment.commentedBy;
           newNotification = new notification({
             postedBy: user._id,
             notificationType: notificationReq.notificationType,
@@ -94,7 +94,7 @@ export const notifySocket = async (
       case NotificationTypeEnum.REP_COMMENT:
         const getCommentToReply = await comment.findById(notificationReq.commentId);
         if (getCommentToReply) {
-          const commentOwner = getCommentToReply.commentBy;
+          const commentOwner = getCommentToReply.commentedBy;
           newNotification = new notification({
             postedBy: user._id,
             notificationType: NotificationTypeEnum.REP_COMMENT,
@@ -122,7 +122,7 @@ export const notifySocket = async (
           postedBy: user._id,
           notificationType: notificationReq.notificationType,
           receivers:
-            relationship.sendBy === user._id ? [relationship.receiver] : [relationship.sendBy],
+            relationship.sentBy === user._id ? [relationship.receiver] : [relationship.sentBy],
           content: `<strong>${user.username}</strong> <span> ${
             notificationReq.notificationType === NotificationTypeEnum.ACCEPT_FRIEND_REQUEST
               ? 'accepted'

@@ -11,6 +11,7 @@ export interface IConversation extends Document {
   createdAt: Date;
   updatedAt: Date;
   admin?: mongoose.Types.ObjectId;
+  deletedBy: mongoose.Types.ObjectId[];
   groupAvatar?: string;
 }
 
@@ -22,6 +23,13 @@ const conversationSchema: Schema<IConversation> = new mongoose.Schema(
       required: true,
     },
     participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+      },
+    ],
+    deletedBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

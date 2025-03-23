@@ -8,11 +8,11 @@ export interface INotification extends Document {
   isSeen: boolean;
   notificationType?: NotificationTypeEnum;
   postId: mongoose.Types.ObjectId;
-  problemId: mongoose.Types.ObjectId;
-  comment: mongoose.Types.ObjectId;
-  message: mongoose.Types.ObjectId;
   receivers: mongoose.Types.ObjectId[];
+  comment: mongoose.Types.ObjectId;
   isGlobal: boolean;
+  message: mongoose.Types.ObjectId;
+  problemId: mongoose.Types.ObjectId;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;

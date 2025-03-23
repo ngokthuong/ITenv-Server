@@ -89,7 +89,7 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
     // const total = await Friend.countDocuments({ receiver: userId, ...statusCondition });
     // Tạo danh sách các friend IDs từ các bản ghi tìm được
     const friendIDs = friends.map((Friend) =>
-      Friend.sendBy.toString() === userId.toString() ? Friend.receiver : Friend.sendBy,
+      Friend.sentBy.toString() === userId.toString() ? Friend.receiver : Friend.sentBy,
     );
     // Phân trang khi tìm user từ danh sách friend IDs
     const friendUsers = await User.find({ _id: { $in: friendIDs } })

@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 interface IComment extends Document {
   _id: mongoose.Types.ObjectId;
-  commentBy: mongoose.Types.ObjectId;
+  commentedBy: mongoose.Types.ObjectId;
   parentComment?: mongoose.Types.ObjectId;
   isAccepted: boolean;
   vote: mongoose.Types.ObjectId[];
@@ -19,7 +19,7 @@ interface IComment extends Document {
 
 const commentSchema: Schema<IComment> = new mongoose.Schema(
   {
-    commentBy: {
+    commentedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,

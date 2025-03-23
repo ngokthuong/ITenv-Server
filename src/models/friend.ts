@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { EnumFriend } from '../enums/schemaFriend.enum';
 
 export interface IFriend extends Document {
-  sendBy: mongoose.Types.ObjectId;
+  sentBy: mongoose.Types.ObjectId;
   receiver: mongoose.Types.ObjectId;
   status: EnumFriend;
   isBlockBy: mongoose.Types.ObjectId;
@@ -14,7 +14,7 @@ export interface IFriend extends Document {
 
 const friendSchema: Schema<IFriend> = new mongoose.Schema(
   {
-    sendBy: {
+    sentBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,

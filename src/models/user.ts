@@ -1,35 +1,38 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { EnumGengerUser } from '../enums/schemaUser.enum';
-import { boolean, string } from 'joi';
+import { EnumGenderUser } from '../enums/schemaUser.enum';
+
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   username?: string;
   dob?: Date;
   phoneNumber?: string;
   avatar?: string;
-  gender?: EnumGengerUser;
-  status: Boolean;
+  gender?: EnumGenderUser;
+  status: boolean;
   lastOnline: Date;
-  // followerId: mongoose.Types.ObjectId;
-  // notifications: mongoose.Types.ObjectId;
-  // conversations: mongoose.Types.ObjectId;
-  // submitProblems: mongoose.Types.ObjectId;
-  // acceptedProblems: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   isDeleted: boolean;
+  blocker: mongoose.Types.ObjectId[];
+  savedPost: mongoose.Types.ObjectId[];
+  problemPoint: number;
+  socialPoint: number;
 }
 
 const userSchema = new Schema<IUser>(
   {
     username: {
       type: String,
+      trim: true,
     },
     dob: {
       type: Date,
     },
     phoneNumber: {
       type: String,
+      trim: true,
+      unique: true, // Tránh số điện thoại trùng lặp
+      sparse: true, // Cho phép null
     },
     avatar: {
       type: String,
@@ -38,34 +41,38 @@ const userSchema = new Schema<IUser>(
     },
     gender: {
       type: String,
-      enum: Object.values(EnumGengerUser),
+      enum: Object.values(EnumGenderUser),
     },
     status: {
       type: Boolean,
+      default: true, // Giả sử mặc định là hoạt động
     },
     lastOnline: {
       type: Date,
+      default: Date.now,
     },
-    // followerId: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: 'User',
-    // },
-    // notifications: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: 'Notification',
-    // },
-    // conversations: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: 'Conversation',
-    // },
-    // submitProblems: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: 'Problem',
-    // },
-    // acceptedProblems: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: 'Problem',
-    // },
+    blocker: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    savedPost: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Post',
+      },
+    ],
+    problemPoint: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    socialPoint: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

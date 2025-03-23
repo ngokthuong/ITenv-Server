@@ -218,7 +218,7 @@ export const getFriendsOutsiteGroupChatService = async (
 
     const filteredFriends = friends.filter(
       (f) =>
-        (f.sendBy && !groupParticipants.includes(f.sendBy._id.toString())) ||
+        (f.sentBy && !groupParticipants.includes(f.sentBy._id.toString())) ||
         (f.receiver && !groupParticipants.includes(f.receiver._id.toString())),
     );
     const paginatedFriends = filteredFriends.slice((page - 1) * pageSize, page * pageSize);

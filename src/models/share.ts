@@ -1,17 +1,21 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+enum ShareTarget {
+  USER = 'USER',
+  CONVERSATION = 'CONVERSATION',
+  MY_PROFILE = 'MY_PROFILE',
+}
+
 interface IShare extends Document {
   _id: mongoose.Types.ObjectId;
   sharedBy: mongoose.Types.ObjectId;
-  sharedToUser: mongoose.Types.ObjectId;
-  sharedToCvstion: mongoose.Types.ObjectId;
-  shareToMyProfile: boolean;
+  shareTo: ShareTarget;
+  targetId?: mongoose.Types.ObjectId; // Chỉ có nếu shareTo là USER hoặc CONVERSATION
   postId: mongoose.Types.ObjectId;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
-
 const ShareSchema: Schema<IShare> = new Schema(
   {
     sharedBy: {
@@ -19,17 +23,14 @@ const ShareSchema: Schema<IShare> = new Schema(
       ref: 'User',
       required: true,
     },
-    sharedToUser: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    shareTo: {
+      type: String,
+      enum: Object.values(ShareTarget),
+      required: true,
     },
-    sharedToCvstion: {
+    targetId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Conversation',
-    },
-    shareToMyProfile: {
-      type: Boolean,
-      default: false,
+      refPath: 'shareTo', // Tham chiếu động dựa trên `shareTo`
     },
     postId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -2,20 +2,24 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPost extends Document {
   postedBy?: mongoose.Types.ObjectId;
-  tags: mongoose.Types.ObjectId[];
-  title: string;
-  content: string;
-  view: mongoose.Types.ObjectId[];
   vote: mongoose.Types.ObjectId[];
-  downVote: mongoose.Types.ObjectId[];
-  categoryId: mongoose.Types.ObjectId[];
+  view: mongoose.Types.ObjectId[];
   isAnonymous: boolean;
-  isDeleted: boolean;
   resolve: boolean;
+  content: string;
+  tags: mongoose.Types.ObjectId[];
+  downVote: mongoose.Types.ObjectId[];
+  title: string;
+  categoryId: mongoose.Types.ObjectId[];
+  isBlocked: boolean;
+  isDeleted: boolean;
+  report: {
+    reportedBy: mongoose.Types.ObjectId;
+    reason: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
-
 const postSchema: Schema<IPost> = new mongoose.Schema(
   {
     postedBy: {
@@ -63,6 +67,10 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
     resolve: {
       type: Boolean,
       default: false,
@@ -71,6 +79,19 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    report: [
+      {
+        reportedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        reason: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true },
 );
