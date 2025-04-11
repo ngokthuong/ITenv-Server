@@ -31,8 +31,8 @@ const userSchema = new Schema<IUser>(
     phoneNumber: {
       type: String,
       trim: true,
-      unique: true, // Tránh số điện thoại trùng lặp
-      sparse: true, // Cho phép null
+      unique: true,
+      sparse: true,
     },
     avatar: {
       type: String,
@@ -45,7 +45,7 @@ const userSchema = new Schema<IUser>(
     },
     status: {
       type: Boolean,
-      default: true, // Giả sử mặc định là hoạt động
+      default: true,
     },
     lastOnline: {
       type: Date,

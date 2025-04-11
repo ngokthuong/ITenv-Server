@@ -291,7 +291,6 @@ const findPostWithViewsOrVotesService = async (
     const sortStage: any = {};
 
     if (sortField === Constants.VOTES) {
-      // Tính toán vote - downVote
       addFieldsStage.voteBalance = {
         $subtract: [{ $size: '$vote' }, { $size: '$downVote' }],
       };
@@ -451,7 +450,6 @@ const processPostData = async (posts: any[]) => {
     let totalDownvotes = 0;
     let totalShares = 0;
 
-    // Dùng vòng lặp for...of để hỗ trợ async/await
     for (const post of posts) {
       const totalCommentsInPost = await comment.countDocuments({
         postId: post._id,
@@ -591,7 +589,6 @@ export const getDataDailyPostsTrendService = async () => {
       'Saturday',
     ];
 
-    // Tạo mảng chứa 7 ngày từ hq đến 6 ngày trước
     for (let i = 1; i <= 7; i++) {
       const day = new Date(today);
       day.setDate(today.getDate() - i);

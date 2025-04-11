@@ -41,5 +41,4 @@ otpSchema.methods = {
   },
 };
 
-// Export the model
 export default mongoose.model<IOtp>('Otp', otpSchema);

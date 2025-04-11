@@ -3,7 +3,6 @@ import otpGenerator from 'otp-generator';
 import { sendEmail } from '../utils/sendEmail.utils';
 import { any } from 'joi';
 
-// Tạo OTP mới
 function generateOTP() {
   return otpGenerator.generate(6, {
     digits: true,

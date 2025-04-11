@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8080  
 
 # Lệnh chạy ứng dụng
-CMD ["yarn", "dev"]
+CMD ["yarn", "start"]

@@ -170,6 +170,7 @@ export const editAvatarByUserIdController = asyncHandler(async (req: AuthRequest
 });
 
 export const getDetailUserByIdController = asyncHandler(async (req: AuthRequest, res: any) => {
+  console.log('getDetailUserByIdController');
   const userId = req.user?.userId;
   const result = await getDetailUserByIdService(userId as string);
   const response: ResponseType<typeof result> = {

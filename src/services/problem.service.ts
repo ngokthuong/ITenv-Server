@@ -401,6 +401,19 @@ export const getTotalActiveProblemsService = async () => {
   }
 };
 
+export const upSertProblemService = async (payload: IProblem) => {
+  try {
+    const result = await Problem.findOneAndUpdate(
+      { questionId: payload.questionId },
+      { $set: payload },
+      { upsert: true, new: true },
+    );
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
 export const getTotalProblemsService = async () => {
   try {
     const total = await Problem.countDocuments({});
@@ -431,7 +444,6 @@ export const getTopProblemSolversService = async () => {
       }
     }
 
-    // Sắp xếp mảng theo submitCount giảm dần
     topProblemResolvers.sort((a, b) => b.submitCount - a.submitCount);
 
     const top10 = topProblemResolvers.slice(0, 10);
@@ -449,8 +461,8 @@ export const getProblemsDataDistributionByYearService = async (queryOption: Quer
     let results: any[] = [];
 
     for (const month of months) {
-      const startOfMonth = new Date(year, month - 1, 1); // Ngày đầu tháng
-      const endOfMonth = new Date(year, month, 0); // Ngày cuối tháng
+      const startOfMonth = new Date(year, month - 1, 1); 
+      const endOfMonth = new Date(year, month, 0);
       const total = await getProblemsDataDistributionByMonth(startOfMonth, endOfMonth);
       results.push({ month, total });
     }
@@ -539,7 +551,6 @@ export const getDailysolvedProblemsService = async () => {
       'Saturday',
     ];
 
-    // Tạo mảng chứa 7 ngày từ hq đến 6 ngày trước
     for (let i = 1; i <= 7; i++) {
       const day = new Date(today);
       day.setDate(today.getDate() - i);

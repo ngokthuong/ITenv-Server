@@ -1,11 +1,6 @@
 import asyncHandler from 'express-async-handler';
-import { result } from '../services/leetcode.service';
-import Problem, { IProblem } from '../models/problem';
-import Tag from '../models/tag';
-import pLimit from 'p-limit';
+import Problem, { IProblem, ITestCase } from '../models/problem';
 import { ResponseType } from '../types/Response.type';
-import { EnumTag } from '../enums/schemaTag.enum';
-import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import {
   AverageProblemsPerUserService,
   deletedProblemsByAdminService,
@@ -17,142 +12,26 @@ import {
   getTotalActiveProblemsService,
   getTotalProblemsService,
   insertProblems,
-} from '../services/problem.service';
-import {
-  checkSubmissionStatus,
-  runCode,
-  submissionDetail,
   submit,
+  upSertProblemService,
 } from '../services/problem.service';
+import { checkSubmissionStatus, runCode, submissionDetail } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
-import { SubmissionBody } from '../types/ProblemType.type';
+import {
+  RunCodeResultSuccessType,
+  runCodeErrorType,
+  SubmissionBody,
+} from '../types/ProblemType.type';
 import axios from 'axios';
 import submission from '../models/submission';
-import problem from '../models/problem';
-
-// export const insertProblems = asyncHandler(async (req: any, res: any) => {
-//   try {
-//     const total = 3298;
-//     const limit = pLimit(40); // Limit the number of concurrent requests
-
-//     const fetchProblems = async (skip: number) => {
-//       const variables = {
-//         categorySlug: '',
-//         limit: 100,
-//         skip: skip,
-//         filters: {},
-//       };
-
-//       const graphqlQuery = `
-//         query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
-//           problemsetQuestionList: questionList(
-//             categorySlug: $categorySlug
-//             limit: $limit
-
-//             skip: $skip
-//             filters: $filters
-//           ) {
-//             total: totalNum
-//             questions: data {
-//               acRate
-//               difficulty
-//               freqBar
-//               frontendQuestionId: questionFrontendId
-//               isFavor
-//               paidOnly: isPaidOnly
-//               status
-
-//               title
-//               titleSlug
-//               content
-//               sampleTestCase
-//               exampleTestcases
-//               hints
-//               topicTags {
-//                 name
-//                 id
-//                 slug
-//               }
-//               hasSolution
-//               hasVideoSolution
-//             }
-//           }
-//         }
-//       `;
-
-//       const response = await result('problemsetQuestionList', graphqlQuery, variables);
-//       return response.data.data.problemsetQuestionList.questions;
-//     };
-
-//     const fetchEditorData = async (titleSlug: string) => {
-//       const graphqlQueryEditor = `
-//         query questionEditorData($titleSlug: String!) {
-//           question(titleSlug: $titleSlug) {
-//             questionId
-//             questionFrontendId
-//             codeSnippets {
-//               lang
-//               langSlug
-//               code
-//             }
-//             envInfo
-//             enableRunCode
-//           }
-//         }
-//       `;
-//       const variablesEditor = { titleSlug };
-//       const questionEditorResponse = await result(
-//         'questionEditorData',
-//         graphqlQueryEditor,
-//         variablesEditor,
-//       );
-//       return questionEditorResponse.data.data.question.codeSnippets;
-//     };
-
-//     const tasks = [];
-//     for (let skip = 0; skip < total; skip += 100) {
-//       tasks.push(
-//         limit(async () => {
-//           const questions = await fetchProblems(skip);
-//           for (const question of questions) {
-//             if (question) {
-//               let tags: any[] = [];
-
-//               const codeEditorData = await fetchEditorData(question.titleSlug);
-//               for (const tag of question.topicTags) {
-//                 const isExist = await Tag.findOne({ name: tag.name });
-//                 if (!isExist) {
-//                   const newTag = await Tag.create({ name: tag.name, type: EnumTag.TYPE_PROBLEM });
-//                   tags.push(newTag._id);
-//                 } else {
-//                   tags.push(isExist._id);
-//                 }
-//               }
-//               !question.paidOnly &&
-//                 (await Problem.create({
-//                   title: question.title,
-//                   slug: question.titleSlug,
-//                   content: question.content,
-//                   level: question.difficulty as EnumLevelProblem,
-//                   hints: question.hints,
-//                   status: question.status || false,
-//                   tags: tags,
-//                   initialCode: codeEditorData,
-//                 }));
-//             }
-//           }
-//         }),
-//       );
-//     }
-//     await Promise.all(tasks);
-//     // Send the response after all tasks have completed
-//     res.status(200).json({ message: 'success' });
-//   } catch (error) {
-//     console.error('Error fetching data:', error);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// });
-
+import { SubmitType } from '../types/SubmitType';
+import Docker from 'dockerode';
+import fs from 'fs';
+import path from 'path';
+import mongoose from 'mongoose';
+import { PassThrough } from 'stream';
+const docker = new Docker();
+const TIMEOUT = 2000;
 export const insertProblemsController = asyncHandler(async (req: any, res: any) => {
   try {
     await insertProblems();
@@ -174,6 +53,7 @@ export const getProblemsController = asyncHandler(async (req: any, res: any) => 
 });
 
 export const getSingleProblem = asyncHandler(async (req: any, res: any) => {
+  console.log('getSingleProblem');
   const { slug } = req.params;
   try {
     const problem = await Problem.findOne({ slug: slug, isDeleted: false });
@@ -221,13 +101,14 @@ export const runCodeController = asyncHandler(async (req: any, res: any) => {
       question_id,
       data_input,
     };
+    console.log('submissionBody');
     const response = await runCode(titleSlug, submissionBody);
     const interpret_id = response?.data?.interpret_id;
     let status = await checkSubmissionStatus(interpret_id, titleSlug);
     const maxRetries = 60;
     let retryCount = 0;
     do {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       status = await checkSubmissionStatus(interpret_id, titleSlug);
       retryCount += 1;
       console.log('retry ' + retryCount, status);
@@ -255,9 +136,367 @@ export const runCodeController = asyncHandler(async (req: any, res: any) => {
   }
 });
 
+async function checkContainerStatus(containerId: string) {
+  try {
+    const container = docker.getContainer(containerId);
+    const containerInfo = await container.inspect();
+
+    const containerStatus = containerInfo.State.Status;
+    console.log('Container Status:', containerStatus);
+
+    const stats = await container.stats({ stream: false });
+    console.log('Container Stats:', stats);
+
+    if (containerStatus === 'running') {
+      console.log('Container is running.');
+    } else {
+      console.log('Container is not running.');
+    }
+  } catch (error) {
+    console.error('Error checking container status:', error);
+  }
+}
+
+async function ensureImageExists(image: string): Promise<void> {
+  const images = await docker.listImages();
+  const exists = images.some((img) => img.RepoTags?.includes(image));
+
+  if (!exists) {
+    await new Promise<void>((resolve, reject) => {
+      docker.pull(image, (err: Error | null, stream: NodeJS.ReadableStream) => {
+        if (err) return reject(err);
+        docker.modem.followProgress(stream, onFinished);
+        function onFinished(err: Error | null) {
+          if (err) return reject(err);
+          resolve();
+        }
+      });
+    });
+  }
+}
+// async function startDocker(
+//   lang: string,
+//   typed_code: string,
+// ): Promise<{ output: string; memory: number }> {
+//   const image = lang === 'javascript' ? 'node:18-alpine' : 'node:22-alpine';
+//   console.log('image', image);
+
+//   const fileExtension = lang === 'javascript' ? '.js' : '.ts';
+//   const filename = 'main' + fileExtension;
+
+//   await ensureImageExists(image);
+
+//   const srcDir = path.join(process.cwd(), 'src', 'temp');
+//   const filePath = path.join(srcDir, filename);
+
+//   fs.mkdirSync(srcDir, { recursive: true });
+//   fs.writeFileSync(filePath, typed_code);
+
+//   const container = await docker.createContainer({
+//     Image: image,
+//     Cmd: ['node', `/src/temp/${filename}`],
+//     WorkingDir: '/src',
+//     AttachStdout: true,
+//     AttachStderr: true,
+//     Tty: false,
+//     Volumes: { '/src': {} },
+//     HostConfig: {
+//       Binds: [`${process.cwd()}/src:/src`],
+//       Memory: 1024 * 1024 * 1024,
+//       CpuShares: 512,
+//     },
+//   });
+
+//   await container.start();
+
+//   const containerId = container.id;
+
+//   await checkContainerStatus(containerId);
+//   const stream = await container.attach({ stream: true, stdout: true, stderr: true });
+//   let output = '';
+//   stream.on('data', (data: any) => {
+//     output += data.toString();
+//   });
+//   const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 1000));
+//   let memoryUsage = 0;
+//   const stats = await container.stats({ stream: false });
+//   memoryUsage = stats.memory_stats.usage;
+//   await Promise.race([new Promise((resolve) => stream.on('end', resolve)), timeoutPromise]);
+//   await container.remove({ force: true });
+//   return { output, memory: memoryUsage };
+// }
+
+async function startDocker(
+  lang: string,
+  typed_code: string,
+): Promise<{ output: string; memory: number }> {
+  const image = lang === 'javascript' ? 'node:18-alpine' : 'node:22-alpine';
+  const fileExtension = lang === 'javascript' ? '.js' : '.ts';
+  const filename = 'main' + fileExtension;
+
+  await ensureImageExists(image);
+
+  const srcDir = path.join(process.cwd(), 'src', 'temp');
+  const filePath = path.join(srcDir, filename);
+  fs.mkdirSync(srcDir, { recursive: true });
+  fs.writeFileSync(filePath, typed_code);
+
+  const container = await docker.createContainer({
+    Image: image,
+    Cmd: ['node', `/src/temp/${filename}`],
+    WorkingDir: '/src',
+    AttachStdout: true,
+    AttachStderr: true,
+    Tty: false,
+    Volumes: { '/src': {} },
+    HostConfig: {
+      Binds: [`${process.cwd()}/src:/src`],
+      Memory: 1024 * 1024 * 1024, // 1GB
+      CpuShares: 512,
+    },
+  });
+
+  await container.start();
+
+  const stream = await container.attach({
+    stream: true,
+    stdout: true,
+    stderr: true,
+  });
+
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  container.modem.demuxStream(stream, stdout, stderr);
+
+  let output = '';
+  let errorOutput = '';
+
+  stdout.on('data', (data) => {
+    output += data.toString();
+  });
+
+  stderr.on('data', (data) => {
+    errorOutput += data.toString();
+  });
+
+  const timeoutPromise = new Promise<void>((_, reject) =>
+    setTimeout(() => reject(new Error('⏰ Code execution timed out')), 2000),
+  );
+
+  const streamEndPromise = new Promise<void>((resolve, reject) => {
+    stream.on('end', () => {
+      if (errorOutput) {
+        const match = errorOutput.match(/at .*\/main\.(js|ts):\d+:\d+/);
+        const shortErrorLine = match ? match[0] : 'Unknown line';
+        console.log('👉 Lỗi xảy ra tại:', shortErrorLine);
+        reject(new Error(`Code execution failed at ${shortErrorLine}\n${errorOutput}`));
+      } else {
+        resolve();
+      }
+    });
+  });
+
+  await Promise.race([streamEndPromise, timeoutPromise]);
+
+  const stats = await container.stats({ stream: false });
+  const memoryUsage = stats.memory_stats.usage;
+
+  await container.remove({ force: true });
+  return { output, memory: memoryUsage };
+}
+
+function parseDataInput(dataInput: string) {
+  const lines = dataInput.trim().split('\n');
+  const testCases = [];
+  for (let i = 0; i < lines.length; i += 2) {
+    const input = [eval(lines[i]), eval(lines[i + 1])];
+    testCases.push({ input });
+  }
+  return testCases;
+}
+
+function generateRunnerCode(userCode: string, functionName: string, testCases: any[]): string {
+  const tests = testCases
+    .map(({ input, output }, idx) => {
+      return `
+try {
+  const result = JSON.stringify(${functionName}(...${JSON.stringify(input)}));
+  const expected = JSON.stringify(${JSON.stringify(output)});
+  if (result === expected) {
+    console.log("Test ${idx + 1} passed");
+  } else {
+    console.log("Test ${idx + 1} failed: expected " + expected + ", got " + result);
+  }
+  console.log("RESULT:" + result);
+} catch (e) {
+console.log(e.stack);
+}
+`;
+    })
+    .join('\n');
+
+  return `${userCode}\n\n${tests}`;
+}
+function extractResultsFromOutput(output: string[]) {
+  return output
+    .filter((line) => line.startsWith('RESULT:'))
+    .map((line) => line.replace('RESULT:', '').trim());
+}
+
+interface Input {
+  name: string;
+  value: string | number;
+}
+
+interface TestCase {
+  input: Input[];
+  output: string[];
+  isHidden: boolean;
+}
+
+function findMatchingOutput(inputs: any[], testDB: ITestCase[]): Record<string, any>[] | null {
+  for (const test of testDB) {
+    const testInput = test.input;
+    for (let i = 0; i < inputs.length; i++) {
+      let userValue = inputs[i].input[0];
+      let dbValueRaw = testInput[0].value;
+      let dbParsed = JSON.parse(dbValueRaw);
+      const isEqual = JSON.stringify(userValue) === JSON.stringify(dbParsed);
+      if (isEqual) {
+        const parsedArray = test.output.map((item) => JSON.parse(item));
+        inputs[i].output = parsedArray;
+      }
+    }
+  }
+  const testcases = inputs;
+  console.log('testcases');
+  console.log(...testcases);
+  return testcases;
+}
+
+export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
+  try {
+    const { lang, question_id, typed_code, data_input }: SubmitType = req.body;
+    const { name: titleSlug } = req.params;
+    if (!titleSlug || !lang || !question_id || !typed_code || !data_input) {
+      return res.status(400).json({ message: 'All fields are required.' });
+    }
+    const inputs = parseDataInput(data_input);
+    const problem = await Problem.findOne({ slug: titleSlug });
+
+    let testInDb = problem?.testCase;
+    if (!testInDb) return;
+    const testResult = findMatchingOutput(inputs, testInDb);
+    if (!testResult) return;
+    const testCases = testResult.map((tc, index) => ({
+      input: tc.input,
+      output: tc.output,
+    }));
+
+    const problemFunctionName = 'fourSum';
+    const runnerCode = generateRunnerCode(typed_code, problemFunctionName, testCases);
+    const { output, memory } = await startDocker(lang, runnerCode);
+    const match = output.match(/at .*\/main\.(js|ts):\d+:\d+/);
+
+    if (match) {
+      if (match) {
+        const errorLines = output
+          .split('\n')
+          .filter(
+            (line) =>
+              line.includes('ReferenceError') ||
+              line.includes('SyntaxError') ||
+              line.includes('TypeError'),
+          );
+
+        const runCodeError: runCodeErrorType = {
+          status_code: 20,
+          lang,
+          run_success: false,
+          compile_error: `${errorLines[0]}` || 'Unknown error',
+          full_compile_error: output,
+          status_runtime: 'N/A',
+          memory: 0,
+          code_answer: [],
+          code_output: [],
+          std_output_list: [''],
+          task_finish_time: Date.now(),
+          task_name: question_id,
+          total_correct: null,
+          total_testcases: null,
+          runtime_percentile: null,
+          status_memory: 'N/A',
+          memory_percentile: null,
+          pretty_lang: 'JavaScript',
+          submission_id: new mongoose.Types.ObjectId().toString(),
+          status_msg: 'Compile Error',
+          state: 'SUCCESS',
+        };
+        return res.json({
+          success: false,
+          data: runCodeError,
+        });
+      }
+    }
+    // success
+    const total = testCases.length;
+    let cleanedOutput = output.replace(/!/g, '');
+    let outputArray = cleanedOutput.split('\n');
+    for (let i = 0; i < outputArray.length; i++) {
+      outputArray[i] = outputArray[i].replace(/[\x00-\x1F\x7F]+/g, '');
+    }
+    const results = extractResultsFromOutput(outputArray);
+    const correct = results.filter((res, i) => res === JSON.stringify(testCases[i].output)).length;
+    const runCodeResult: RunCodeResultSuccessType = {
+      status_code: correct === total ? 15 : 20,
+      lang,
+      run_success: correct === total,
+      status_runtime: '0 ms',
+      memory: memory,
+      display_runtime: '0',
+      code_answer: testCases.map((t) => JSON.stringify(t.output)),
+      code_output: results,
+      std_output_list: outputArray.slice(0, outputArray.length - 1),
+      elapsed_time: 0,
+      task_finish_time: Date.now(),
+      task_name: question_id,
+      expected_status_code: 0,
+      expected_lang: lang,
+      expected_run_success: true,
+      expected_status_runtime: '0 ms',
+      expected_memory: 0,
+      expected_display_runtime: '0',
+      expected_code_answer: testCases.map((t) => JSON.stringify(t.output)),
+      expected_code_output: testCases.map((t) => JSON.stringify(t.output)),
+      expected_std_output_list: [],
+      expected_elapsed_time: 0,
+      expected_task_finish_time: Date.now(),
+      expected_task_name: question_id,
+      correct_answer: correct === total,
+      compare_result: `${correct}/${total}`,
+      total_correct: correct,
+      total_testcases: total,
+      runtime_percentile: null,
+      memory_percentile: null,
+      status_memory: 'N/A',
+      pretty_lang: 'JavaScript',
+      submission_id: new mongoose.Types.ObjectId().toString(),
+      status_msg: correct === total ? 'Accepted' : 'Wrong Answer',
+      state: 'SUCCESS',
+    };
+
+    return res.json({
+      success: runCodeResult.run_success,
+      data: runCodeResult,
+    });
+  } catch (error) {
+    console.error('Error submitting problem:', error);
+  }
+};
+
 export const submitProblemController = asyncHandler(async (req: AuthRequest, res: any) => {
   const { lang, question_id, typed_code } = req.body;
-  const { name: titleSlug } = req.params; // Validae input
+  const { name: titleSlug } = req.params;
   const { userId } = req.user!;
   if (!titleSlug || !lang || !question_id || !typed_code) {
     return res.status(400).json({ message: 'All fields are required.' });
@@ -379,6 +618,16 @@ export const getProblemActivitiesController = asyncHandler(async (req: any, res:
   }
 });
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
+
+export const UpSertProblemController = asyncHandler(async (req: AuthRequest, res: any) => {
+  const payload: IProblem = req.body;
+  const result = await upSertProblemService(payload);
+  const response: ResponseType<typeof result> = {
+    success: true,
+    data: result,
+  };
+  return res.status(200).json(response);
+});
 
 export const AverageProblemsPerUserController = asyncHandler(async (req: AuthRequest, res: any) => {
   const avgTotal = await AverageProblemsPerUserService();

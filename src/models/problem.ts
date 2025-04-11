@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
+import { slugify } from '../utils/slugify.utils';
 
 interface IInitialCode {
   lang: string;
@@ -7,12 +8,13 @@ interface IInitialCode {
   code?: string;
 }
 
-interface ITestCase {
+export interface ITestCase {
   input: {
     name: string;
     value: string;
   }[];
   output: string[];
+  isHidden: boolean;
 }
 
 export interface IProblem extends Document {
@@ -25,7 +27,7 @@ export interface IProblem extends Document {
   submitBy?: mongoose.Types.ObjectId[];
   hint: string[];
   initialCode: IInitialCode[];
-  testCase?: ITestCase;
+  testCase?: ITestCase[];
   vote: mongoose.Types.ObjectId[];
   downVote: mongoose.Types.ObjectId[];
   frontendQuestionId: string;
@@ -72,6 +74,11 @@ const testCaseSchema: Schema<ITestCase> = new mongoose.Schema({
     type: [String],
     required: true,
   },
+  isHidden: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
 });
 
 const problemSchema: Schema<IProblem> = new mongoose.Schema(
@@ -82,6 +89,8 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     },
     slug: {
       type: String,
+      unique: true,
+      required: true,
     },
     content: {
       type: String,
@@ -95,7 +104,6 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     tags: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'Tag',
-      // required: true,
     },
     acceptance: [
       {
@@ -116,7 +124,7 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
       required: false,
     },
     initialCode: [initialCodeSchema],
-    testCase: testCaseSchema,
+    testCase: [testCaseSchema],
     exampleTestcases: String,
     vote: [
       {
@@ -155,5 +163,12 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+problemSchema.pre<IProblem>('save', function (next) {
+  if (!this.slug && this.title) {
+    this.slug = slugify(this.title);
+  }
+  next();
+});
 
 export default mongoose.model<IProblem>('Problem', problemSchema);

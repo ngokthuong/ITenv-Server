@@ -3,7 +3,6 @@ import mongoose, { disconnect } from 'mongoose';
 export const connection = async () => {
   try {
     const a = 0;
-    mongoose.Promise = Promise;
     const dbCon = await mongoose.connect(
       process.env.MONGO_URL ?? 'mongodb://localhost:27018/DevArticlesDB',
     );

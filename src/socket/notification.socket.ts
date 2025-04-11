@@ -38,7 +38,6 @@ export const notifySocket = async (
           });
           await newNotification.save();
 
-          // Emit to all receivers
           for (const receiverId of newNotification.receivers) {
             socket.to(receiverId.toString()).emit('receive_notification', newNotification);
           }
@@ -64,7 +63,6 @@ export const notifySocket = async (
           });
           await newNotification.save();
 
-          // Emit to all receivers
           for (const receiverId of newNotification.receivers) {
             socket.to(receiverId.toString()).emit('receive_notification', newNotification);
           }
@@ -84,7 +82,6 @@ export const notifySocket = async (
           });
           await newNotification.save();
 
-          // Emit to all receivers
           for (const receiverId of newNotification.receivers) {
             socket.to(receiverId.toString()).emit('receive_notification', newNotification);
           }
@@ -105,7 +102,6 @@ export const notifySocket = async (
           });
           await newNotification.save();
 
-          // Emit to all receivers
           for (const receiverId of newNotification.receivers) {
             socket.to(receiverId.toString()).emit('receive_notification', newNotification);
           }

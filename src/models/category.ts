@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { EnumTag } from '../enums/schemaTag.enum';
+import { slugify } from '../utils/slugify.utils';
 
 interface ICategory extends Document {
   _id: mongoose.Types.ObjectId;
@@ -33,6 +34,7 @@ const CategorySchema: Schema<ICategory> = new Schema(
     type: {
       type: String,
       enum: Object.values(EnumTag),
+      default: EnumTag.TYPE_PROBLEM,
       required: true,
     },
     isDeleted: {
@@ -41,10 +43,16 @@ const CategorySchema: Schema<ICategory> = new Schema(
     },
     slug: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true },
 );
+
+CategorySchema.pre<ICategory>('save', function (next) {
+  if (!this.slug && this.name) {
+    this.slug = slugify(this.name);
+  }
+  next();
+});
 
 export default mongoose.model<ICategory>('Category', CategorySchema);

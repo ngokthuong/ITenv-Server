@@ -13,9 +13,11 @@ import {
   getTopProblemSolversController,
   getTotalActiveProblemsController,
   getTotalProblemsController,
+  runCodeControllerNew,
   insertProblemsController,
   runCodeController,
   submitProblemController,
+  UpSertProblemController,
 } from '../controllers/problem.controller';
 import { ApiProblem } from '../enums/apiProblem.enum';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
@@ -24,6 +26,9 @@ import { isAdmin, isUser } from '../middlewares/verify_roles';
 const router = Router();
 
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
+// create
+router.post(ApiProblem.INSERT_PROBLEMS, verifyAccessToken, isAdmin, UpSertProblemController);
+
 router.get(
   ApiProblem.GET_AVGPROBLEMS_PER_USER,
   verifyAccessToken,
@@ -65,9 +70,11 @@ router.get(
 
 // ----------------------------------------------------------USER-----------------------------------------------------------------
 
-router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
+// router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
 router.get(ApiProblem.GET_PROBLEMS, getProblemsController);
-router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeController);
+// router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeController);
+router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeControllerNew);
+// router.post(ApiProblem.SUBMIT, verifyAccessToken, isUser, submitProblemController);
 router.post(ApiProblem.SUBMIT, verifyAccessToken, isUser, submitProblemController);
 router.get(ApiProblem.SUBMISSIONS, getSubmissionsByUserIdController);
 router.get(ApiProblem.PROBLEM_ACTIVITIES, getProblemActivitiesController);

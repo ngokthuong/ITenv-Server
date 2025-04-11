@@ -87,11 +87,9 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
       ...statusCondition,
     });
     // const total = await Friend.countDocuments({ receiver: userId, ...statusCondition });
-    // Tạo danh sách các friend IDs từ các bản ghi tìm được
     const friendIDs = friends.map((Friend) =>
       Friend.sentBy.toString() === userId.toString() ? Friend.receiver : Friend.sentBy,
     );
-    // Phân trang khi tìm user từ danh sách friend IDs
     const friendUsers = await User.find({ _id: { $in: friendIDs } })
       .skip(skip)
       .limit(limit);
@@ -238,7 +236,6 @@ export const editProfileByUserIdService = async (data: any, userId: string) => {
 
 export const editAvatarByUserIdService = async (_id: string, avatar: string) => {
   try {
-    // viet ham get u lieu phu hop
     const result = await User.findByIdAndUpdate({ _id }, { avatar }, { new: true });
     return {
       ...getInfoData({ fileds: ['avatar'], object: result }),

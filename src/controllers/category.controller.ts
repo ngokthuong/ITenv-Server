@@ -8,12 +8,20 @@ import {
   updateCategoryService,
 } from '../services/category.service';
 import { AuthRequest } from '../types/AuthRequest.type';
+import { slugify } from '../utils/slugify.utils';
 
 // ADMIN
 export const createCategoryController = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
     const { name, parentCategory, description, type } = await req.body;
-    const createCategory = await createCategoryService({ name, parentCategory, description, type });
+    const slug = slugify(name);
+    const createCategory = await createCategoryService({
+      name,
+      parentCategory,
+      description,
+      type,
+      slug,
+    });
     const response: ResponseType<typeof createCategory> = {
       success: true,
       data: createCategory,

@@ -7,19 +7,15 @@ export const createFriendRequest = async (data: any) => {
   try {
     const { sendBy, receiver } = data;
 
-    // Kiểm tra xem lời mời kết bạn đã tồn tại chưa
     const existingFriendRequest = await checkFriendRequestExisted(sendBy, receiver);
     if (existingFriendRequest) {
-      // Nếu lời mời đã bị xóa mềm, cập nhật lại trạng thái
       if (existingFriendRequest.isDeleted) {
         return await updateFriendRequestExistedService(sendBy, receiver);
       } else {
-        // Nếu lời mời vẫn tồn tại và chưa bị xóa, không cho phép tạo lại
         throw new Error('Friend request already exists!');
       }
     }
 
-    // Kiểm tra lời mời kết bạn đến chính mình
     if (await checkFriendRequestToMyself(sendBy, receiver)) {
       throw new Error('Cannot send a friend request to yourself!');
     }
