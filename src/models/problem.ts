@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Query, Schema } from 'mongoose';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import { slugify } from '../utils/slugify.utils';
 
@@ -164,10 +164,15 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
   { timestamps: true },
 );
 
-problemSchema.pre<IProblem>('save', function (next) {
-  if (!this.slug && this.title) {
-    this.slug = slugify(this.title);
+problemSchema.pre<Query<any, IProblem>>('findOneAndUpdate', function (next) {
+  const update = this.getUpdate() as any;
+  if (!update.$set) update.$set = {};
+  const title = update.$set.title;
+  const slug = update.$set.slug;
+  if (title && (!slug || slug.trim() === '')) {
+    update.$set.slug = slugify(title);
   }
+  this.setUpdate(update);
   next();
 });
 

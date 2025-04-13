@@ -461,7 +461,7 @@ export const getProblemsDataDistributionByYearService = async (queryOption: Quer
     let results: any[] = [];
 
     for (const month of months) {
-      const startOfMonth = new Date(year, month - 1, 1); 
+      const startOfMonth = new Date(year, month - 1, 1);
       const endOfMonth = new Date(year, month, 0);
       const total = await getProblemsDataDistributionByMonth(startOfMonth, endOfMonth);
       results.push({ month, total });
