@@ -11,6 +11,7 @@ import { SubmissionBody } from '../types/ProblemType.type';
 import user from '../models/user';
 import submission from '../models/submission';
 import problem from '../models/problem';
+import { ObjectId } from 'mongoose';
 
 const total = 10;
 const limit = pLimit(2);
@@ -404,13 +405,27 @@ export const getTotalActiveProblemsService = async () => {
 export const upSertProblemService = async (payload: IProblem) => {
   try {
     const result = await Problem.findOneAndUpdate(
-      { questionId: payload.questionId },
+      { slug: payload.slug },
       { $set: payload },
       { upsert: true, new: true },
     );
     return result;
   } catch (error: any) {
     throw new Error(error.message);
+  }
+};
+
+export const DeleteProblemService = async (_id: string) => {
+  try {
+    const result = await Problem.deleteOne({ _id });
+
+    if (result.deletedCount === 0) {
+      throw new Error('No problem found with the given ID');
+    }
+
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to delete problem');
   }
 };
 

@@ -18,6 +18,7 @@ import {
   runCodeController,
   submitProblemController,
   UpSertProblemController,
+  DeleteProblemController,
 } from '../controllers/problem.controller';
 import { ApiProblem } from '../enums/apiProblem.enum';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
@@ -28,6 +29,7 @@ const router = Router();
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 // create
 router.post(ApiProblem.INSERT_PROBLEMS, verifyAccessToken, isAdmin, UpSertProblemController);
+router.delete(ApiProblem.DELETE_PROBLEM, verifyAccessToken, isAdmin, DeleteProblemController);
 
 router.get(
   ApiProblem.GET_AVGPROBLEMS_PER_USER,
