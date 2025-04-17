@@ -15,6 +15,7 @@ import {
   insertProblems,
   submit,
   upSertProblemService,
+  runCodeServiceNew,
 } from '../services/problem.service';
 import { checkSubmissionStatus, runCode, submissionDetail } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
@@ -334,11 +335,6 @@ function extractResultsFromOutput(output: string[]) {
     .map((line) => line.replace('RESULT:', '').trim());
 }
 
-interface Input {
-  name: string;
-  value: string | number;
-}
-
 type ParsedTestCase = {
   input: [number[], number];
   output: number[][];
@@ -364,130 +360,16 @@ function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCa
 }
 
 export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
-  try {
-    const { lang, typed_code }: SubmitType = req.body;
-    const { name: titleSlug } = req.params;
-    if (!titleSlug || !lang || !typed_code) {
-      return res.status(400).json({ message: 'All fields are required.' });
-    }
-    const problem = await Problem.findOne({ slug: titleSlug });
-    let testInDb = problem?.testCase;
-    if (!testInDb) return;
-    // isHidden false -> get test case with isHidden = false
-    const testResult = parseTestCases(testInDb, false);
-    if (!testResult) return;
-    const testCases = testResult.map((tc) => ({
-      input: tc.input,
-      output: tc.output,
-    }));
-    const problemFunctionName = 'fourSum';
-    const runnerCode = generateRunnerCode(typed_code, problemFunctionName, testCases, lang);
-    const { output, memory } = await startDocker(lang, runnerCode);
-    const match = output.match(/at .*\/main\.(js|ts|py):\d+:\d+/);
-
-    if (match) {
-      if (match) {
-        const errorLines = output
-          .split('\n')
-          .filter(
-            (line) =>
-              line.includes('ReferenceError') ||
-              line.includes('SyntaxError') ||
-              line.includes('TypeError'),
-          );
-
-        const runCodeError: runCodeErrorType = {
-          status_code: 20,
-          lang,
-          run_success: false,
-          compile_error: `${errorLines[0]}` || 'Unknown error',
-          full_compile_error: output,
-          status_runtime: 'N/A',
-          memory: 0,
-          code_answer: [],
-          code_output: [],
-          std_output_list: [''],
-          task_finish_time: Date.now(),
-          task_name: problem?.title as string,
-          total_correct: null,
-          total_testcases: null,
-          runtime_percentile: null,
-          status_memory: 'N/A',
-          memory_percentile: null,
-          pretty_lang: lang,
-          submission_id: new mongoose.Types.ObjectId().toString(),
-          status_msg: 'Compile Error',
-          state: 'SUCCESS',
-        };
-        return res.json({
-          success: false,
-          data: runCodeError,
-        });
-      }
-    }
-    // success
-    const total = testCases.length;
-    let cleanedOutput = output.replace(/!/g, '');
-    let outputArray = cleanedOutput.split('\n');
-    for (let i = 0; i < outputArray.length; i++) {
-      outputArray[i] = outputArray[i].replace(/[\x00-\x1F\x7F]+/g, '');
-    }
-    const results = extractResultsFromOutput(outputArray);
-    const correct = results.filter((res, i) => res === JSON.stringify(testCases[i].output)).length;
-    // code answer
-    const actualResults =
-      outputArray
-        .filter((line) => line.includes('got'))
-        .map((line) => line.split('got')[1].trim()) ?? [];
-
-    const runCodeResult: RunCodeResultSuccessType = {
-      status_code: correct === total ? 15 : 20,
-      lang,
-      run_success: correct === total,
-      status_runtime: '0 ms',
-      memory: memory,
-      display_runtime: '0',
-      code_answer: actualResults,
-      code_output: results,
-      std_output_list: [''],
-      // std_output_list: outputArray.slice(0, outputArray.length - 1),
-      elapsed_time: 0,
-      task_finish_time: Date.now(),
-      task_name: problem?.title as string,
-      expected_status_code: 0,
-      expected_lang: lang,
-      expected_run_success: true,
-      expected_status_runtime: '0 ms',
-      expected_memory: 0,
-      expected_display_runtime: '0',
-      expected_code_answer: testCases.map((t) => JSON.stringify(t.output)),
-      expected_code_output: [],
-      expected_std_output_list: [],
-      expected_elapsed_time: 0,
-      expected_task_finish_time: Date.now(),
-      expected_task_name: '',
-      correct_answer: correct === total,
-      compare_result: `${correct}/${total}`,
-      total_correct: correct,
-      total_testcases: total,
-      runtime_percentile: null,
-      memory_percentile: null,
-      status_memory: 'N/A',
-      pretty_lang: lang,
-      submission_id: new mongoose.Types.ObjectId().toString(),
-      status_msg: correct === total ? 'Accepted' : 'Wrong Answer',
-      state: 'SUCCESS',
-    };
-
-    return res.json({
-      success: runCodeResult.run_success,
-      data: runCodeResult,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error submitting problem',
-    });
+  const { lang, typed_code }: SubmitType = req.body;
+  const { name: titleSlug } = req.params;
+  if (!titleSlug || !lang || !typed_code) {
+    return res.status(400).json({ message: 'All fields are required.' });
   }
+  const result = await runCodeServiceNew(lang, typed_code, titleSlug);
+  return res.json({
+    success: result?.run_success,
+    data: result,
+  });
 };
 
 export const submitProblemController = asyncHandler(async (req: AuthRequest, res: any) => {
