@@ -344,9 +344,9 @@ type ParsedTestCase = {
   output: number[][];
 };
 
-function parseTestCases(testCases: ITestCase[]): ParsedTestCase[] {
+function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCase[] {
   return testCases
-    .filter((test) => !test.isHidden)
+    .filter((test) => isHidden || !test.isHidden)
     .map((test) => {
       const [first, second] = test.input.map((i) => {
         try {
@@ -373,8 +373,8 @@ export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
     const problem = await Problem.findOne({ slug: titleSlug });
     let testInDb = problem?.testCase;
     if (!testInDb) return;
-    // const testResult = findMatchingOutput(inputs, testInDb);
-    const testResult = parseTestCases(testInDb);
+    // isHidden false -> get test case with isHidden = false
+    const testResult = parseTestCases(testInDb, false);
     if (!testResult) return;
     const testCases = testResult.map((tc) => ({
       input: tc.input,
@@ -384,7 +384,7 @@ export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
     const runnerCode = generateRunnerCode(typed_code, problemFunctionName, testCases, lang);
     console.log(runnerCode);
     const { output, memory } = await startDocker(lang, runnerCode);
-    const match = output.match(/at .*\/main\.(js|ts):\d+:\d+/);
+    const match = output.match(/at .*\/main\.(js|ts|py):\d+:\d+/);
 
     if (match) {
       if (match) {
@@ -409,7 +409,7 @@ export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
           code_output: [],
           std_output_list: [''],
           task_finish_time: Date.now(),
-          task_name: titleSlug,
+          task_name: problem?.title as string,
           total_correct: null,
           total_testcases: null,
           runtime_percentile: null,
@@ -454,7 +454,7 @@ export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
       // std_output_list: outputArray.slice(0, outputArray.length - 1),
       elapsed_time: 0,
       task_finish_time: Date.now(),
-      task_name: titleSlug,
+      task_name: problem?.title as string,
       expected_status_code: 0,
       expected_lang: lang,
       expected_run_success: true,
@@ -466,7 +466,7 @@ export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
       expected_std_output_list: [],
       expected_elapsed_time: 0,
       expected_task_finish_time: Date.now(),
-      expected_task_name: titleSlug,
+      expected_task_name: '',
       correct_answer: correct === total,
       compare_result: `${correct}/${total}`,
       total_correct: correct,
