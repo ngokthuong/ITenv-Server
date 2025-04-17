@@ -110,43 +110,32 @@ const fetchEditorData = async (titleSlug: string) => {
 
 // Function to insert problems into the database
 export const insertProblems = async () => {
-  console.log('problems');
   try {
     const tasks = [];
     for (let skip = 0; skip < total; skip += 1) {
       tasks.push(
         limit(async () => {
           const questions = await fetchProblems(skip);
-          console.log('questions.');
-          console.log(questions);
           for (const question of questions) {
             if (question) {
               let tags: any[] = [];
               const codeEditorData = await fetchEditorData(question.titleSlug);
               if (!codeEditorData) {
-                console.log('No editor data for', question.titleSlug);
                 continue;
               }
               for (const tag of question.topicTags) {
-                console.log('questions');
-                console.log(tag.name);
                 const isExist = await Tag.findOne({ name: tag.name });
-                console.log('isExist');
-                console.log(isExist);
 
                 if (!isExist) {
-                  console.log('push1');
                   const newTag = await Tag.create({ name: tag.name, type: EnumTag.TYPE_PROBLEM });
-                  console.log('push1');
+
                   tags.push(newTag._id);
                 } else {
-                  console.log('push2');
                   tags.push(isExist._id);
                 }
               }
 
               if (!question.paidOnly) {
-                console.log('save');
                 await Problem.create({
                   title: question.title,
                   slug: question.titleSlug,
@@ -217,7 +206,6 @@ export const runCode = async (
   submissionBody: SubmissionBody & { data_input: string },
 ) => {
   try {
-    console.log('Submitting problem:', name, submissionBody);
     const response = await axios.post(
       `https://leetcode.com/problems/${name}/interpret_solution/`,
       {
@@ -246,7 +234,6 @@ export const runCode = async (
 
 export const submit = async (name: string, submissionBody: SubmissionBody) => {
   try {
-    console.log('Submitting problem:', name, submissionBody);
     const response = await axios.post(
       `https://leetcode.com/problems/${name}/submit/`,
       {
@@ -274,7 +261,6 @@ export const submit = async (name: string, submissionBody: SubmissionBody) => {
 
 export const checkSubmissionStatus = async (submissionId: string, titleSlug: string) => {
   try {
-    console.log(submissionId, titleSlug);
     const response = await axios.get(
       `https://leetcode.com/submissions/detail/${submissionId}/check/`,
 
@@ -397,7 +383,6 @@ export const AverageProblemsPerUserService = async () => {
     const result = Math.round(totalSolvedProblems / total);
     return result;
   } catch (error: any) {
-    console.error('Error in AverageProblemsPerUserService:', error.message);
     throw new Error(error.message);
   }
 };
@@ -450,7 +435,6 @@ export const getTotalProblemsService = async () => {
 
 export const getTopProblemSolversService = async () => {
   try {
-    console.log('problems');
     const users = await user.find({ isDeleted: false }).select('_id username');
 
     const topProblemResolvers = [];
@@ -839,7 +823,6 @@ export const runCodeServiceNew = async (lang: string, typed_code: string, titleS
     if (!testInDb) return;
     // isHidden false -> get test case with isHidden = false
     const testResult = parseTestCases(testInDb, false);
-    console.log('testResult', testResult);
     if (!testResult) return;
     const testCases = testResult.map((tc) => ({
       input: tc.input,
@@ -895,22 +878,15 @@ export const runCodeServiceNew = async (lang: string, typed_code: string, titleS
       outputArray[i] = outputArray[i].replace(/[\x00-\x1F\x7F]+/g, '');
     }
     const results = extractResultsFromOutput(outputArray);
-    const correct = results.filter((res, i) => res === JSON.stringify(testCases[i].output)).length;
     // code answer
     const actualResults =
       outputArray
         .filter((line) => line.includes('got'))
         .map((line) => line.split('got')[1].trim()) ?? [];
-
-    console.log(
-      'testCases.map',
-      testCases.map((t) => t.output),
-    );
-
     const runCodeResult: RunCodeResultSuccessType = {
-      status_code: correct === total ? 15 : 20,
+      status_code: results.length === total ? 15 : 20,
       lang,
-      run_success: correct === total,
+      run_success: results.length === total,
       status_runtime: '0 ms',
       memory: memory,
       display_runtime: '0',
@@ -933,16 +909,16 @@ export const runCodeServiceNew = async (lang: string, typed_code: string, titleS
       expected_elapsed_time: 0,
       expected_task_finish_time: Date.now(),
       expected_task_name: '',
-      correct_answer: correct === total,
-      compare_result: `${correct}/${total}`,
-      total_correct: correct,
+      correct_answer: results.length === total,
+      compare_result: `${results.length}/${total}`,
+      total_correct: results.length,
       total_testcases: total,
       runtime_percentile: null,
       memory_percentile: null,
       status_memory: 'N/A',
       pretty_lang: lang,
       submission_id: new mongoose.Types.ObjectId().toString(),
-      status_msg: correct === total ? 'Accepted' : 'Wrong Answer',
+      status_msg: results.length === total ? 'Accepted' : 'Wrong Answer',
       state: 'SUCCESS',
     };
 
