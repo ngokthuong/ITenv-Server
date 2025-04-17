@@ -68,7 +68,16 @@ export const addMessForConvertationByUserIdService = async (
   fileUrl?: string[],
 ) => {
   try {
-    let { receiver, content, conversationId, hasFile, hasText, parentMessage } = data;
+    let {
+      receiver,
+      content,
+      conversationId,
+      hasFile,
+      hasText,
+      hasCodeFile,
+      fileName,
+      parentMessage,
+    } = data;
 
     const recieverArray = Array.isArray(receiver) ? receiver : [receiver];
     let getConversation = null;
@@ -96,6 +105,8 @@ export const addMessForConvertationByUserIdService = async (
       conversationId,
       hasFile,
       hasText,
+      hasCodeFile,
+      fileName,
       fileUrl,
       content,
       parentMessage,

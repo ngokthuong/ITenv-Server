@@ -382,6 +382,7 @@ export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
     }));
     const problemFunctionName = 'fourSum';
     const runnerCode = generateRunnerCode(typed_code, problemFunctionName, testCases, lang);
+    console.log(runnerCode);
     const { output, memory } = await startDocker(lang, runnerCode);
     const match = output.match(/at .*\/main\.(js|ts|py):\d+:\d+/);
 
