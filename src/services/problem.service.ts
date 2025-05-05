@@ -1,18 +1,27 @@
 import { result } from '../services/leetcode.service';
-import Problem, { IProblem } from '../models/problem';
+import Problem, { IProblem, ITestCase } from '../models/problem';
 import Tag from '../models/tag';
 import pLimit from 'p-limit';
 import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import { QueryOption } from '../types/QueryOption.type';
-import { getAllUsersService } from './user.service';
 import axios from 'axios';
-import { SubmissionBody } from '../types/ProblemType.type';
+import {
+  runCodeErrorType,
+  RunCodeResultSuccessType,
+  SubmissionBody,
+} from '../types/ProblemType.type';
 import user from '../models/user';
 import submission from '../models/submission';
 import problem from '../models/problem';
-import { ObjectId } from 'mongoose';
+import mongoose from 'mongoose';
+import { PassThrough, Readable } from 'stream';
+import Docker from 'dockerode';
+import path from 'path';
+import fs from 'fs';
+import { CodeActionType } from '../enums/CodeAction.enum';
 
+const docker = new Docker();
 const total = 10;
 const limit = pLimit(2);
 
@@ -100,43 +109,32 @@ const fetchEditorData = async (titleSlug: string) => {
 
 // Function to insert problems into the database
 export const insertProblems = async () => {
-  console.log('problems');
   try {
     const tasks = [];
     for (let skip = 0; skip < total; skip += 1) {
       tasks.push(
         limit(async () => {
           const questions = await fetchProblems(skip);
-          console.log('questions.');
-          console.log(questions);
           for (const question of questions) {
             if (question) {
               let tags: any[] = [];
               const codeEditorData = await fetchEditorData(question.titleSlug);
               if (!codeEditorData) {
-                console.log('No editor data for', question.titleSlug);
                 continue;
               }
               for (const tag of question.topicTags) {
-                console.log('questions');
-                console.log(tag.name);
                 const isExist = await Tag.findOne({ name: tag.name });
-                console.log('isExist');
-                console.log(isExist);
 
                 if (!isExist) {
-                  console.log('push1');
                   const newTag = await Tag.create({ name: tag.name, type: EnumTag.TYPE_PROBLEM });
-                  console.log('push1');
+
                   tags.push(newTag._id);
                 } else {
-                  console.log('push2');
                   tags.push(isExist._id);
                 }
               }
 
               if (!question.paidOnly) {
-                console.log('save');
                 await Problem.create({
                   title: question.title,
                   slug: question.titleSlug,
@@ -158,7 +156,6 @@ export const insertProblems = async () => {
     }
     return await Promise.all(tasks);
   } catch (error: any) {
-    console.error('Insert problems failed:', error);
     throw new Error(`Insert problems failed: ${error.message}`);
   }
 };
@@ -207,7 +204,6 @@ export const runCode = async (
   submissionBody: SubmissionBody & { data_input: string },
 ) => {
   try {
-    console.log('Submitting problem:', name, submissionBody);
     const response = await axios.post(
       `https://leetcode.com/problems/${name}/interpret_solution/`,
       {
@@ -229,14 +225,12 @@ export const runCode = async (
     );
     return response;
   } catch (error) {
-    console.error('Error during submission:', error);
     throw error;
   }
 };
 
 export const submit = async (name: string, submissionBody: SubmissionBody) => {
   try {
-    console.log('Submitting problem:', name, submissionBody);
     const response = await axios.post(
       `https://leetcode.com/problems/${name}/submit/`,
       {
@@ -257,14 +251,12 @@ export const submit = async (name: string, submissionBody: SubmissionBody) => {
     );
     return response;
   } catch (error) {
-    console.error('Error during submission:', error);
     throw error;
   }
 };
 
 export const checkSubmissionStatus = async (submissionId: string, titleSlug: string) => {
   try {
-    console.log(submissionId, titleSlug);
     const response = await axios.get(
       `https://leetcode.com/submissions/detail/${submissionId}/check/`,
 
@@ -387,7 +379,6 @@ export const AverageProblemsPerUserService = async () => {
     const result = Math.round(totalSolvedProblems / total);
     return result;
   } catch (error: any) {
-    console.error('Error in AverageProblemsPerUserService:', error.message);
     throw new Error(error.message);
   }
 };
@@ -440,7 +431,6 @@ export const getTotalProblemsService = async () => {
 
 export const getTopProblemSolversService = async () => {
   try {
-    console.log('problems');
     const users = await user.find({ isDeleted: false }).select('_id username');
 
     const topProblemResolvers = [];
@@ -603,4 +593,394 @@ const getSubmistedProblemsByDate = async (startOfDay: Date, endOfDay: Date) => {
   } catch (error: any) {
     throw new Error(error.message);
   }
+};
+
+async function ensureImageExists(image: string): Promise<void> {
+  const images = await docker.listImages();
+  const exists = images.some((img) => img.RepoTags?.includes(image));
+
+  if (!exists) {
+    await new Promise<void>((resolve, reject) => {
+      docker.pull(image, (err: Error | null, stream: NodeJS.ReadableStream) => {
+        if (err) return reject(err);
+        docker.modem.followProgress(stream, onFinished);
+        function onFinished(err: Error | null) {
+          if (err) return reject(err);
+          resolve();
+        }
+      });
+    });
+  }
+}
+
+function extractErrorSnippet(errorOutput: string, lang: string): string {
+  let match: RegExpMatchArray | null = null;
+
+  // Map ngôn ngữ -> regex ưu tiên
+  const langRegexMap: Record<string, RegExp[]> = {
+    python: [
+      /File "(\/src\/temp\/main\.py)", line (\d+)[\s\S]*?\n\s*\^\nSyntaxError: .*/,
+    ],
+    javascript: [
+      /at .*\/src\/temp\/main\.(js|ts):\d+:\d+/,
+    ],
+    csharp: [
+      /\/src\/temp\/main\.cs\((\d+),(\d+)\): error .*/,
+    ],
+  };
+
+  // Fallback regex cho mọi ngôn ngữ
+  const fallbackRegexList: RegExp[] = [
+    /\/src\/temp\/main\.(py|js|ts|cs):?\(?\d+(,\d+)?\)?/,
+  ];
+
+  const preferredRegex = langRegexMap[lang.toLowerCase()] || [];
+  const combinedRegexList = [...preferredRegex, ...fallbackRegexList];
+
+  for (const regex of combinedRegexList) {
+    match = errorOutput.match(regex);
+    if (match) break;
+  }
+
+  return match ? match[0] : 'Unknown error';
+}
+
+
+async function startDocker(
+  lang: string,
+  typed_code: string,
+): Promise<{ shortErrorLine: string; errorOutput: string; output: string; memory: number }> {
+  let image = '';
+  let filename = '';
+  let runCmd: string[] = [];
+
+  if (lang === 'javascript') {
+    image = 'node:18-alpine';
+    filename = 'main.js';
+    runCmd = ['node', `/src/temp/${filename}`];
+  } else if (lang === 'python') {
+    image = 'python:3.11-alpine';
+    filename = 'main.py';
+    runCmd = ['python3', `/src/temp/${filename}`];
+  } else {
+    throw new Error(`Unsupported language: ${lang}`);
+  }
+
+  await ensureImageExists(image);
+
+  const srcDir = path.join(process.cwd(), 'src', 'temp');
+  const filePath = path.join(srcDir, filename);
+  fs.mkdirSync(srcDir, { recursive: true });
+  fs.writeFileSync(filePath, typed_code);
+
+  const container = await docker.createContainer({
+    Image: image,
+    Cmd: runCmd,
+    WorkingDir: '/src',
+    AttachStdout: true,
+    AttachStderr: true,
+    Tty: false,
+    Volumes: { '/src': {} },
+    HostConfig: {
+      Binds: [`${process.cwd()}/src:/src`],
+      Memory: 1024 * 1024 * 1024,
+      CpuShares: 512,
+    },
+  });
+
+  const statsStream = (await container.stats({ stream: true })) as Readable;
+  let peakMemory = 0;
+  statsStream.on('data', (chunk) => {
+    const stats = JSON.parse(chunk.toString());
+    const mem = stats.memory_stats?.usage ?? 0;
+    if (mem > peakMemory) {
+      peakMemory = mem;
+    }
+  });
+
+  await container.start();
+
+  const stream = await container.attach({
+    stream: true,
+    stdout: true,
+    stderr: true,
+  });
+
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  container.modem.demuxStream(stream, stdout, stderr);
+
+  let output = '';
+  let errorOutput = '';
+
+  stdout.on('data', (data) => {
+    output += data.toString();
+  });
+
+  stderr.on('data', (data) => {
+    errorOutput += data.toString();
+  });
+
+  let shortErrorLine = '';
+  const timeoutPromise = new Promise<void>((_, reject) =>
+    setTimeout(() => reject(new Error('⏰ Code execution timed out')), 2000),
+  );
+
+  const streamEndPromise = new Promise<void>((resolve) => {
+    stream.on('end', () => {
+      statsStream.destroy(); // ✅ stop memory tracking
+      if (errorOutput) {
+        shortErrorLine = extractErrorSnippet(errorOutput, lang);
+      }
+      resolve();
+    });
+  });
+
+  await Promise.race([streamEndPromise, timeoutPromise]);
+
+  await container.remove({ force: true });
+
+  return { shortErrorLine, errorOutput, output, memory: peakMemory };
+}
+
+function generateRunnerCode(
+  userCode: string,
+  functionName: string,
+  testCases: any[],
+  lang: string,
+): string {
+  if (lang === 'javascript') {
+    const tests = testCases
+      .map(({ input, output }, idx) => {
+        return `
+try {
+  const result = JSON.stringify(${functionName}(...${JSON.stringify(input)}));
+  const expected = JSON.stringify(${JSON.stringify(output)});
+  if (result === expected) {
+    console.log("Test ${idx + 1} passed");
+    codeAnswer.push(result);
+    expectedCodeAnswer.push(result);
+  } else {
+    console.log("Test ${idx + 1} failed: expected " + expected + ", got " + result);
+    codeAnswer.push(result);
+    expectedCodeAnswer.push(expected);
+  }
+  console.log("RESULT:" + result);
+} catch (e) {
+  console.log(e.stack);
+}
+`;
+      })
+      .join('\n');
+
+    return `
+${userCode}
+
+const codeAnswer = [];
+const expectedCodeAnswer = [];
+
+${tests}
+
+return {
+  codeAnswer,
+  expectedCodeAnswer
+};
+`;
+  }
+
+  if (lang === 'python') {
+    const tests = testCases
+      .map(({ input, output }, idx) => {
+        return `
+try:
+    result = ${functionName}(*${JSON.stringify(input)})
+    expected = ${JSON.stringify(output)}
+    if result == expected:
+        print("Test ${idx + 1} passed")
+        codeAnswer.append(result)
+        expectedCodeAnswer.append(result)
+    else:
+        print("Test ${idx + 1} failed: expected", expected, "got", result)
+        codeAnswer.append(result)
+        expectedCodeAnswer.append(expected)
+    print("RESULT:", result)
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+`;
+      })
+      .join('\n');
+
+    return `
+${userCode}
+
+codeAnswer = []
+expectedCodeAnswer = []
+
+${tests}
+`;
+  }
+  return `# Unsupported language: ${lang}`;
+}
+
+function extractResultsFromOutput(output: string[]) {
+  return output
+    .filter((line) => line.startsWith('RESULT:'))
+    .map((line) => line.replace('RESULT:', '').trim());
+}
+type ParsedTestCase = {
+  input: [number[], number];
+  output: string;
+};
+
+function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCase[] {
+  return testCases
+    .filter((test) => isHidden || !test.isHidden)
+    .map((test) => {
+      const [first, second] = test.input.map((i) => {
+        try {
+          return JSON.parse(i.value);
+        } catch {
+          return Number(i.value);
+        }
+      });
+
+      const output = test.output[0];
+
+      return {
+        input: [first, second],
+        output, // output là string
+      };
+    });
+}
+
+export const runAndSubmitCodeService = async (
+  lang: string,
+  typed_code: string,
+  titleSlug: string,
+  codeActionType: CodeActionType,
+) => {
+  try {
+    const problem = await Problem.findOne({ slug: titleSlug });
+    let testInDb = problem?.testCase;
+    if (!testInDb) return;
+    // isHidden false -> get test case with isHidden = false
+    const testResult = parseTestCases(
+      testInDb,
+      codeActionType === CodeActionType.RUNCODE ? false : true,
+    );
+    if (!testResult) return;
+    const testCases = testResult.map((tc) => ({
+      input: tc.input,
+      output: tc.output,
+    }));
+    const problemFunctionName = 'fourSum';
+    const runnerCode = generateRunnerCode(typed_code, problemFunctionName, testCases, lang);
+    const { shortErrorLine, errorOutput, output, memory } = await startDocker(lang, runnerCode);
+    let match = extractErrorSnippet(output, lang);
+    if (errorOutput || shortErrorLine) {
+      match = errorOutput ? errorOutput : shortErrorLine;
+    }
+    if (match) {
+      if (match) {
+        const errorLines = errorOutput
+          ? errorOutput
+          : output
+              .split('\n')
+              .filter(
+                (line) =>
+                  line.includes('ReferenceError') ||
+                  line.includes('SyntaxError') ||
+                  line.includes('TypeError'),
+              );
+        const runCodeError: runCodeErrorType = {
+          status_code: 20,
+          lang,
+          run_success: false,
+          compile_error: `${shortErrorLine}` || 'Unknown error',
+          full_compile_error: errorOutput ? errorOutput : output,
+          status_runtime: 'N/A',
+          memory: 0,
+          code_answer: [],
+          code_output: [],
+          std_output_list: [''],
+          task_finish_time: Date.now(),
+          task_name: problem?.title as string,
+          total_correct: 0,
+          total_testcases: testCases.length,
+          runtime_percentile: null,
+          status_memory: 'N/A',
+          memory_percentile: null,
+          pretty_lang: lang,
+          submission_id: new mongoose.Types.ObjectId().toString(),
+          status_msg: 'Compile Error',
+          state: 'SUCCESS',
+        };
+        return runCodeError;
+      }
+    }
+    // success
+    const total = testCases.length;
+    let cleanedOutput = output.replace(/!/g, '');
+    let outputArray = cleanedOutput.split('\n');
+    for (let i = 0; i < outputArray.length; i++) {
+      outputArray[i] = outputArray[i].replace(/[\x00-\x1F\x7F]+/g, '');
+    }
+    const results = extractResultsFromOutput(outputArray);
+    // code answer
+    const actualResults =
+      outputArray
+        .filter((line) => line.includes('got'))
+        .map((line) => line.split('got')[1].trim()) ?? [];
+
+    let correctCount = 0;
+    const expectedResults = testCases.map((t) => t.output);
+
+    for (let i = 0; i < actualResults.length; i++) {
+      if (actualResults[i] === expectedResults[i]) {
+        correctCount++;
+      }
+    }
+
+    const runCodeResult: RunCodeResultSuccessType = {
+      status_code: results.length === total ? 15 : 20,
+      lang,
+      run_success: correctCount === total,
+      status_runtime: '0 ms',
+      memory: memory,
+      display_runtime: '0',
+      code_answer: actualResults,
+      code_output: results,
+      std_output_list: [''],
+      // std_output_list: outputArray.slice(0, outputArray.length - 1),
+      elapsed_time: 0,
+      task_finish_time: Date.now(),
+      task_name: problem?.title as string,
+      expected_status_code: 0,
+      expected_lang: lang,
+      expected_run_success: true,
+      expected_status_runtime: '2000 ms',
+      expected_memory: 0,
+      expected_display_runtime: '0',
+      expected_code_answer: testCases.map((t) => t.output),
+      expected_code_output: [],
+      expected_std_output_list: [],
+      expected_elapsed_time: 0,
+      expected_task_finish_time: Date.now(),
+      expected_task_name: '',
+      correct_answer: correctCount === total,
+      compare_result: `${correctCount}/${total}`,
+      total_correct: correctCount,
+      total_testcases: total,
+      runtime_percentile: null,
+      memory_percentile: null,
+      status_memory: 'N/A',
+      pretty_lang: lang,
+      submission_id: new mongoose.Types.ObjectId().toString(),
+      status_msg: correctCount === total ? 'Accepted' : 'Wrong Answer',
+      state: 'SUCCESS',
+    };
+
+    return runCodeResult;
+  } catch (error) {}
 };
