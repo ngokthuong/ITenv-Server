@@ -5,7 +5,6 @@ import pLimit from 'p-limit';
 import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import { QueryOption } from '../types/QueryOption.type';
-import { getAllUsersService } from './user.service';
 import axios from 'axios';
 import {
   runCodeErrorType,
@@ -15,14 +14,14 @@ import {
 import user from '../models/user';
 import submission from '../models/submission';
 import problem from '../models/problem';
-import mongoose, { ObjectId } from 'mongoose';
-import { PassThrough } from 'stream';
+import mongoose from 'mongoose';
+import { PassThrough, Readable } from 'stream';
 import Docker from 'dockerode';
 import path from 'path';
 import fs from 'fs';
+import { CodeActionType } from '../enums/CodeAction.enum';
 
 const docker = new Docker();
-
 const total = 10;
 const limit = pLimit(2);
 
@@ -157,7 +156,6 @@ export const insertProblems = async () => {
     }
     return await Promise.all(tasks);
   } catch (error: any) {
-    console.error('Insert problems failed:', error);
     throw new Error(`Insert problems failed: ${error.message}`);
   }
 };
@@ -227,7 +225,6 @@ export const runCode = async (
     );
     return response;
   } catch (error) {
-    console.error('Error during submission:', error);
     throw error;
   }
 };
@@ -254,7 +251,6 @@ export const submit = async (name: string, submissionBody: SubmissionBody) => {
     );
     return response;
   } catch (error) {
-    console.error('Error during submission:', error);
     throw error;
   }
 };
@@ -617,10 +613,43 @@ async function ensureImageExists(image: string): Promise<void> {
   }
 }
 
+function extractErrorSnippet(errorOutput: string, lang: string): string {
+  let match: RegExpMatchArray | null = null;
+
+  // Map ngôn ngữ -> regex ưu tiên
+  const langRegexMap: Record<string, RegExp[]> = {
+    python: [
+      /File "(\/src\/temp\/main\.py)", line (\d+)[\s\S]*?\n\s*\^\nSyntaxError: .*/,
+    ],
+    javascript: [
+      /at .*\/src\/temp\/main\.(js|ts):\d+:\d+/,
+    ],
+    csharp: [
+      /\/src\/temp\/main\.cs\((\d+),(\d+)\): error .*/,
+    ],
+  };
+
+  // Fallback regex cho mọi ngôn ngữ
+  const fallbackRegexList: RegExp[] = [
+    /\/src\/temp\/main\.(py|js|ts|cs):?\(?\d+(,\d+)?\)?/,
+  ];
+
+  const preferredRegex = langRegexMap[lang.toLowerCase()] || [];
+  const combinedRegexList = [...preferredRegex, ...fallbackRegexList];
+
+  for (const regex of combinedRegexList) {
+    match = errorOutput.match(regex);
+    if (match) break;
+  }
+
+  return match ? match[0] : 'Unknown error';
+}
+
+
 async function startDocker(
   lang: string,
   typed_code: string,
-): Promise<{ output: string; memory: number }> {
+): Promise<{ shortErrorLine: string; errorOutput: string; output: string; memory: number }> {
   let image = '';
   let filename = '';
   let runCmd: string[] = [];
@@ -659,6 +688,16 @@ async function startDocker(
     },
   });
 
+  const statsStream = (await container.stats({ stream: true })) as Readable;
+  let peakMemory = 0;
+  statsStream.on('data', (chunk) => {
+    const stats = JSON.parse(chunk.toString());
+    const mem = stats.memory_stats?.usage ?? 0;
+    if (mem > peakMemory) {
+      peakMemory = mem;
+    }
+  });
+
   await container.start();
 
   const stream = await container.attach({
@@ -682,27 +721,26 @@ async function startDocker(
     errorOutput += data.toString();
   });
 
+  let shortErrorLine = '';
   const timeoutPromise = new Promise<void>((_, reject) =>
     setTimeout(() => reject(new Error('⏰ Code execution timed out')), 2000),
   );
 
-  const streamEndPromise = new Promise<void>((resolve, reject) => {
+  const streamEndPromise = new Promise<void>((resolve) => {
     stream.on('end', () => {
+      statsStream.destroy(); // ✅ stop memory tracking
       if (errorOutput) {
-        const match = errorOutput.match(/at .*\/main\.(js|ts):\d+:\d+/);
-        const shortErrorLine = match ? match[0] : 'Unknown line';
-        reject(new Error(`Code execution failed at ${shortErrorLine}\n${errorOutput}`));
-      } else {
-        resolve();
+        shortErrorLine = extractErrorSnippet(errorOutput, lang);
       }
+      resolve();
     });
   });
 
   await Promise.race([streamEndPromise, timeoutPromise]);
-  const stats = await container.stats({ stream: false });
-  const memoryUsage = stats.memory_stats.usage;
+
   await container.remove({ force: true });
-  return { output, memory: memoryUsage };
+
+  return { shortErrorLine, errorOutput, output, memory: peakMemory };
 }
 
 function generateRunnerCode(
@@ -816,13 +854,21 @@ function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCa
     });
 }
 
-export const runCodeServiceNew = async (lang: string, typed_code: string, titleSlug: string) => {
+export const runAndSubmitCodeService = async (
+  lang: string,
+  typed_code: string,
+  titleSlug: string,
+  codeActionType: CodeActionType,
+) => {
   try {
     const problem = await Problem.findOne({ slug: titleSlug });
     let testInDb = problem?.testCase;
     if (!testInDb) return;
     // isHidden false -> get test case with isHidden = false
-    const testResult = parseTestCases(testInDb, false);
+    const testResult = parseTestCases(
+      testInDb,
+      codeActionType === CodeActionType.RUNCODE ? false : true,
+    );
     if (!testResult) return;
     const testCases = testResult.map((tc) => ({
       input: tc.input,
@@ -830,26 +876,29 @@ export const runCodeServiceNew = async (lang: string, typed_code: string, titleS
     }));
     const problemFunctionName = 'fourSum';
     const runnerCode = generateRunnerCode(typed_code, problemFunctionName, testCases, lang);
-    const { output, memory } = await startDocker(lang, runnerCode);
-    const match = output.match(/at .*\/main\.(js|ts|py):\d+:\d+/);
-
+    const { shortErrorLine, errorOutput, output, memory } = await startDocker(lang, runnerCode);
+    let match = extractErrorSnippet(output, lang);
+    if (errorOutput || shortErrorLine) {
+      match = errorOutput ? errorOutput : shortErrorLine;
+    }
     if (match) {
       if (match) {
-        const errorLines = output
-          .split('\n')
-          .filter(
-            (line) =>
-              line.includes('ReferenceError') ||
-              line.includes('SyntaxError') ||
-              line.includes('TypeError'),
-          );
-
+        const errorLines = errorOutput
+          ? errorOutput
+          : output
+              .split('\n')
+              .filter(
+                (line) =>
+                  line.includes('ReferenceError') ||
+                  line.includes('SyntaxError') ||
+                  line.includes('TypeError'),
+              );
         const runCodeError: runCodeErrorType = {
           status_code: 20,
           lang,
           run_success: false,
-          compile_error: `${errorLines[0]}` || 'Unknown error',
-          full_compile_error: output,
+          compile_error: `${shortErrorLine}` || 'Unknown error',
+          full_compile_error: errorOutput ? errorOutput : output,
           status_runtime: 'N/A',
           memory: 0,
           code_answer: [],
@@ -857,8 +906,8 @@ export const runCodeServiceNew = async (lang: string, typed_code: string, titleS
           std_output_list: [''],
           task_finish_time: Date.now(),
           task_name: problem?.title as string,
-          total_correct: null,
-          total_testcases: null,
+          total_correct: 0,
+          total_testcases: testCases.length,
           runtime_percentile: null,
           status_memory: 'N/A',
           memory_percentile: null,
@@ -883,10 +932,20 @@ export const runCodeServiceNew = async (lang: string, typed_code: string, titleS
       outputArray
         .filter((line) => line.includes('got'))
         .map((line) => line.split('got')[1].trim()) ?? [];
+
+    let correctCount = 0;
+    const expectedResults = testCases.map((t) => t.output);
+
+    for (let i = 0; i < actualResults.length; i++) {
+      if (actualResults[i] === expectedResults[i]) {
+        correctCount++;
+      }
+    }
+
     const runCodeResult: RunCodeResultSuccessType = {
       status_code: results.length === total ? 15 : 20,
       lang,
-      run_success: results.length === total,
+      run_success: correctCount === total,
       status_runtime: '0 ms',
       memory: memory,
       display_runtime: '0',
@@ -900,7 +959,7 @@ export const runCodeServiceNew = async (lang: string, typed_code: string, titleS
       expected_status_code: 0,
       expected_lang: lang,
       expected_run_success: true,
-      expected_status_runtime: '0 ms',
+      expected_status_runtime: '2000 ms',
       expected_memory: 0,
       expected_display_runtime: '0',
       expected_code_answer: testCases.map((t) => t.output),
@@ -909,16 +968,16 @@ export const runCodeServiceNew = async (lang: string, typed_code: string, titleS
       expected_elapsed_time: 0,
       expected_task_finish_time: Date.now(),
       expected_task_name: '',
-      correct_answer: results.length === total,
-      compare_result: `${results.length}/${total}`,
-      total_correct: results.length,
+      correct_answer: correctCount === total,
+      compare_result: `${correctCount}/${total}`,
+      total_correct: correctCount,
       total_testcases: total,
       runtime_percentile: null,
       memory_percentile: null,
       status_memory: 'N/A',
       pretty_lang: lang,
       submission_id: new mongoose.Types.ObjectId().toString(),
-      status_msg: results.length === total ? 'Accepted' : 'Wrong Answer',
+      status_msg: correctCount === total ? 'Accepted' : 'Wrong Answer',
       state: 'SUCCESS',
     };
 

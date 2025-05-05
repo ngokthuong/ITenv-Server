@@ -15,7 +15,7 @@ import {
   insertProblems,
   submit,
   upSertProblemService,
-  runCodeServiceNew,
+  runAndSubmitCodeService,
 } from '../services/problem.service';
 import { checkSubmissionStatus, runCode, submissionDetail } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
@@ -32,6 +32,7 @@ import fs from 'fs';
 import path from 'path';
 import mongoose from 'mongoose';
 import { PassThrough } from 'stream';
+import { CodeActionType } from '../enums/CodeAction.enum';
 const docker = new Docker();
 const TIMEOUT = 2000;
 export const insertProblemsController = asyncHandler(async (req: any, res: any) => {
@@ -161,211 +162,13 @@ async function ensureImageExists(image: string): Promise<void> {
   }
 }
 
-async function startDocker(
-  lang: string,
-  typed_code: string,
-): Promise<{ output: string; memory: number }> {
-  let image = '';
-  let filename = '';
-  let runCmd: string[] = [];
-
-  if (lang === 'javascript') {
-    image = 'node:18-alpine';
-    filename = 'main.js';
-    runCmd = ['node', `/src/temp/${filename}`];
-  } else if (lang === 'python') {
-    image = 'python:3.11-alpine';
-    filename = 'main.py';
-    runCmd = ['python3', `/src/temp/${filename}`];
-  } else {
-    throw new Error(`Unsupported language: ${lang}`);
-  }
-
-  await ensureImageExists(image);
-
-  const srcDir = path.join(process.cwd(), 'src', 'temp');
-  const filePath = path.join(srcDir, filename);
-  fs.mkdirSync(srcDir, { recursive: true });
-  fs.writeFileSync(filePath, typed_code);
-
-  const container = await docker.createContainer({
-    Image: image,
-    Cmd: runCmd,
-    WorkingDir: '/src',
-    AttachStdout: true,
-    AttachStderr: true,
-    Tty: false,
-    Volumes: { '/src': {} },
-    HostConfig: {
-      Binds: [`${process.cwd()}/src:/src`],
-      Memory: 1024 * 1024 * 1024,
-      CpuShares: 512,
-    },
-  });
-
-  await container.start();
-
-  const stream = await container.attach({
-    stream: true,
-    stdout: true,
-    stderr: true,
-  });
-
-  const stdout = new PassThrough();
-  const stderr = new PassThrough();
-  container.modem.demuxStream(stream, stdout, stderr);
-
-  let output = '';
-  let errorOutput = '';
-
-  stdout.on('data', (data) => {
-    output += data.toString();
-  });
-
-  stderr.on('data', (data) => {
-    errorOutput += data.toString();
-  });
-
-  const timeoutPromise = new Promise<void>((_, reject) =>
-    setTimeout(() => reject(new Error('⏰ Code execution timed out')), 2000),
-  );
-
-  const streamEndPromise = new Promise<void>((resolve, reject) => {
-    stream.on('end', () => {
-      if (errorOutput) {
-        const match = errorOutput.match(/at .*\/main\.(js|ts):\d+:\d+/);
-        const shortErrorLine = match ? match[0] : 'Unknown line';
-        reject(new Error(`Code execution failed at ${shortErrorLine}\n${errorOutput}`));
-      } else {
-        resolve();
-      }
-    });
-  });
-
-  await Promise.race([streamEndPromise, timeoutPromise]);
-  const stats = await container.stats({ stream: false });
-  const memoryUsage = stats.memory_stats.usage;
-  await container.remove({ force: true });
-  return { output, memory: memoryUsage };
-}
-
-function generateRunnerCode(
-  userCode: string,
-  functionName: string,
-  testCases: any[],
-  lang: string,
-): string {
-  if (lang === 'javascript') {
-    const tests = testCases
-      .map(({ input, output }, idx) => {
-        return `
-try {
-  const result = JSON.stringify(${functionName}(...${JSON.stringify(input)}));
-  const expected = JSON.stringify(${JSON.stringify(output)});
-  if (result === expected) {
-    console.log("Test ${idx + 1} passed");
-    codeAnswer.push(result);
-    expectedCodeAnswer.push(result);
-  } else {
-    console.log("Test ${idx + 1} failed: expected " + expected + ", got " + result);
-    codeAnswer.push(result);
-    expectedCodeAnswer.push(expected);
-  }
-  console.log("RESULT:" + result);
-} catch (e) {
-  console.log(e.stack);
-}
-`;
-      })
-      .join('\n');
-
-    return `
-${userCode}
-
-const codeAnswer = [];
-const expectedCodeAnswer = [];
-
-${tests}
-
-return {
-  codeAnswer,
-  expectedCodeAnswer
-};
-`;
-  }
-
-  if (lang === 'python') {
-    const tests = testCases
-      .map(({ input, output }, idx) => {
-        return `
-try:
-    result = ${functionName}(*${JSON.stringify(input)})
-    expected = ${JSON.stringify(output)}
-    if result == expected:
-        print("Test ${idx + 1} passed")
-        codeAnswer.append(result)
-        expectedCodeAnswer.append(result)
-    else:
-        print("Test ${idx + 1} failed: expected", expected, "got", result)
-        codeAnswer.append(result)
-        expectedCodeAnswer.append(expected)
-    print("RESULT:", result)
-except Exception as e:
-    import traceback
-    traceback.print_exc()
-`;
-      })
-      .join('\n');
-
-    return `
-${userCode}
-
-codeAnswer = []
-expectedCodeAnswer = []
-
-${tests}
-`;
-  }
-  return `# Unsupported language: ${lang}`;
-}
-
-function extractResultsFromOutput(output: string[]) {
-  return output
-    .filter((line) => line.startsWith('RESULT:'))
-    .map((line) => line.replace('RESULT:', '').trim());
-}
-
-type ParsedTestCase = {
-  input: [number[], number];
-  output: number[][];
-};
-
-function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCase[] {
-  return testCases
-    .filter((test) => isHidden || !test.isHidden)
-    .map((test) => {
-      const [first, second] = test.input.map((i) => {
-        try {
-          return JSON.parse(i.value);
-        } catch {
-          return Number(i.value);
-        }
-      });
-      const output = test.output.map((o) => JSON.parse(o));
-      return {
-        input: [first, second],
-        output,
-      };
-    });
-}
-
 export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
   const { lang, typed_code }: SubmitType = req.body;
   const { name: titleSlug } = req.params;
   if (!titleSlug || !lang || !typed_code) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
-  const result = await runCodeServiceNew(lang, typed_code, titleSlug);
+  const result = await runAndSubmitCodeService(lang, typed_code, titleSlug, CodeActionType.RUNCODE);
   return res.json({
     success: result?.run_success,
     data: result,
