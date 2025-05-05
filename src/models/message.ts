@@ -7,6 +7,8 @@ export interface IMessage extends Document {
   isSeenBy: mongoose.Types.ObjectId[];
   hasText: boolean;
   hasFile: boolean;
+  hasCodeFile?: boolean;
+  fileName?: string;
   content: string;
   fileUrl?: string[];
   isRecalled: boolean;
@@ -39,6 +41,16 @@ const messageSchema: Schema<IMessage> = new mongoose.Schema(
     },
     hasFile: {
       type: Boolean,
+    },
+    hasCodeFile: {
+      type: Boolean,
+      default: false,
+    },
+    fileName: {
+      type: String,
+      required: function () {
+        return this.hasCodeFile;
+      },
     },
     content: {
       type: String,
