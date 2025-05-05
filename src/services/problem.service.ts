@@ -618,21 +618,12 @@ function extractErrorSnippet(errorOutput: string, lang: string): string {
 
   // Map ngôn ngữ -> regex ưu tiên
   const langRegexMap: Record<string, RegExp[]> = {
-    python: [
-      /File "(\/src\/temp\/main\.py)", line (\d+)[\s\S]*?\n\s*\^\nSyntaxError: .*/,
-    ],
-    javascript: [
-      /at .*\/src\/temp\/main\.(js|ts):\d+:\d+/,
-    ],
-    csharp: [
-      /\/src\/temp\/main\.cs\((\d+),(\d+)\): error .*/,
-    ],
+    python: [/File "(\/src\/temp\/main\.py)", line (\d+)[\s\S]*?\n\s*\^\nSyntaxError: .*/],
+    javascript: [/at .*\/src\/temp\/main\.(js|ts):\d+:\d+/],
+    csharp: [/\/src\/temp\/main\.cs\((\d+),(\d+)\): error .*/],
   };
 
-  // Fallback regex cho mọi ngôn ngữ
-  const fallbackRegexList: RegExp[] = [
-    /\/src\/temp\/main\.(py|js|ts|cs):?\(?\d+(,\d+)?\)?/,
-  ];
+  const fallbackRegexList: RegExp[] = [/\/src\/temp\/main\.(py|js|ts|cs):?\(?\d+(,\d+)?\)?/];
 
   const preferredRegex = langRegexMap[lang.toLowerCase()] || [];
   const combinedRegexList = [...preferredRegex, ...fallbackRegexList];
@@ -642,9 +633,8 @@ function extractErrorSnippet(errorOutput: string, lang: string): string {
     if (match) break;
   }
 
-  return match ? match[0] : 'Unknown error';
+  return match ? match[0] : null;
 }
-
 
 async function startDocker(
   lang: string,
@@ -721,14 +711,14 @@ async function startDocker(
     errorOutput += data.toString();
   });
 
-  let shortErrorLine = '';
+  let shortErrorLine: string | null = '';
   const timeoutPromise = new Promise<void>((_, reject) =>
     setTimeout(() => reject(new Error('⏰ Code execution timed out')), 2000),
   );
 
   const streamEndPromise = new Promise<void>((resolve) => {
     stream.on('end', () => {
-      statsStream.destroy(); // ✅ stop memory tracking
+      statsStream.destroy();
       if (errorOutput) {
         shortErrorLine = extractErrorSnippet(errorOutput, lang);
       }
@@ -753,39 +743,39 @@ function generateRunnerCode(
     const tests = testCases
       .map(({ input, output }, idx) => {
         return `
-try {
-  const result = JSON.stringify(${functionName}(...${JSON.stringify(input)}));
-  const expected = JSON.stringify(${JSON.stringify(output)});
-  if (result === expected) {
-    console.log("Test ${idx + 1} passed");
-    codeAnswer.push(result);
-    expectedCodeAnswer.push(result);
-  } else {
-    console.log("Test ${idx + 1} failed: expected " + expected + ", got " + result);
-    codeAnswer.push(result);
-    expectedCodeAnswer.push(expected);
+  try {
+    const result = ${functionName}(...${JSON.stringify(input)});
+    const expected = JSON.parse(${JSON.stringify(output)});
+    if (JSON.stringify(result) === JSON.stringify(expected)) {
+      console.log("Test ${idx + 1} passed");
+      codeAnswer.push(result);
+      expectedCodeAnswer.push(expected);
+    } else {
+      console.log("Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(result));
+      codeAnswer.push(result);
+      expectedCodeAnswer.push(expected);
+    }
+    console.log("RESULT:", JSON.stringify(result));
+  } catch (e) {
+    console.log(e.stack);
   }
-  console.log("RESULT:" + result);
-} catch (e) {
-  console.log(e.stack);
-}
-`;
+  `;
       })
       .join('\n');
 
     return `
-${userCode}
-
-const codeAnswer = [];
-const expectedCodeAnswer = [];
-
-${tests}
-
-return {
-  codeAnswer,
-  expectedCodeAnswer
-};
-`;
+  ${userCode}
+  
+  const codeAnswer = [];
+  const expectedCodeAnswer = [];
+  
+  ${tests}
+  
+  return {
+    codeAnswer,
+    expectedCodeAnswer
+  };
+  `;
   }
 
   if (lang === 'python') {
@@ -795,7 +785,7 @@ return {
 try:
     result = ${functionName}(*${JSON.stringify(input)})
     expected = ${JSON.stringify(output)}
-    if result == expected:
+    if str(result) == expected:
         print("Test ${idx + 1} passed")
         codeAnswer.append(result)
         expectedCodeAnswer.append(result)
@@ -830,7 +820,7 @@ function extractResultsFromOutput(output: string[]) {
 }
 type ParsedTestCase = {
   input: [number[], number];
-  output: string;
+  output: any;
 };
 
 function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCase[] {
@@ -883,16 +873,16 @@ export const runAndSubmitCodeService = async (
     }
     if (match) {
       if (match) {
-        const errorLines = errorOutput
-          ? errorOutput
-          : output
-              .split('\n')
-              .filter(
-                (line) =>
-                  line.includes('ReferenceError') ||
-                  line.includes('SyntaxError') ||
-                  line.includes('TypeError'),
-              );
+        // const errorLines = errorOutput
+        //   ? errorOutput
+        //   : output
+        //       .split('\n')
+        //       .filter(
+        //         (line) =>
+        //           line.includes('ReferenceError') ||
+        //           line.includes('SyntaxError') ||
+        //           line.includes('TypeError'),
+        //       );
         const runCodeError: runCodeErrorType = {
           status_code: 20,
           lang,
@@ -945,7 +935,7 @@ export const runAndSubmitCodeService = async (
     const runCodeResult: RunCodeResultSuccessType = {
       status_code: results.length === total ? 15 : 20,
       lang,
-      run_success: correctCount === total,
+      run_success: true,
       status_runtime: '0 ms',
       memory: memory,
       display_runtime: '0',
@@ -982,5 +972,7 @@ export const runAndSubmitCodeService = async (
     };
 
     return runCodeResult;
-  } catch (error) {}
+  } catch (error) {
+    console.log('run code errror.', error);
+  }
 };

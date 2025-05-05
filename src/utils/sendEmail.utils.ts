@@ -1,4 +1,4 @@
-import nodemailer, { Transport, Transporter } from 'nodemailer';
+import nodemailer from 'nodemailer';
 
 interface EmailOptions {
   to: string;

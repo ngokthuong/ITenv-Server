@@ -19,9 +19,7 @@ import {
 } from '../services/problem.service';
 import { checkSubmissionStatus, runCode, submissionDetail } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
-import {
-  SubmissionBody,
-} from '../types/ProblemType.type';
+import { SubmissionBody } from '../types/ProblemType.type';
 import axios from 'axios';
 import submission from '../models/submission';
 import { SubmitType } from '../types/SubmitType';

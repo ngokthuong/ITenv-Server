@@ -6,8 +6,6 @@ import { EnumFriend } from '../enums/schemaFriend.enum';
 import { QueryOption } from '../types/QueryOption.type';
 import { getInfoData } from '../utils/getInfoData.utils';
 import user from '../models/user';
-import mongoose from 'mongoose';
-import { EnumRoleAccount } from '../enums/schemaAccount.enum';
 
 export const getCurrentUserService = async (req: AuthRequest) => {
   const user = await User.findById(req?.user?.userId);

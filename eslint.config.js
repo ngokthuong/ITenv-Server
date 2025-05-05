@@ -15,10 +15,10 @@ export default [
       '@typescript-eslint': ts,
     },
     rules: {
-      'no-unused-vars': 'warn', // Cảnh báo biến không dùng
-      'no-console': 'off', // Cho phép console.log
-      semi: ['error', 'always'], // Bắt buộc dùng dấu chấm phẩy
+      'no-unused-vars': 'warn', 
+      'no-console': 'off', 
+      semi: ['error', 'always'], 
     },
-    ignores: ['node_modules', 'dist'], // Bỏ qua thư mục
+    ignores: ['node_modules', 'dist'], 
   },
 ];
