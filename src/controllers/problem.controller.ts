@@ -20,18 +20,12 @@ import {
 import { checkSubmissionStatus, runCode, submissionDetail } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 import {
-  RunCodeResultSuccessType,
-  runCodeErrorType,
   SubmissionBody,
 } from '../types/ProblemType.type';
 import axios from 'axios';
 import submission from '../models/submission';
 import { SubmitType } from '../types/SubmitType';
 import Docker from 'dockerode';
-import fs from 'fs';
-import path from 'path';
-import mongoose from 'mongoose';
-import { PassThrough } from 'stream';
 import { CodeActionType } from '../enums/CodeAction.enum';
 const docker = new Docker();
 const TIMEOUT = 2000;
@@ -54,9 +48,6 @@ export const getProblemsController = asyncHandler(async (req: any, res: any) => 
   };
   return res.status(200).json(response);
 });
-type ProblemWithoutOutput = Omit<IProblem, 'testCase'> & {
-  testCase?: Omit<ITestCase, 'output'>[];
-};
 
 export const getSingleProblem = asyncHandler(async (req: any, res: any) => {
   const { slug } = req.params;
