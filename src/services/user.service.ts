@@ -80,13 +80,13 @@ export const getAllFriendsOfUserByTypeService = async (data: any) => {
     //
     const statusCondition = type === 'ALL' ? {} : { status: type };
     const friends = await Friend.find({
-      $or: [{ sendBy: userId }, { receiver: userId }],
+      $or: [{ sentBy: userId }, { receiver: userId }],
       isDeleted: false,
       ...statusCondition,
     });
     // const total = await Friend.countDocuments({ receiver: userId, ...statusCondition });
     const friendIDs = friends.map((Friend) =>
-      Friend.sentBy.toString() === userId.toString() ? Friend.receiver : Friend.sentBy,
+      Friend?.sentBy?.toString() === userId?.toString() ? Friend?.receiver : Friend?.sentBy,
     );
     const friendUsers = await User.find({ _id: { $in: friendIDs } })
       .skip(skip)
@@ -117,8 +117,8 @@ export const getUsersForFriendPageService = async (userId: string, queryOption: 
         $and: [
           {
             $or: [
-              { sendBy: userId, receiver: user._id },
-              { sendBy: user._id, receiver: userId },
+              { sentBy: userId, receiver: user._id },
+              { sentBy: user._id, receiver: userId },
             ],
           },
           { isDeleted: false },
@@ -145,8 +145,8 @@ export const getUserByIdService = async (userId: string, currentUserId: string) 
     $and: [
       {
         $or: [
-          { sendBy: currentUserId, receiver: user._id },
-          { sendBy: user._id, receiver: currentUserId },
+          { sentBy: currentUserId, receiver: user._id },
+          { sentBy: user._id, receiver: currentUserId },
         ],
       },
       { isDeleted: false },

@@ -633,7 +633,7 @@ function extractErrorSnippet(errorOutput: string, lang: string): string {
     if (match) break;
   }
 
-  return match ? match[0] : null;
+  return match ? match[0] : '';
 }
 
 async function startDocker(

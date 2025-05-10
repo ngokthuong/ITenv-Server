@@ -47,7 +47,7 @@ app.use(async (err: any, req: any, res: any, next: any) => {
   });
 });
 // create routes
-const PORT = process.env.PORT || 7777;
+const PORT = process.env.PORT || 8080;
 
 const listener = server.listen(PORT, () => {
   const address = listener.address();
