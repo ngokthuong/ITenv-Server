@@ -8,7 +8,6 @@ import * as dotenv from 'dotenv';
 import { connection, setupSocket } from './config';
 import initRoutes from './routes/index.routes';
 import { logEvents } from './helper/logEvents';
-import { errHandler } from './middlewares/handelError.mdw';
 import { countConnect } from './helper/check.connect';
 
 dotenv.config();
@@ -38,7 +37,7 @@ initRoutes(app);
 const server = http.createServer(app);
 setupSocket(server);
 
-app.use(async (err: any, req: any, res: any, next: any) => {
+app.use(async (err: any, req: any, res: any) => {
   await logEvents(err.message);
   res.status(err.status || 500);
   res.json({

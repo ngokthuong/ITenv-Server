@@ -13,9 +13,7 @@ import {
   getTopProblemSolversController,
   getTotalActiveProblemsController,
   getTotalProblemsController,
-  runCodeControllerNew,
-  insertProblemsController,
-  runCodeController,
+  runCodeControllerRefactor,
   submitProblemController,
   UpSertProblemController,
   DeleteProblemController,
@@ -75,7 +73,7 @@ router.get(
 // router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
 router.get(ApiProblem.GET_PROBLEMS, getProblemsController);
 // router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeController);
-router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeControllerNew);
+router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeControllerRefactor);
 // router.post(ApiProblem.SUBMIT, verifyAccessToken, isUser, submitProblemController);
 router.post(ApiProblem.SUBMIT, verifyAccessToken, isUser, submitProblemController);
 router.get(ApiProblem.SUBMISSIONS, getSubmissionsByUserIdController);

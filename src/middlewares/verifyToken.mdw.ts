@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
 export interface CustomJwtPayload extends JwtPayload {

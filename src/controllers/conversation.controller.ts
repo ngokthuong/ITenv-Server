@@ -4,7 +4,6 @@ import { ResponseType } from '../types/Response.type';
 import {
   addMemberService,
   changeImageGroupChatService,
-  checkListFriendService,
   createGroupChatService,
   editConversationNameService,
   getConversationsOfUserByUserIdService,
@@ -160,25 +159,25 @@ export const changeGroupPhotoController = asyncHandler(async (req: AuthRequest, 
 
 // add user to conversation
 export const addUserToConversationController = asyncHandler(async (req: AuthRequest, res: any) => {
-  try {
-    const userId = req.user?.userId;
-  } catch (error: any) {}
+  // try {
+  //   // const userId = req.user?.userId;
+  // } catch (error: any) {}
 });
 
 // delete user in conversation
 export const deleteUserInConversationController = asyncHandler(
   async (req: AuthRequest, res: any) => {
-    try {
-      const userId = req.user?.userId;
-      const { listFriendId } = req.body;
-    } catch (error: any) {}
+    // try {
+    //   // const userId = req.user?.userId;
+    //   // const { listFriendId } = req.body;
+    // } catch (error: any) {}
   },
 );
 
 // delete conversation
 export const deleteConversationController = asyncHandler(async (req: AuthRequest, res: any) => {
-  try {
-    const userId = req.user?.userId;
-    const { listFriendId } = req.body;
-  } catch (error: any) {}
+  // try {
+  //   const userId = req.user?.userId;
+  //   const { listFriendId } = req.body;
+  // } catch (error: any) {}
 });

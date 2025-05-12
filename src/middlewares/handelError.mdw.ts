@@ -12,12 +12,7 @@ export const notFound = (req: Request, resp: Response, next: NextFunction): void
   next(error);
 };
 
-export const errHandler = (
-  error: ErrorWithStatus,
-  req: Request,
-  resp: Response,
-  next: NextFunction,
-): void => {
+export const errHandler = (error: ErrorWithStatus, req: Request, resp: Response): void => {
   const statusCode = error.status === 200 ? 500 : resp.statusCode;
   logEvents(`errhandler: ${req.url} --- ${req.method} --- ${error.message}`);
   resp.status(statusCode).json({

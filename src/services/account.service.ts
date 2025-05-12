@@ -5,8 +5,6 @@ import { generateAndSendOTP, verifyOtpService } from './otp.service';
 import lodash from 'lodash';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
-import { sendEmail } from '../utils/sendEmail.utils';
-import crypto from 'crypto';
 import { passwordResetPass } from '../helper/joiSchemaRegister.helper';
 import { getInfoData } from '../utils/getInfoData.utils';
 import { QueryOption } from '../types/QueryOption.type';
@@ -71,16 +69,16 @@ const createAllToken = async (account: any) => {
 };
 
 const dataResponseClientWhenLogin = async (account: any, user: any) => {
-  const accountData = await lodash.omit(account.toObject(), [
-    '_id',
-    'role',
-    'password',
-    'passwordChangeAt',
-    'passwordResetToken',
-    'passwordResetExpires',
-    'refreshToken',
-    'user',
-  ]);
+  // const accountData = await lodash.omit(account.toObject(), [
+  //   '_id',
+  //   'role',
+  //   'password',
+  //   'passwordChangeAt',
+  //   'passwordResetToken',
+  //   'passwordResetExpires',
+  //   'refreshToken',
+  //   'user',
+  // ]);
   const { accessToken, refreshToken } = await createAllToken(account);
   const userData = {
     username: lodash.get(user, 'username', 'no data'),
@@ -201,6 +199,7 @@ const loginService = async (data: any) => {
       };
     }
   } catch (error: any) {
+    console.error('Login error:', error);
     return {
       success: false,
       message: 'invalid credential',
@@ -351,12 +350,12 @@ export const resetPassService = async (req: any) => {
 const getAllAccountByUserIdService = async (userId: string) => {
   try {
     let result = { email: '', authenWith: [] as number[] };
-    const Accounts = await Account.find({ user: userId });
-    const data = Accounts.map((account) => {
-      if (!result.email) result.email = account.email;
-      result.authenWith.push(account.authenWith);
-      getInfoData({ fileds: ['email', 'authenWith'], object: account });
-    });
+    // const Accounts = await Account.find({ user: userId });
+    // const data = Accounts.map((account) => {
+    //   if (!result.email) result.email = account.email;
+    //   result.authenWith.push(account.authenWith);
+    //   getInfoData({ fileds: ['email', 'authenWith'], object: account });
+    // });
     return result;
   } catch (error: any) {
     throw new Error(error.message);
@@ -401,7 +400,7 @@ export const getAllAccountAndUserService = async (queryOption: QueryOption) => {
     const result = Array.from(emailMap.values());
 
     const totalAccounts = await Account.countDocuments({ isDeleted: false });
-    const totalPages = Math.ceil(totalAccounts / limit);
+    // const totalPages = Math.ceil(totalAccounts / limit);
 
     return {
       data: result,

@@ -5,7 +5,6 @@ import {
   editProfileByUserIdController,
   getAllFriendsOfUserByTypeController,
   getAllUserController,
-  getAllUserForAdminController,
   getChurnUserRateController,
   getCurrentUser,
   getDetailUserByIdController,
@@ -21,7 +20,6 @@ import {
 import { ApiUsers } from '../enums/apiUser.enum';
 import { isAdmin, isAll, isUser } from '../middlewares/verify_roles';
 import uploadCloud from '../config/cloudinary';
-import { getTopProblemSolversController } from '../controllers/problem.controller';
 const router = Router();
 
 //------------------------------------------------------------ADMIN-------------------------------------------------------------------

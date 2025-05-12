@@ -2,12 +2,10 @@ import Router from 'express';
 import {
   createPostController,
   deletePostByIdController,
-  editPostByIdController,
   getPostByIdController,
   getPostsByUserIdController,
   getPostsWithCategoryIdAndTagsController,
   getPostsController,
-  searchPostWithCategoryIdController,
   sharePostToProfileController,
   votePostController,
   resolvePostByUserIdController,

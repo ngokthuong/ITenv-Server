@@ -1,5 +1,5 @@
 import asyncHandler from 'express-async-handler';
-import Problem, { IProblem, ITestCase } from '../models/problem';
+import Problem, { IProblem } from '../models/problem';
 import { ResponseType } from '../types/Response.type';
 import {
   AverageProblemsPerUserService,
@@ -13,9 +13,8 @@ import {
   getTotalActiveProblemsService,
   getTotalProblemsService,
   insertProblems,
-  submit,
   upSertProblemService,
-  runAndSubmitCodeService,
+  runOrSubmitCodeService,
 } from '../services/problem.service';
 import { checkSubmissionStatus, runCode, submissionDetail } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
@@ -25,8 +24,8 @@ import submission from '../models/submission';
 import { SubmitType } from '../types/SubmitType';
 import Docker from 'dockerode';
 import { CodeActionType } from '../enums/CodeAction.enum';
-const docker = new Docker();
-const TIMEOUT = 2000;
+// const docker = new Docker();
+// const TIMEOUT = 2000;
 export const insertProblemsController = asyncHandler(async (req: any, res: any) => {
   try {
     await insertProblems();
@@ -67,7 +66,7 @@ export const getSingleProblem = asyncHandler(async (req: any, res: any) => {
     };
     return res.status(200).json(response);
   } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' + error });
   }
 });
 
@@ -80,8 +79,9 @@ export const commentController = asyncHandler(async (req: any, res: any) => {
       { $push: { comment: comment } },
       { new: true },
     );
+    return res.status(200).json(problem);
   } catch (error) {
-    console.log(error);
+    throw new Error('Error updating comment: ' + error);
   }
 });
 
@@ -133,101 +133,119 @@ export const runCodeController = asyncHandler(async (req: any, res: any) => {
   }
 });
 
-async function ensureImageExists(image: string): Promise<void> {
-  const images = await docker.listImages();
-  const exists = images.some((img) => img.RepoTags?.includes(image));
+// async function ensureImageExists(image: string): Promise<void> {
+//   const images = await docker.listImages();
+//   const exists = images.some((img) => img.RepoTags?.includes(image));
 
-  if (!exists) {
-    await new Promise<void>((resolve, reject) => {
-      docker.pull(image, (err: Error | null, stream: NodeJS.ReadableStream) => {
-        if (err) return reject(err);
-        docker.modem.followProgress(stream, onFinished);
-        function onFinished(err: Error | null) {
-          if (err) return reject(err);
-          resolve();
-        }
-      });
-    });
-  }
-}
+//   if (!exists) {
+//     await new Promise<void>((resolve, reject) => {
+//       docker.pull(image, (err: Error | null, stream: NodeJS.ReadableStream) => {
+//         if (err) return reject(err);
+//         docker.modem.followProgress(stream, onFinished);
+//         function onFinished(err: Error | null) {
+//           if (err) return reject(err);
+//           resolve();
+//         }
+//       });
+//     });
+//   }
+// }
 
-export const runCodeControllerNew = async (req: AuthRequest, res: any) => {
+export const runCodeControllerRefactor = async (req: AuthRequest, res: any) => {
   const { lang, typed_code }: SubmitType = req.body;
   const { name: titleSlug } = req.params;
   if (!titleSlug || !lang || !typed_code) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
-  const result = await runAndSubmitCodeService(lang, typed_code, titleSlug, CodeActionType.RUNCODE);
+  const result = await runOrSubmitCodeService(lang, typed_code, titleSlug, CodeActionType.RUNCODE);
   return res.json({
     success: result?.run_success,
     data: result,
   });
 };
 
-export const submitProblemController = asyncHandler(async (req: AuthRequest, res: any) => {
-  const { lang, question_id, typed_code } = req.body;
+export const submitProblemController = async (req: AuthRequest, res: any) => {
+  const { lang, typed_code }: SubmitType = req.body;
   const { name: titleSlug } = req.params;
-  const { userId } = req.user!;
-  if (!titleSlug || !lang || !question_id || !typed_code) {
+  if (!titleSlug || !lang || !typed_code) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
+  const result = await runOrSubmitCodeService(
+    lang,
+    typed_code,
+    titleSlug,
+    CodeActionType.SUBMITCODE,
+  );
+  return res.json({
+    success: result?.run_success,
+    data: result,
+  });
+};
 
-  if (!process.env.CSRF_TOKEN || !process.env.LEETCODE_SESSION) {
-    return res.status(500).json({ message: 'Missing environment variables.' });
-  }
-  try {
-    const submissionBody: SubmissionBody = {
-      lang,
-      typed_code,
-      question_id,
-    };
-    const response = await submit(titleSlug, submissionBody);
-    const submissionId = response?.data?.submission_id;
-    let status = await checkSubmissionStatus(submissionId, titleSlug);
-    const maxRetries = 60;
-    let retryCount = 0;
-    do {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
-      status = await checkSubmissionStatus(submissionId, titleSlug);
-      retryCount += 1;
-    } while (
-      (status?.data?.state === 'PENDING' || status?.data?.state === 'STARTED') &&
-      retryCount < maxRetries
-    );
+// export const submitProblemController = asyncHandler(async (req: AuthRequest, res: any) => {
+//   const { lang, question_id, typed_code } = req.body;
+//   const { name: titleSlug } = req.params;
+//   const { userId } = req.user!;
+//   if (!titleSlug || !lang || !question_id || !typed_code) {
+//     return res.status(400).json({ message: 'All fields are required.' });
+//   }
 
-    if (retryCount >= maxRetries) {
-      return res.status(408).json({ message: 'Submission status check timed out.' });
-    }
-    const submissionDetailResponse = await submissionDetail(submissionId);
-    if (!submissionDetailResponse)
-      return res.status(400).json({ success: false, message: 'Submission detail not found' });
-    const problem = await Problem.findOne({ slug: titleSlug });
-    await submission.create({
-      problem: problem?._id,
-      submitBy: userId,
-      submissionLeetcodeId: submissionId,
-      isAccepted:
-        !submissionDetailResponse?.data?.data?.submissionDetails?.runtimeError &&
-        !submissionDetailResponse?.data?.data?.submissionDetails?.compileError &&
-        submissionDetailResponse?.data?.data?.submissionDetails?.totalCorrect ===
-          submissionDetailResponse?.data?.data?.submissionDetails?.totalTestcases
-          ? true
-          : false,
-    });
+//   if (!process.env.CSRF_TOKEN || !process.env.LEETCODE_SESSION) {
+//     return res.status(500).json({ message: 'Missing environment variables.' });
+//   }
+//   try {
+//     const submissionBody: SubmissionBody = {
+//       lang,
+//       typed_code,
+//       question_id,
+//     };
+//     const response = await submit(titleSlug, submissionBody);
+//     const submissionId = response?.data?.submission_id;
+//     let status = await checkSubmissionStatus(submissionId, titleSlug);
+//     const maxRetries = 60;
+//     let retryCount = 0;
+//     do {
+//       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
+//       status = await checkSubmissionStatus(submissionId, titleSlug);
+//       retryCount += 1;
+//     } while (
+//       (status?.data?.state === 'PENDING' || status?.data?.state === 'STARTED') &&
+//       retryCount < maxRetries
+//     );
 
-    return res.status(200).json({ success: true, data: status?.data });
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      res.status(error.response?.status || 500).json({
-        message: error.response?.data || 'An error occurred while submitting the problem.',
-      });
-    } else {
-      res.status(500).json({
-        message: 'An unexpected error occurred.',
-      });
-    }
-  }
-});
+//     if (retryCount >= maxRetries) {
+//       return res.status(408).json({ message: 'Submission status check timed out.' });
+//     }
+//     const submissionDetailResponse = await submissionDetail(submissionId);
+//     if (!submissionDetailResponse)
+//       return res.status(400).json({ success: false, message: 'Submission detail not found' });
+//     const problem = await Problem.findOne({ slug: titleSlug });
+//     await submission.create({
+//       problem: problem?._id,
+//       submitBy: userId,
+//       submissionLeetcodeId: submissionId,
+//       isAccepted:
+//         !submissionDetailResponse?.data?.data?.submissionDetails?.runtimeError &&
+//         !submissionDetailResponse?.data?.data?.submissionDetails?.compileError &&
+//         submissionDetailResponse?.data?.data?.submissionDetails?.totalCorrect ===
+//           submissionDetailResponse?.data?.data?.submissionDetails?.totalTestcases
+//           ? true
+//           : false,
+//     });
+
+//     return res.status(200).json({ success: true, data: status?.data });
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       res.status(error.response?.status || 500).json({
+//         message: error.response?.data || 'An error occurred while submitting the problem.',
+//       });
+//     } else {
+//       res.status(500).json({
+//         message: 'An unexpected error occurred.',
+//       });
+//     }
+//   }
+// });
 
 export const getDetailSubmissionController = asyncHandler(async (req: any, res: any) => {
   const { submissionId } = req.params;
@@ -240,7 +258,9 @@ export const getDetailSubmissionController = asyncHandler(async (req: any, res: 
         .status(submissionDetailResponse?.status)
         .json({ success: true, data: submissionDetailResponse?.data?.data?.submissionDetails });
   } catch (error) {
-    res.status(500).json({ message: 'An error occurred while fetching submission detail.' });
+    res
+      .status(500)
+      .json({ message: 'An error occurred while fetching submission detail.' + error });
   }
 });
 
@@ -252,7 +272,7 @@ export const getSubmissionsByUserIdController = asyncHandler(async (req: any, re
       .populate('problem', '_id title slug');
     res.status(200).json({ success: true, data: submissions });
   } catch (error) {
-    res.status(500).json({ message: 'An error occurred while fetching submissions.' });
+    res.status(500).json({ message: 'An error occurred while fetching submissions.' + error });
   }
 });
 export const getProblemActivitiesController = asyncHandler(async (req: any, res: any) => {

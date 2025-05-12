@@ -1,4 +1,4 @@
-import Joi, { any } from 'joi';
+import Joi from 'joi';
 
 const allowedDomains = [
   'gmail.com',
@@ -30,13 +30,13 @@ export const validateCreatePost = Joi.object({
 }).error((errors) => {
   errors.forEach((err: any) => {
     if (err.context?.key === 'title') {
-      console.log("Validation Error in 'title':", err.message);
+      throw new Error("Validation Error in 'title': " + err.message);
     } else if (err.context?.key === 'content') {
-      console.log("Validation Error in 'content':", err.message);
+      throw new Error("Validation Error in 'content': " + err.message);
     } else if (err.context?.key === 'categoryId') {
-      console.log("Validation Error in 'categoryId':", err.message);
+      throw new Error("Validation Error in 'categoryId': " + err.message);
     } else {
-      console.log('Other Validation Error:', err.message);
+      throw new Error('Other Validation Error: ' + err.message);
     }
   });
   return errors; // Quan trọng: phải return lại errors để Joi tiếp tục xử lý

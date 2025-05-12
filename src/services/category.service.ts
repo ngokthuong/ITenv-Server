@@ -1,4 +1,3 @@
-import { boolean } from 'joi';
 import { EnumTag } from '../enums/schemaTag.enum';
 import category from '../models/category';
 import post from '../models/post';

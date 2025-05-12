@@ -1,16 +1,11 @@
-import { find } from 'lodash';
 import post from '../models/post';
 import { findUserByIdService } from './user.service';
 import { QueryOption } from '../types/QueryOption.type';
 import mongoose from 'mongoose';
 import { updateVoteStatus } from './vote.service';
 import share from '../models/share';
-import message from '../models/message';
 import comment from '../models/comment';
-import { getInfoData } from '../utils/getInfoData.utils';
 import { Constants } from '../enums/constants.enum';
-import { any } from 'joi';
-import { startOfDay } from 'date-fns';
 // USER + ADMIN
 export const createPostService = async (data: any) => {
   try {
@@ -317,7 +312,7 @@ const findPostWithViewsOrVotesService = async (
   }
 };
 
-export const deletePostServise = async (postId: string, postedBy: string) => {
+export const deletePostServise = async (postId: string) => {
   try {
     return await post.findOneAndUpdate(
       { _id: postId },

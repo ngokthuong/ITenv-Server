@@ -12,11 +12,9 @@ export const getConversationsOfUserByUserIdService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = queryOption?.pageSize || 20;
-    const sortField = queryOption.sortField || 'createdAt';
-    const sortOrder = 'ASC';
     const skip = (page - 1) * limit;
 
-    const options = { sort: [['lastMessage?.createdAt', 'asc']] };
+    // const options = { sort: [['lastMessage?.createdAt', 'asc']] };
     const totalCount = await conversation.countDocuments({
       participants: userId,
       isDeleted: false,

@@ -391,7 +391,9 @@ export const userDemographicsService = async () => {
     });
 
     return ageGroups;
-  } catch (error: any) {}
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
 };
 
 const calculateAge = async (dob: Date) => {

@@ -1,4 +1,3 @@
-import { Response, Request } from 'express';
 import asyncHandler from 'express-async-handler';
 import { AuthRequest } from '../types/AuthRequest.type';
 import Post from '../models/post';
@@ -122,7 +121,7 @@ export const votePostController = asyncHandler(async (req: AuthRequest, res: any
       return res.status(400).json({ success: false, message: 'failed' });
     }
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'failed' });
+    return res.status(500).json({ success: false, message: 'failed' + error });
   }
 });
 
@@ -176,7 +175,7 @@ export const deletePostByIdController = asyncHandler(async (req: AuthRequest, re
     const postedBy = req?.user?.userId;
     const postId = req.params.postId;
     if (postedBy && postId) {
-      const deletePost = await deletePostServise(postId, postedBy);
+      const deletePost = await deletePostServise(postId);
       const response: ResponseType<typeof deletePost> = {
         success: true,
         data: deletePost,

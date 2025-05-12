@@ -1,7 +1,6 @@
 import Otp from '../models/otp';
 import otpGenerator from 'otp-generator';
 import { sendEmail } from '../utils/sendEmail.utils';
-import { any } from 'joi';
 
 function generateOTP() {
   return otpGenerator.generate(6, {

@@ -1,5 +1,4 @@
 import { Socket } from 'socket.io';
-import uploader, { cloudinaryConfig } from '../config/cloudinary';
 import { IMessage } from '../models/message';
 import { IUser } from '../models/user';
 import {
@@ -27,7 +26,6 @@ export const socketFunctions = (socket: Socket, user: IUser) => {
   //       );
   //       messageInfo.fileUrl = uploadedFiles.map(file=>file.url);
   //       delete messageInfo.file;
-  //       console.log(messageInfo)
   //     } catch (error) {
   //       console.error('File upload failed:', error);
   //       return next(new Error('File upload failed'));

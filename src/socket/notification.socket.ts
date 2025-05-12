@@ -2,7 +2,7 @@ import { Socket } from 'socket.io';
 import { NotificationTypeEnum } from '../enums/notification.enum';
 import notification from '../models/notification';
 import post from '../models/post';
-import user, { IUser } from '../models/user';
+import { IUser } from '../models/user';
 import { NotificationRequestType } from '../types/NotificationType';
 import comment from '../models/comment';
 import friend from '../models/friend';
@@ -13,13 +13,12 @@ export const notifySocket = async (
   notificationReq: NotificationRequestType,
 ) => {
   try {
-    console.log('notification socket', notificationReq);
     let newNotification;
 
     switch (notificationReq.notificationType) {
       case NotificationTypeEnum.VOTE_POST:
       case NotificationTypeEnum.DOWNVOTE_POST:
-      case NotificationTypeEnum.SHARE_POST:
+      case NotificationTypeEnum.SHARE_POST: {
         const getPost = await post.findById(notificationReq.postId);
         if (getPost) {
           const postById = getPost.postedBy;
@@ -43,9 +42,9 @@ export const notifySocket = async (
           }
         }
         break;
-
+      }
       case NotificationTypeEnum.VOTE_COMMENT:
-      case NotificationTypeEnum.DOWNVOTE_COMMENT:
+      case NotificationTypeEnum.DOWNVOTE_COMMENT: {
         const getComment = await comment.findById(notificationReq.commentId);
         if (getComment) {
           const commentBy = getComment.commentedBy;
@@ -68,8 +67,8 @@ export const notifySocket = async (
           }
         }
         break;
-
-      case NotificationTypeEnum.COMMENT_POST:
+      }
+      case NotificationTypeEnum.COMMENT_POST: {
         const postForComment = await post.findById(notificationReq.postId);
         if (postForComment) {
           const postOwner = postForComment.postedBy;
@@ -87,8 +86,8 @@ export const notifySocket = async (
           }
         }
         break;
-
-      case NotificationTypeEnum.REP_COMMENT:
+      }
+      case NotificationTypeEnum.REP_COMMENT: {
         const getCommentToReply = await comment.findById(notificationReq.commentId);
         if (getCommentToReply) {
           const commentOwner = getCommentToReply.commentedBy;
@@ -107,10 +106,9 @@ export const notifySocket = async (
           }
         }
         break;
-
+      }
       case NotificationTypeEnum.ACCEPT_FRIEND_REQUEST:
-      case NotificationTypeEnum.REJECT_FRIEND_REQUEST:
-        console.log(notificationReq);
+      case NotificationTypeEnum.REJECT_FRIEND_REQUEST: {
         if (!notificationReq?.relationshipId) return;
         const relationship = await friend.findById(notificationReq?.relationshipId);
         if (!relationship) return;
@@ -131,8 +129,8 @@ export const notifySocket = async (
           socket.to(receiverId.toString()).emit('receive_notification_friend', newNotification);
         }
         break;
-
-      case NotificationTypeEnum.ADMIN_NOTIFICATION:
+      }
+      case NotificationTypeEnum.ADMIN_NOTIFICATION: {
         newNotification = new notification({
           postedBy: user._id,
           notificationType: notificationReq.notificationType,
@@ -150,9 +148,10 @@ export const notifySocket = async (
             socket.to(receiverId.toString()).emit('receive_notification', newNotification);
           }
         }
-
+      }
       default:
         console.error('Unknown notification type');
+        break;
     }
   } catch (error) {
     console.error('Error handling notification:', error);

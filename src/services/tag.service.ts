@@ -1,6 +1,6 @@
 import tag from '../models/tag';
 import { slugify } from '../utils/slugify.utils';
-export const getAllTagsService = async (req: any) => {
+export const getAllTagsService = async () => {
   try {
     const tags = await tag.find({ isDeleted: false });
     return tags;

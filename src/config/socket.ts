@@ -11,7 +11,7 @@ const updateUserStatus = async (userId: mongoose.Types.ObjectId, socket: Socket)
     await User.findByIdAndUpdate(userId, { status: 1 });
     console.log(`User connected: ${userId}`);
   } catch (err) {
-    console.error('Error updating socket ID:', err);
+    throw new Error('Error updating socket ID:' + err);
     socket.disconnect(true);
   }
 };

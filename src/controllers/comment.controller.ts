@@ -21,7 +21,7 @@ export const getCommentsByPostIdController = asyncHandler(async (req: any, res: 
       total: comments.length,
     });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error' + error });
   }
 });
 
@@ -49,7 +49,7 @@ export const postCommentController = asyncHandler(async (req: AuthRequest, res: 
       data: newComment,
     });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error' + error });
   }
 });
 
@@ -64,7 +64,7 @@ export const voteCommentController = asyncHandler(async (req: AuthRequest, res: 
       return res.status(400).json({ success: false, message: 'failed' });
     }
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'failed' });
+    return res.status(500).json({ success: false, message: 'failed' + error });
   }
 });
 
@@ -114,7 +114,7 @@ export const editCommentByIdController = asyncHandler(async (req: AuthRequest, r
   } catch (error: any) {
     const response: ResponseType<null> = {
       success: false,
-      message: 'Failed to edit comment',
+      message: 'Failed to edit comment' + error,
     };
     return res.status(500).json(response);
   }

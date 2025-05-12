@@ -9,7 +9,7 @@ export const getNotificationByUserIdService = async (
     const limit = pageSize;
     const skip = (page - 1) * limit;
     const sortField = 'createdAt';
-    const sortOrder = 'ASC';
+    // const sortOrder = 'ASC';
     //  const query = {
     //    $or: [{ receivers: { $in: [userId] } }, { isGlobal: true }],
     //    isDeleted: false,

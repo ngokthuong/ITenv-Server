@@ -52,7 +52,7 @@ const updateFriendRequestExistedService = async (sendBy: string, receiver: strin
       .populate('receiver sendBy', '_id username avatar');
     return result;
   } catch (error: any) {
-    throw new Error('Failed to update friend request');
+    throw new Error('Failed to update existing friend request' + error.message);
   }
 };
 
@@ -66,7 +66,7 @@ const checkFriendRequestExisted = async (sendBy: string, receiver: string) => {
     });
     return result;
   } catch (error: any) {
-    throw new Error('Failed to check existing friend request');
+    throw new Error('Failed to check existing friend request' + error.message);
   }
 };
 
@@ -169,7 +169,9 @@ export const getFriendsByUserIdService = async (userId: string, queryOption: Que
     });
 
     return { friends, total };
-  } catch (error) {
+  } catch (error: any) {
+    console.error(error.message);
+    // Handle error and return an empty array or appropriate response
     return { friends: [], total: 0 };
   }
 };
@@ -233,7 +235,6 @@ export const getFriendRequestByUserIdService = async (
   try {
     const page = queryOption?.page || 1;
     const limit = 20;
-    const search = queryOption?.search || '';
     const sortField = 'createdAt';
     const skip = (page - 1) * limit;
     const result = await friend

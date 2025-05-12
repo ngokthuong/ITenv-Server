@@ -8,10 +8,6 @@ import {
   seenMessageByUserIdService,
 } from '../services/message.service';
 import { ResponseType } from '../types/Response.type';
-import {
-  createConversationForTwoPeopleByUserService,
-  findConversationByIdService,
-} from '../services/conversation.service';
 import { FilesObject, UploadedFile } from '../types/UploadFileType.type';
 
 // have pageable
@@ -110,7 +106,7 @@ export const getMyConversationWithUserController = asyncHandler(
       const result = await getMyConversationWithUserService(userId!, friendId!, queryOptions);
       res.status(200).json({ success: true, data: result?.result, total: result?.total || 0 });
     } catch (error) {
-      res.status(500).json({ success: false, message: 'Failed to get conversation' });
+      res.status(500).json({ success: false, message: 'Failed to get conversation' + error });
     }
   },
 );

@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { EnumMessage } from '../enums/schemaMessage.enum';
 
 export interface IMessage extends Document {
   conversationId: mongoose.Types.ObjectId;

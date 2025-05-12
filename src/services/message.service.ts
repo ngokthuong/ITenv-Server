@@ -1,9 +1,7 @@
-import uploadCloud from '../config/cloudinary';
 import conversation from '../models/conversation';
 import message from '../models/message';
 import { QueryOption } from '../types/QueryOption.type';
 import {
-  checkListFriendService,
   createConversationForTwoPeopleByUserService,
   findConversationByIdService,
   updateLastmessByConversationIdService,
@@ -115,7 +113,6 @@ export const addMessForConvertationByUserIdService = async (
     await updateLastmessByConversationIdService(conversationId, newMess._id as string);
     const conversationObject = getConversation ? getConversation.toObject() : null;
     const newMessObject = newMess.toObject();
-    console.log({ ...newMessObject, conversation: conversationObject });
     return { ...newMessObject, conversation: conversationObject };
   } catch (error: any) {
     throw new Error(error.message);

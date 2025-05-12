@@ -1,6 +1,5 @@
 import Router from 'express';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
-import { ApiAuth } from '../enums/apiAuth.enum';
 import {
   createCategoryController,
   deleteCategoryController,

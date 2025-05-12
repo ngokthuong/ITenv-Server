@@ -225,7 +225,7 @@ export const runCode = async (
     );
     return response;
   } catch (error) {
-    throw error;
+    throw new Error('Error in runCode: ' + error);
   }
 };
 
@@ -251,7 +251,7 @@ export const submit = async (name: string, submissionBody: SubmissionBody) => {
     );
     return response;
   } catch (error) {
-    throw error;
+    throw new Error('Error in submit: ' + error);
   }
 };
 
@@ -613,7 +613,104 @@ async function ensureImageExists(image: string): Promise<void> {
   }
 }
 
-function extractErrorSnippet(errorOutput: string, lang: string): string {
+// async function startDocker(
+//   lang: string,
+//   typed_code: string,
+// ): Promise<{shortErrorLine: string, errorOutput: string, output: string; memory: number }> {
+//   let image = '';
+//   let filename = '';
+//   let runCmd: string[] = [];
+
+//   if (lang === 'javascript') {
+//     image = 'node:18-alpine';
+//     filename = 'main.js';
+//     runCmd = ['node', `/src/temp/${filename}`];
+//   } else if (lang === 'python') {
+//     image = 'python:3.11-alpine';
+//     filename = 'main.py';
+//     runCmd = ['python3', `/src/temp/${filename}`];
+//   } else {
+//     throw new Error(`Unsupported language: ${lang}`);
+//   }
+
+//   await ensureImageExists(image);
+
+//   const srcDir = path.join(process.cwd(), 'src', 'temp');
+//   const filePath = path.join(srcDir, filename);
+//   fs.mkdirSync(srcDir, { recursive: true });
+//   fs.writeFileSync(filePath, typed_code);
+
+//   const container = await docker.createContainer({
+//     Image: image,
+//     Cmd: runCmd,
+//     WorkingDir: '/src',
+//     AttachStdout: true,
+//     AttachStderr: true,
+//     Tty: false,
+//     Volumes: { '/src': {} },
+//     HostConfig: {
+//       Binds: [`${process.cwd()}/src:/src`],
+//       Memory: 1024 * 1024 * 1024,
+//       CpuShares: 512,
+//     },
+//   });
+
+//   const statsStream = await container.stats({ stream: true });
+//   let peakMemory = 0;
+
+// statsStream.on('data', (chunk) => {
+//   const stats = JSON.parse(chunk.toString());
+//   const mem = stats.memory_stats?.usage ?? 0;
+//   if (mem > peakMemory) {
+//     peakMemory = mem;
+//   }
+// });
+
+//   const stream = await container.attach({
+//     stream: true,
+//     stdout: true,
+//     stderr: true,
+//   });
+
+//   const stdout = new PassThrough();
+//   const stderr = new PassThrough();
+//   container.modem.demuxStream(stream, stdout, stderr);
+
+//   let output = '';
+//   let errorOutput = '';
+
+//   stdout.on('data', async (data) => {
+//     output += data.toString();
+//   });
+
+//   stderr.on('data', async (data) => {
+//     errorOutput += data.toString();
+//   });
+//   // Wait for the container to finish executing
+
+//   const timeoutPromise = new Promise<void>((_, reject) =>
+//     setTimeout(() => reject(new Error('⏰ Code execution timed out')), 2000),
+//   );
+//   let shortErrorLine: string = '';
+//   const streamEndPromise = new Promise<void>((resolve, reject) => {
+//     stream.on('end', () => {
+//       if (errorOutput) {
+//         const match =  errorOutput.match(/(\/src\/temp\/main\.(js|ts|py):.*?\n(?:.*\n)*?SyntaxError:.*?\n)/);
+//          shortErrorLine = match ? match[0] : 'Unknown line';
+//         resolve();
+//       } else {
+//         resolve();
+//       }
+//     });
+//   });
+
+//   await Promise.race([streamEndPromise, timeoutPromise]);
+//   const stats = await container.stats({ stream: false });
+//   await container.remove({ force: true });
+//   return { shortErrorLine, errorOutput, output, memory: peakMemory };
+// }
+
+function extractErrorSnippet(errorOutput: string, lang: string): string | null {
   let match: RegExpMatchArray | null = null;
 
   // Map ngôn ngữ -> regex ưu tiên
@@ -639,7 +736,13 @@ function extractErrorSnippet(errorOutput: string, lang: string): string {
 async function startDocker(
   lang: string,
   typed_code: string,
-): Promise<{ shortErrorLine: string; errorOutput: string; output: string; memory: number }> {
+): Promise<{
+  shortErrorLine: string;
+  errorOutput: string;
+  output: string;
+  memory: number;
+  runTime: number;
+}> {
   let image = '';
   let filename = '';
   let runCmd: string[] = [];
@@ -687,7 +790,7 @@ async function startDocker(
       peakMemory = mem;
     }
   });
-
+  const startTime = Date.now();
   await container.start();
 
   const stream = await container.attach({
@@ -729,8 +832,10 @@ async function startDocker(
   await Promise.race([streamEndPromise, timeoutPromise]);
 
   await container.remove({ force: true });
+  const endTime = Date.now();
+  const runTime = endTime - startTime;
 
-  return { shortErrorLine, errorOutput, output, memory: peakMemory };
+  return { shortErrorLine, errorOutput, output, memory: peakMemory, runTime };
 }
 
 function generateRunnerCode(
@@ -823,6 +928,13 @@ type ParsedTestCase = {
   output: any;
 };
 
+/**
+ * Parses test cases from the database.
+ * @param testCases - The test cases to parse.
+ * @param isHidden - Whether to include hidden test cases.
+ * @returns An array of parsed test cases.
+ * Get input and output from test case
+ */
 function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCase[] {
   return testCases
     .filter((test) => isHidden || !test.isHidden)
@@ -839,12 +951,50 @@ function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCa
 
       return {
         input: [first, second],
-        output, // output là string
+        output, // output -> string
       };
     });
 }
 
-export const runAndSubmitCodeService = async (
+type Language = 'javascript' | 'typescript' | 'python' | 'java' | 'csharp' | 'cpp' | 'c';
+
+export function extractFunctionName(userCode: string, lang: Language): string | null {
+  const patterns: Record<Language, RegExp[]> = {
+    javascript: [
+      /function\s+([a-zA-Z_$][\w$]*)\s*\(/,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,
+      /let\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,
+      /var\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,
+      /let\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,
+      /var\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,
+      /([a-zA-Z_$][\w$]*)\s*:\s*function\s*\(/,
+      /([a-zA-Z_$][\w$]*)\s*:\s*\(?.*?\)?\s*=>/,
+      /class\s+[a-zA-Z_$][\w$]*\s*{[^}]*?\b([a-zA-Z_$][\w$]*)\s*\(.*?\)\s*{/,
+      /static\s+([a-zA-Z_$][\w$]*)\s*\(/,
+    ],
+    typescript: [/function\s+([a-zA-Z_$][\w$]*)\s*\(/, /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(/],
+    python: [/def\s+([a-zA-Z_][\w]*)\s*\(/],
+    java: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/],
+    csharp: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/],
+    cpp: [/(?:[\w:*&]+)\s+([a-zA-Z_][\w]*)\s*\(/],
+    c: [/(?:[\w\s*]+)\s+([a-zA-Z_][\w]*)\s*\(/],
+  };
+
+  const langKey = lang.toLowerCase() as Language;
+  const langPatterns = patterns[langKey];
+
+  if (!langPatterns) return null;
+
+  for (const regex of langPatterns) {
+    const match = userCode.match(regex);
+    if (match) return match[1];
+  }
+
+  return null;
+}
+
+export const runOrSubmitCodeService = async (
   lang: string,
   typed_code: string,
   titleSlug: string,
@@ -855,42 +1005,44 @@ export const runAndSubmitCodeService = async (
     let testInDb = problem?.testCase;
     if (!testInDb) return;
     // isHidden false -> get test case with isHidden = false
+    // parse test case -> get input and output
     const testResult = parseTestCases(
       testInDb,
       codeActionType === CodeActionType.RUNCODE ? false : true,
     );
+
     if (!testResult) return;
     const testCases = testResult.map((tc) => ({
       input: tc.input,
       output: tc.output,
     }));
-    const problemFunctionName = 'fourSum';
-    const runnerCode = generateRunnerCode(typed_code, problemFunctionName, testCases, lang);
-    const { shortErrorLine, errorOutput, output, memory } = await startDocker(lang, runnerCode);
+    // get function name from typed code
+    const problemFunctionName = extractFunctionName(typed_code, lang as Language);
+    // generate runner code
+    const runnerCode = generateRunnerCode(
+      typed_code,
+      problemFunctionName as string,
+      testCases,
+      lang,
+    );
+    // run code -> use docker from docker hub -> start -> create image -> run
+    const { shortErrorLine, errorOutput, output, runTime } = await startDocker(lang, runnerCode);
     let match = extractErrorSnippet(output, lang);
+    const memoryUsed = process.memoryUsage().rss; // in bytes
+
     if (errorOutput || shortErrorLine) {
       match = errorOutput ? errorOutput : shortErrorLine;
     }
     if (match) {
       if (match) {
-        // const errorLines = errorOutput
-        //   ? errorOutput
-        //   : output
-        //       .split('\n')
-        //       .filter(
-        //         (line) =>
-        //           line.includes('ReferenceError') ||
-        //           line.includes('SyntaxError') ||
-        //           line.includes('TypeError'),
-        //       );
         const runCodeError: runCodeErrorType = {
           status_code: 20,
           lang,
           run_success: false,
           compile_error: `${shortErrorLine}` || 'Unknown error',
           full_compile_error: errorOutput ? errorOutput : output,
-          status_runtime: 'N/A',
-          memory: 0,
+          status_runtime: `loading`,
+          memory: memoryUsed,
           code_answer: [],
           code_output: [],
           std_output_list: [''],
@@ -918,10 +1070,9 @@ export const runAndSubmitCodeService = async (
     }
     const results = extractResultsFromOutput(outputArray);
     // code answer
-    const actualResults =
-      outputArray
-        .filter((line) => line.includes('got'))
-        .map((line) => line.split('got')[1].trim()) ?? [];
+    const actualResults = outputArray
+      .filter((line) => line.startsWith('RESULT:'))
+      .map((line) => line.split('RESULT:')[1].trim());
 
     let correctCount = 0;
     const expectedResults = testCases.map((t) => t.output);
@@ -936,13 +1087,12 @@ export const runAndSubmitCodeService = async (
       status_code: results.length === total ? 15 : 20,
       lang,
       run_success: true,
-      status_runtime: '0 ms',
-      memory: memory,
-      display_runtime: '0',
-      code_answer: actualResults,
+      status_runtime: `${runTime} ms`,
+      memory: memoryUsed,
+      display_runtime: `${runTime} ms`,
+      code_answer: results,
       code_output: results,
       std_output_list: [''],
-      // std_output_list: outputArray.slice(0, outputArray.length - 1),
       elapsed_time: 0,
       task_finish_time: Date.now(),
       task_name: problem?.title as string,
@@ -972,7 +1122,7 @@ export const runAndSubmitCodeService = async (
     };
 
     return runCodeResult;
-  } catch (error) {
-    console.log('run code errror.', error);
+  } catch (error: any) {
+    throw new Error(`Run or submit code failed: ${error.message}`);
   }
 };

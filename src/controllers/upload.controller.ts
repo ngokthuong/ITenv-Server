@@ -32,6 +32,6 @@ export const deleteImageController = async (req: any, res: any) => {
     }
     res.status(200).json({ success: true, message: 'Images deleted successfully!' });
   } catch (error) {
-    res.status(500).json({ message: 'Something went wrong!', success: false });
+    res.status(500).json({ message: 'Something went wrong!' + error, success: false });
   }
 };

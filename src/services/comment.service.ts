@@ -3,7 +3,6 @@ import Comment from '../models/comment';
 import post from '../models/post';
 import { updateVoteStatus } from './vote.service';
 import comment from '../models/comment';
-import { getInfoData } from '../utils/getInfoData.utils';
 
 // GET CMT ( ALL )
 const getChildrenComments = async (commentId: string) => {
@@ -113,7 +112,7 @@ export const deleteCommentService = async (commentId: string): Promise<boolean> 
 
     return deleteComment !== null;
   } catch (error: any) {
-    throw new Error('Failed to delete comment');
+    throw new Error('Failed to delete comment' + error.message);
   }
 };
 

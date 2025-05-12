@@ -8,7 +8,7 @@ import {
   voteCommentController,
 } from '../controllers/comment.controller';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
-import { isAll, isUser } from '../middlewares/verify_roles';
+import { isUser } from '../middlewares/verify_roles';
 
 const router = Router();
 

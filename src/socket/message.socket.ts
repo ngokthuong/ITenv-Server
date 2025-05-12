@@ -1,16 +1,9 @@
 import { Socket } from 'socket.io';
 import { IUser } from '../models/user';
 import { MessageRequestType } from '../types/MessageRequestType';
-import {
-  createConversationForTwoPeopleByUserService,
-  findConversationByIdService,
-  updateLastmessByConversationIdService,
-} from '../services/conversation.service';
-import {
-  postMessageToConversationService,
-  seenMessageByUserIdService,
-} from '../services/message.service';
-import message, { IMessage } from '../models/message';
+import { findConversationByIdService } from '../services/conversation.service';
+import { seenMessageByUserIdService } from '../services/message.service';
+import { IMessage } from '../models/message';
 import conversation from '../models/conversation';
 import notification from '../models/notification';
 import { NotificationTypeEnum } from '../enums/notification.enum';
@@ -28,7 +21,7 @@ export const messageSocket = async (
       });
     });
   } catch (error) {
-    console.log(error);
+    throw new Error('Error in message socket: ' + error);
   }
 };
 
@@ -45,7 +38,7 @@ export const seenMessage = async (socket: Socket, user: IUser, messageInfo: IMes
       });
     }
   } catch (error) {
-    console.log(error);
+    throw new Error('Error in seen message socket: ' + error);
   }
 };
 export const recallMessage = async (socket: Socket, user: IUser, messageInfo: IMessage) => {
@@ -55,7 +48,7 @@ export const recallMessage = async (socket: Socket, user: IUser, messageInfo: IM
       socket.to(participant._id.toString()).emit('recall_message', messageInfo);
     });
   } catch (error) {
-    console.log(error);
+    throw new Error('Error in recall message socket: ' + error);
   }
 };
 

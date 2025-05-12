@@ -3,7 +3,7 @@ import { ResponseType } from '../types/Response.type';
 
 export const getAllTagsController = async (req: any, res: any) => {
   try {
-    const tags = await getAllTagsService(req);
+    const tags = await getAllTagsService();
     const totalTags = tags.length;
     const response: ResponseType<typeof tags> = {
       success: true,
@@ -37,5 +37,3 @@ export const createTagController = async (req: any, res: any) => {
   };
   return res.status(400).json(response);
 };
-
-export const deleteTagController = async (req: any, res: any) => {};
