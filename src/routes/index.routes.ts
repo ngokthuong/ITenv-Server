@@ -12,6 +12,8 @@ import friendRouter from './friend.routes';
 import notificationRouter from './notification.routes';
 import messsageRouter from './message.routes';
 import conversationRouter from './conversation.routes';
+import codeSandboxRouter from './codesanbox.routes';
+
 const initRoutes = (app: Express) => {
   // API
   app.use('/api/accounts', authRouter);
@@ -26,6 +28,7 @@ const initRoutes = (app: Express) => {
   app.use('/api/notifications', notificationRouter);
   app.use('/api/messages', messsageRouter);
   app.use('/api/conversations', conversationRouter);
+  app.use('/api/codesandbox', codeSandboxRouter);
   //  ko tim dc api
   app.use(notFound);
   app.use(errHandler);

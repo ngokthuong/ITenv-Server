@@ -5,24 +5,24 @@ import { QueryOption } from '../types/QueryOption.type';
 
 export const createFriendRequest = async (data: any) => {
   try {
-    const { sendBy, receiver } = data;
+    const { sentBy, receiver } = data;
 
-    const existingFriendRequest = await checkFriendRequestExisted(sendBy, receiver);
+    const existingFriendRequest = await checkFriendRequestExisted(sentBy, receiver);
     if (existingFriendRequest) {
       if (existingFriendRequest.isDeleted) {
-        return await updateFriendRequestExistedService(sendBy, receiver);
+        return await updateFriendRequestExistedService(sentBy, receiver);
       } else {
         throw new Error('Friend request already exists!');
       }
     }
-
-    if (await checkFriendRequestToMyself(sendBy, receiver)) {
+    if (await checkFriendRequestToMyself(sentBy, receiver)) {
       throw new Error('Cannot send a friend request to yourself!');
     }
     const friendRequest = await friend.create(data);
+    console.log('friendRequest', friendRequest);
     const populatedFriendRequest = await friend
       .findById(friendRequest._id)
-      .populate({ path: 'sendBy receiver', select: '_id username avatar' });
+      .populate({ path: 'sentBy receiver', select: '_id username avatar' });
 
     return populatedFriendRequest;
   } catch (error: any) {
@@ -30,38 +30,38 @@ export const createFriendRequest = async (data: any) => {
   }
 };
 
-const updateFriendRequestExistedService = async (sendBy: string, receiver: string) => {
+const updateFriendRequestExistedService = async (sentBy: string, receiver: string) => {
   try {
     const result = await friend
       .findOneAndUpdate(
         {
           $or: [
-            { sendBy, receiver },
-            { sendBy: receiver, receiver: sendBy },
+            { sentBy, receiver },
+            { sentBy: receiver, receiver: sentBy },
           ],
         },
         {
           isDeleted: false,
-          sendBy,
+          sentBy,
           receiver,
           status: EnumFriend.TYPE_PENDING,
           createdAt: new Date(),
         },
         { new: true },
       )
-      .populate('receiver sendBy', '_id username avatar');
+      .populate('receiver sentBy', '_id username avatar');
     return result;
   } catch (error: any) {
     throw new Error('Failed to update existing friend request' + error.message);
   }
 };
 
-const checkFriendRequestExisted = async (sendBy: string, receiver: string) => {
+const checkFriendRequestExisted = async (sentBy: string, receiver: string) => {
   try {
     const result = await friend.findOne({
       $or: [
-        { sendBy, receiver },
-        { sendBy: receiver, receiver: sendBy },
+        { sentBy, receiver },
+        { sentBy: receiver, receiver: sentBy },
       ],
     });
     return result;
@@ -70,9 +70,9 @@ const checkFriendRequestExisted = async (sendBy: string, receiver: string) => {
   }
 };
 
-const checkFriendRequestToMyself = async (sendBy: string, receiver: string) => {
+const checkFriendRequestToMyself = async (sentBy: string, receiver: string) => {
   try {
-    if (sendBy === receiver) return true;
+    if (sentBy === receiver) return true;
     return false;
   } catch (error: any) {
     throw new Error(error.message);
@@ -85,7 +85,7 @@ export const acceptFriendRequestService = async (_id: string, userId: string) =>
       .findOneAndUpdate(
         {
           _id: _id,
-          $or: [{ sendBy: userId }, { receiver: userId }],
+          $or: [{ sentBy: userId }, { receiver: userId }],
         },
         {
           status: EnumFriend.TYPE_ACCEPT,
@@ -93,7 +93,7 @@ export const acceptFriendRequestService = async (_id: string, userId: string) =>
         },
         { new: true },
       )
-      .populate('sendBy receiver', '_id username avatar');
+      .populate('sentBy receiver', '_id username avatar');
     if (friendRequest) return friendRequest;
     else return null;
   } catch (error: any) {
@@ -106,7 +106,7 @@ export const rejectFriendRequestService = async (friendId: string, userId: strin
     return await friend.findOneAndUpdate(
       {
         _id: friendId,
-        $or: [{ sendBy: userId }, { receiver: userId }],
+        $or: [{ sentBy: userId }, { receiver: userId }],
       },
       { isDeleted: true },
       { new: true },
@@ -121,7 +121,7 @@ export const blockFriendRequestService = async (_id: string, blockBy: string) =>
     return await friend.findOneAndUpdate(
       {
         _id: _id,
-        $or: [{ sendBy: blockBy }, { receiver: blockBy }],
+        $or: [{ sentBy: blockBy }, { receiver: blockBy }],
       },
       { isBlockBy: blockBy, status: EnumFriend.TYPE_BLOCKED },
       { new: true },
@@ -139,7 +139,7 @@ export const getFriendsByUserIdService = async (userId: string, queryOption: Que
     const searchFilter = search
       ? {
           $or: [
-            { 'sendBy.username': { $regex: search, $options: 'i' } },
+            { 'sentBy.username': { $regex: search, $options: 'i' } },
             { 'receiver.username': { $regex: search, $options: 'i' } },
           ],
         }
@@ -148,13 +148,13 @@ export const getFriendsByUserIdService = async (userId: string, queryOption: Que
     // Fetch friends with pagination and search
     const friends = await friend
       .find({
-        $or: [{ sendBy: userId }, { receiver: userId }],
+        $or: [{ sentBy: userId }, { receiver: userId }],
         status: EnumFriend.TYPE_ACCEPT,
         isDeleted: false,
         ...searchFilter,
       })
       .populate({
-        path: 'sendBy receiver',
+        path: 'sentBy receiver',
         select: '_id username avatar',
       })
       .skip((page - 1) * pageSize)
@@ -162,7 +162,7 @@ export const getFriendsByUserIdService = async (userId: string, queryOption: Que
 
     // Total count for pagination
     const total = await friend.countDocuments({
-      $or: [{ sendBy: userId }, { receiver: userId }],
+      $or: [{ sentBy: userId }, { receiver: userId }],
       status: EnumFriend.TYPE_ACCEPT,
       isDeleted: false,
       ...searchFilter,
@@ -196,7 +196,7 @@ export const getFriendsOutsiteGroupChatService = async (
     const searchFilter = search
       ? {
           $or: [
-            { 'sendBy.username': { $regex: search, $options: 'i' } },
+            { 'sentBy.username': { $regex: search, $options: 'i' } },
             { 'receiver.username': { $regex: search, $options: 'i' } },
           ],
         }
@@ -204,13 +204,13 @@ export const getFriendsOutsiteGroupChatService = async (
 
     const friends = await friend
       .find({
-        $or: [{ sendBy: userId }, { receiver: userId }],
+        $or: [{ sentBy: userId }, { receiver: userId }],
         status: EnumFriend.TYPE_ACCEPT,
         isDeleted: false,
         ...searchFilter,
       })
       .populate({
-        path: 'sendBy receiver',
+        path: 'sentBy receiver',
         select: '_id username avatar',
       });
 
@@ -242,7 +242,7 @@ export const getFriendRequestByUserIdService = async (
       .sort({ [sortField]: -1 })
       .skip(skip)
       .limit(limit)
-      .populate({ path: 'sendBy receiver', select: '_id username avatar' })
+      .populate({ path: 'sentBy receiver', select: '_id username avatar' })
       .lean();
     const total = await friend.countDocuments({
       receiver,

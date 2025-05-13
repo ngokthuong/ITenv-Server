@@ -13,9 +13,9 @@ import {
 
 export const createFriendRequestConrtroller = asyncHandler(async (req: AuthRequest, res: any) => {
   try {
-    const sendBy = req.user?.userId;
+    const sentBy = req.user?.userId;
     const { receiver } = req.body;
-    const result = await createFriendRequest({ sendBy, receiver });
+    const result = await createFriendRequest({ sentBy, receiver });
     const response: ResponseType<typeof result> = {
       success: true,
       data: result,
