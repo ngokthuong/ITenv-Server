@@ -17,6 +17,7 @@ import {
   submitProblemController,
   UpSertProblemController,
   DeleteProblemController,
+  insertProblemsController,
 } from '../controllers/problem.controller';
 import { ApiProblem } from '../enums/apiProblem.enum';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
@@ -26,7 +27,7 @@ const router = Router();
 
 // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
 // create
-router.post(ApiProblem.INSERT_PROBLEMS, verifyAccessToken, isAdmin, UpSertProblemController);
+// router.post(ApiProblem.INSERT_PROBLEMS, verifyAccessToken, isAdmin, UpSertProblemController);
 router.delete(ApiProblem.DELETE_PROBLEM, verifyAccessToken, isAdmin, DeleteProblemController);
 
 router.get(
@@ -70,7 +71,7 @@ router.get(
 
 // ----------------------------------------------------------USER-----------------------------------------------------------------
 
-// router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
+router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
 router.get(ApiProblem.GET_PROBLEMS, getProblemsController);
 // router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeController);
 router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeControllerRefactor);

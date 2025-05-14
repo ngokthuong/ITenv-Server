@@ -165,8 +165,8 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
 problemSchema.pre<Query<any, IProblem>>('findOneAndUpdate', function (next) {
   const update = this.getUpdate() as any;
   if (!update.$set) update.$set = {};
-  const title = update.$set.title;
-  const slug = update.$set.slug;
+  const title = update?.$set?.title || update?.title;
+  const slug = update?.$set?.slug || update?.slug;
   if (title && (!slug || slug.trim() === '')) {
     update.$set.slug = slugify(title);
   }

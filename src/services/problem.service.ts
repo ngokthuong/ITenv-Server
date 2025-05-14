@@ -746,11 +746,35 @@ async function startDocker(
   let image = '';
   let filename = '';
   let runCmd: string[] = [];
-
   if (lang === 'javascript') {
     image = 'node:18-alpine';
     filename = 'main.js';
     runCmd = ['node', `/src/temp/${filename}`];
+  } else if (lang === 'typescript') {
+    image = 'node:18-alpine';
+    filename = 'main.ts';
+    runCmd = [
+      'sh',
+      '-c',
+      `
+      yarn global add typescript && \
+      yarn add @types/node && \
+      tsc /src/temp/main.ts --outDir /src/temp && \
+      node /src/temp/main.js \ 
+      rm -f package.json yarn.lock
+    `,
+    ];
+  } else if (lang === 'cpp') {
+    image = 'gcc:latest'; // Image chính thức có sẵn GCC
+    filename = 'main.cpp';
+    runCmd = [
+      'sh',
+      '-c',
+      `
+      g++ /src/temp/main.cpp -o /src/temp/main && \
+      /src/temp/main
+    `,
+    ];
   } else if (lang === 'python') {
     image = 'python:3.11-alpine';
     filename = 'main.py';
@@ -816,7 +840,7 @@ async function startDocker(
 
   let shortErrorLine: string | null = '';
   const timeoutPromise = new Promise<void>((_, reject) =>
-    setTimeout(() => reject(new Error('⏰ Code execution timed out')), 2000),
+    setTimeout(() => reject(new Error('⏰ Code execution timed out')), 10000),
   );
 
   const streamEndPromise = new Promise<void>((resolve) => {
@@ -881,6 +905,86 @@ function generateRunnerCode(
     expectedCodeAnswer
   };
   `;
+  }
+
+
+  if (lang === 'cpp') {
+    const tests = testCases
+      .map(({ input, output }, idx) => {
+        const inputStr = input.map((v: any) => JSON.stringify(v)).join(', ');
+        const expectedStr = JSON.stringify(output);
+
+        return `
+  {
+    auto result = ${functionName}(${inputStr});
+    auto expected = ${expectedStr};
+
+    if (result == expected) {
+      std::cout << "✅ Test ${idx + 1} passed" << std::endl;
+    } else {
+      std::cout << "❌ Test ${idx + 1} failed: expected " << expected << ", got " << result << std::endl;
+    }
+    std::cout << "RESULT: " << result << std::endl;
+  }
+`;
+      })
+      .join('\n');
+
+    return `
+// ===== User Code =====
+${userCode}
+
+#include <iostream>
+using namespace std;
+
+int main() {
+${tests}
+  return 0;
+}
+`;
+  }
+
+  if (lang === 'typescript') {
+    const tests = testCases
+      .map(({ input, output }, idx) => {
+        return `
+try {
+  const result = ${functionName}(...${JSON.stringify(input)});
+  const expected = ${JSON.stringify(output)};
+  if (JSON.stringify(result) === JSON.stringify(expected)) {
+    console.log("✅ Test ${idx + 1} passed");
+    codeAnswer.push(result);
+    expectedCodeAnswer.push(expected);
+  } else {
+    console.log("❌ Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(result));
+    codeAnswer.push(result);
+    expectedCodeAnswer.push(expected);
+  }
+  console.log("RESULT:", JSON.stringify(result));
+} catch (e:any) {
+  console.error("❗ Error in test ${idx + 1}:", e.stack);
+}
+`;
+      })
+      .join('\n');
+
+    return `
+// ===== User Code =====
+${userCode}
+
+// ===== Result Arrays =====
+const codeAnswer = [];
+const expectedCodeAnswer = [];
+
+// ===== Test Cases =====
+${tests}
+
+// ===== Export for Validation =====
+module.exports = {
+  codeAnswer,
+  expectedCodeAnswer
+};
+`;
   }
 
   if (lang === 'python') {
@@ -973,7 +1077,14 @@ export function extractFunctionName(userCode: string, lang: Language): string | 
       /class\s+[a-zA-Z_$][\w$]*\s*{[^}]*?\b([a-zA-Z_$][\w$]*)\s*\(.*?\)\s*{/,
       /static\s+([a-zA-Z_$][\w$]*)\s*\(/,
     ],
-    typescript: [/function\s+([a-zA-Z_$][\w$]*)\s*\(/, /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(/],
+    typescript: [
+      /function\s+([a-zA-Z_$][\w$]*)\s*\(/, // function fnName(...) { }
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function\s*\(/, // const fnName = function(...) { }
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(.*?\)\s*=>/, // const fnName = (...) => { }
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*async\s*\(.*?\)\s*=>/, // const fnName = async (...) => { }
+      /export\s+function\s+([a-zA-Z_$][\w$]*)\s*\(/, // export function fnName(...) { }
+      /export\s+default\s+function\s+([a-zA-Z_$][\w$]*)?\s*\(/, // export default function [fnName](...) { }
+    ],
     python: [/def\s+([a-zA-Z_][\w]*)\s*\(/],
     java: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/],
     csharp: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/],
@@ -1017,7 +1128,7 @@ export const runOrSubmitCodeService = async (
       output: tc.output,
     }));
     // get function name from typed code
-    const problemFunctionName = extractFunctionName(typed_code, lang as Language);
+    const problemFunctionName = extractFunctionName(typed_code, lang.toLowerCase() as Language);
     // generate runner code
     const runnerCode = generateRunnerCode(
       typed_code,
@@ -1027,6 +1138,11 @@ export const runOrSubmitCodeService = async (
     );
     // run code -> use docker from docker hub -> start -> create image -> run
     const { shortErrorLine, errorOutput, output, runTime } = await startDocker(lang, runnerCode);
+
+    console.log('output', output);
+    console.log('errorOutput', errorOutput);
+    console.log('shortErrorLine', shortErrorLine);
+
     let match = extractErrorSnippet(output, lang);
     const memoryUsed = process.memoryUsage().rss; // in bytes
 

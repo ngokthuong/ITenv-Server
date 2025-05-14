@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    container_name: itenv-server
+    container_name: itenv-server-y4
     restart: always
     ports:
       - "8081:8080"
