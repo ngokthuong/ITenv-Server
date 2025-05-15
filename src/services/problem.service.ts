@@ -20,6 +20,7 @@ import Docker from 'dockerode';
 import path from 'path';
 import fs from 'fs';
 import { CodeActionType } from '../enums/CodeAction.enum';
+import dedent from 'dedent';
 
 const docker = new Docker();
 const total = 10;
@@ -764,8 +765,19 @@ async function startDocker(
       rm -f package.json yarn.lock
     `,
     ];
+  } else if (lang === 'java') {
+    image = 'openjdk:17-slim';
+    filename = 'main.java';
+    runCmd = [
+      'sh',
+      '-c',
+      `
+      javac /src/temp/Main.java && \
+      java -cp /src/temp Main
+      `,
+    ];
   } else if (lang === 'cpp') {
-    image = 'gcc:latest'; // Image chính thức có sẵn GCC
+    image = 'gcc:latest';
     filename = 'main.cpp';
     runCmd = [
       'sh',
@@ -865,15 +877,60 @@ async function startDocker(
 function generateRunnerCode(
   userCode: string,
   functionName: string,
+  className: string,
   testCases: any[],
   lang: string,
 ): string {
+  // if (lang === 'javascript') {
+  //   const tests = testCases
+  //     .map(({ input, output }, idx) => {
+  //       return `
+  // try {
+  //   const result = ${functionName}(...${JSON.stringify(input)});
+  //   const expected = JSON.parse(${JSON.stringify(output)});
+  //   if (JSON.stringify(result) === JSON.stringify(expected)) {
+  //     console.log("Test ${idx + 1} passed");
+  //     codeAnswer.push(result);
+  //     expectedCodeAnswer.push(expected);
+  //   } else {
+  //     console.log("Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(result));
+  //     codeAnswer.push(result);
+  //     expectedCodeAnswer.push(expected);
+  //   }
+  //   console.log("RESULT:", JSON.stringify(result));
+  // } catch (e) {
+  //   console.log(e.stack);
+  // }
+  // `;
+  //     })
+  //     .join('\n');
+
+  //   return `
+  // ${userCode}
+
+  // const codeAnswer = [];
+  // const expectedCodeAnswer = [];
+
+  // ${tests}
+
+  // return {
+  //   codeAnswer,
+  //   expectedCodeAnswer
+  // };
+  // `;
+  // }
+
   if (lang === 'javascript') {
     const tests = testCases
       .map(({ input, output }, idx) => {
+        // Nếu có className thì gọi method trên instance class
+        const callExpression = className
+          ? `instance.${functionName}(...${JSON.stringify(input)})`
+          : `${functionName}(...${JSON.stringify(input)})`;
+
         return `
   try {
-    const result = ${functionName}(...${JSON.stringify(input)});
+    const result = ${callExpression};
     const expected = JSON.parse(${JSON.stringify(output)});
     if (JSON.stringify(result) === JSON.stringify(expected)) {
       console.log("Test ${idx + 1} passed");
@@ -894,10 +951,12 @@ function generateRunnerCode(
 
     return `
   ${userCode}
-  
+
   const codeAnswer = [];
   const expectedCodeAnswer = [];
   
+  ${className ? `const instance = new ${className}();` : ''}
+
   ${tests}
   
   return {
@@ -907,49 +966,283 @@ function generateRunnerCode(
   `;
   }
 
+  if (lang === 'java') {
+    const formatJavaValue = (val: any): string => {
+      if (typeof val === 'string') {
+        // Thử parse val nếu nó là chuỗi JSON array string
+        try {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) {
+            // Nếu là mảng, gọi lại chính hàm để xử lý mảng
+            return formatJavaValue(parsed);
+          }
+          // Nếu không phải mảng, trả lại chuỗi có dấu ngoặc kép
+          return `"${val}"`;
+        } catch {
+          // Không parse được thì trả lại chuỗi nguyên bản với dấu ngoặc kép
+          return `"${val}"`;
+        }
+      }
 
-  if (lang === 'cpp') {
+      if (typeof val === 'boolean') return val ? 'true' : 'false';
+      if (val === null) return 'null';
+
+      if (Array.isArray(val)) {
+        if (val.length === 0) return 'new int[]{}';
+
+        if (Array.isArray(val[0])) {
+          // 2D array
+          const innerArrays = val.map((innerArr: any[]) => {
+            return `new int[]{${innerArr.join(',')}}`;
+          });
+          return `new int[][]{${innerArrays.join(',')}}`;
+        }
+
+        if (typeof val[0] === 'number') {
+          return `new int[]{${val.join(',')}}`;
+        }
+      }
+
+      return `${val}`;
+    };
+
     const tests = testCases
       .map(({ input, output }, idx) => {
-        const inputStr = input.map((v: any) => JSON.stringify(v)).join(', ');
-        const expectedStr = JSON.stringify(output);
+        const args = input.map(formatJavaValue).join(', ');
+        const expected = formatJavaValue(output);
+
+        const callExpr = className
+          ? `${className} instance = new ${className}();\n      int[] result = instance.${functionName}(${args});`
+          : `int[] result = ${functionName}(${args});`;
 
         return `
-  {
-    auto result = ${functionName}(${inputStr});
-    auto expected = ${expectedStr};
-
-    if (result == expected) {
-      std::cout << "✅ Test ${idx + 1} passed" << std::endl;
-    } else {
-      std::cout << "❌ Test ${idx + 1} failed: expected " << expected << ", got " << result << std::endl;
-    }
-    std::cout << "RESULT: " << result << std::endl;
-  }
-`;
+        try {
+          ${callExpr}
+          int[] expected = ${expected};
+          String resultStr = java.util.Arrays.toString(result).replace(" ", "");
+          String expectedStr = java.util.Arrays.toString(expected).replace(" ", "");
+          if (resultStr.equals(expectedStr)) {
+            System.out.println("✅ Test ${idx + 1} passed");
+          } else {
+            System.out.println("❌ Test ${idx + 1} failed: expected " + expectedStr + ", got " + resultStr);
+          }
+          System.out.println("RESULT: " + resultStr);
+          codeAnswer.add(resultStr);
+          expectedCodeAnswer.add(expectedStr);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }`;
       })
       .join('\n');
 
     return `
-// ===== User Code =====
-${userCode}
-
-#include <iostream>
-using namespace std;
-
-int main() {
-${tests}
-  return 0;
-}
-`;
+  import java.util.*;
+  
+  public class Main {
+    public static List<String> codeAnswer = new ArrayList<>();
+    public static List<String> expectedCodeAnswer = new ArrayList<>();
+  
+    public static void main(String[] args) {
+      ${tests}
+  
+      System.out.println("All results: " + codeAnswer);
+      System.out.println("All expected: " + expectedCodeAnswer);
+    }
   }
+  
+  // User code begins here:
+  ${userCode}
+  `;
+  }
+
+  if (lang === 'cpp') {
+    const formatCppValue = (val: any): string => {
+      if (typeof val === 'string') {
+        try {
+          val = JSON.parse(val);
+        } catch {
+          return val;
+        }
+      }
+
+      if (typeof val === 'boolean') {
+        return val ? 'true' : 'false';
+      }
+
+      if (Array.isArray(val)) {
+        if (val.length === 0) return 'std::vector<int>{}';
+        if (Array.isArray(val[0])) {
+          const inner = val.map(formatCppValue).join(', ');
+          return `std::vector<std::vector<int>>{{${inner}}}`;
+        }
+        const inner = val.join(', ');
+        return `std::vector<int>{${inner}}`;
+      }
+      return `${val}`;
+    };
+
+    const tests = testCases
+      .map(({ input, output }, idx) => {
+        const nums = input[0];
+        const target = input[1];
+        const numsStr = formatCppValue(nums);
+        const expectedStr = formatCppValue(output);
+
+        // const callExpr = className
+        // ? `sol.${functionName}(${numsStr}, ${target})`
+        // : `${functionName}(${numsStr}, ${target})`;
+
+        return `
+      try {
+        ${className ? `${className} sol;` : ''}
+        // Solution sol;
+        std::vector<int> nums = ${numsStr};
+        auto result = sol.${functionName}(nums, ${target});
+        auto expected = ${expectedStr};
+        results.push_back(result);
+        expecteds.push_back(expected);
+  
+        if (result == expected) {
+          std::cout << "✅ Test ${idx + 1} passed" << std::endl;
+        } else {
+          std::cout << "❌ Test ${idx + 1} failed: expected ";
+          printValue(expected);
+          std::cout << ", got ";
+          printValue(result);
+          std::cout << std::endl;
+        }
+        std::cout << "RESULT: ";
+        printValue(result);
+        std::cout << std::endl;
+      } catch (const std::exception& e) {
+        std::cout << "❗ Error in test ${idx + 1}: " << e.what() << std::endl;
+      }`;
+      })
+      .join('\n');
+
+    return `
+    #include <vector>
+    #include <iostream>
+    #include <string>
+    #include <sstream>
+    using namespace std;
+  
+    ${userCode}
+  
+    template <typename T>
+    void printValue(const T& value) {
+        std::cout << value;
+    }
+  
+    template <typename T>
+    void printValue(const std::vector<T>& vec) {
+        std::cout << "[";
+        for (size_t i = 0; i < vec.size(); ++i) {
+            printValue(vec[i]);
+            if (i != vec.size() - 1) std::cout << ",";
+        }
+        std::cout << "]";
+    }
+  
+    template <typename T>
+    void printValue(const std::vector<std::vector<T>>& vec) {
+        std::cout << "[";
+        for (size_t i = 0; i < vec.size(); ++i) {
+            printValue(vec[i]);
+            if (i != vec.size() - 1) std::cout << ",";
+        }
+        std::cout << "]";
+    }
+  
+    std::string vectorToJson(const std::vector<int>& vec) {
+        std::ostringstream oss;
+        oss << "[";
+        for (size_t i = 0; i < vec.size(); ++i) {
+            oss << vec[i];
+            if (i != vec.size() - 1) oss << ",";
+        }
+        oss << "]";
+        return oss.str();
+    }
+  
+    std::string vectorsToJson(const std::vector<std::vector<int>>& vecs) {
+        std::ostringstream oss;
+        oss << "[";
+        for (size_t i = 0; i < vecs.size(); ++i) {
+            oss << vectorToJson(vecs[i]);
+            if (i != vecs.size() - 1) oss << ",";
+        }
+        oss << "]";
+        return oss.str();
+    }
+  
+    int main() {
+        std::vector<std::vector<int>> results;
+        std::vector<std::vector<int>> expecteds;
+  
+        ${tests}
+  
+        std::cout << "Results: " << vectorsToJson(results) << std::endl;
+        std::cout << "Expecteds: " << vectorsToJson(expecteds) << std::endl;
+  
+        return 0;
+    }
+    `;
+  }
+
+  //   if (lang === 'typescript') {
+  //     const tests = testCases
+  //       .map(({ input, output }, idx) => {
+  //         return `
+  // try {
+  //   const result = ${functionName}(...${JSON.stringify(input)});
+  //   const expected = ${JSON.stringify(output)};
+  //   if (JSON.stringify(result) === JSON.stringify(expected)) {
+  //     console.log("✅ Test ${idx + 1} passed");
+  //     codeAnswer.push(result);
+  //     expectedCodeAnswer.push(expected);
+  //   } else {
+  //     console.log("❌ Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(result));
+  //     codeAnswer.push(result);
+  //     expectedCodeAnswer.push(expected);
+  //   }
+  //   console.log("RESULT:", JSON.stringify(result));
+  // } catch (e:any) {
+  //   console.error("❗ Error in test ${idx + 1}:", e.stack);
+  // }
+  // `;
+  //       })
+  //       .join('\n');
+
+  //     return `
+  // // ===== User Code =====
+  // ${userCode}
+
+  // // ===== Result Arrays =====
+  // const codeAnswer = [];
+  // const expectedCodeAnswer = [];
+
+  // // ===== Test Cases =====
+  // ${tests}
+
+  // // ===== Export for Validation =====
+  // module.exports = {
+  //   codeAnswer,
+  //   expectedCodeAnswer
+  // };
+  // `;
+  //   }
 
   if (lang === 'typescript') {
     const tests = testCases
       .map(({ input, output }, idx) => {
+        const callExpr = className
+          ? `new ${className}().${functionName}(...${JSON.stringify(input)})`
+          : `${functionName}(...${JSON.stringify(input)})`;
+
         return `
 try {
-  const result = ${functionName}(...${JSON.stringify(input)});
+  const result = ${callExpr};
   const expected = ${JSON.stringify(output)};
   if (JSON.stringify(result) === JSON.stringify(expected)) {
     console.log("✅ Test ${idx + 1} passed");
@@ -961,7 +1254,7 @@ try {
     expectedCodeAnswer.push(expected);
   }
   console.log("RESULT:", JSON.stringify(result));
-} catch (e:any) {
+} catch (e: any) {
   console.error("❗ Error in test ${idx + 1}:", e.stack);
 }
 `;
@@ -987,38 +1280,132 @@ module.exports = {
 `;
   }
 
-  if (lang === 'python') {
+  // if (lang === 'python' || lang === 'python3') {
+  //   const formatPyValue = (val: any) => {
+  //     if (typeof val === 'string') {
+  //       try {
+  //         val = JSON.parse(val);
+  //       } catch {
+  //         return `"${val}"`;
+  //       }
+  //     }
+
+  //     if (Array.isArray(val)) {
+  //       if (val.length === 0) return '[]';
+  //       if (Array.isArray(val[0])) {
+  //         const inner: any = val.map(formatPyValue).join(', ');
+  //         return `[${inner}]`;
+
+  //       }
+  //       return `[${val.join(', ')}]`;
+  //     }
+
+  //     if (typeof val === 'boolean') return val ? 'True' : 'False';
+  //     if (val === null) return 'None';
+
+  //     return `${val}`;
+  //   };
+
+  //   const tests = testCases
+  //     .map(({ input, output }, idx) => {
+  //       const expectedFormatted = formatPyValue(output);
+  //       return `
+  // try:
+  //     result = ${functionName}(*${JSON.stringify(input)})
+  //     expected = ${expectedFormatted}
+  //     result_str = str(result).replace(' ', '')
+  //     expected_str = str(expected).replace(' ', '')
+  //     if str(result_str) == str(result_str):
+  //         print("Test ${idx + 1} passed")
+  //         codeAnswer.append(result_str)
+  //         expectedCodeAnswer.append(expected_str)
+  //     else:
+  //         print("Test ${idx + 1} failed: expected", expected_str, "got", result_str)
+  //         codeAnswer.append(result_str)
+  //         expectedCodeAnswer.append(expected_str)
+  //     print("RESULT:", result_str)
+  // except Exception as e:
+  //     import traceback
+  //     traceback.print_exc()
+  // `;
+  //     })
+  //     .join('\n');
+
+  //   return dedent(`
+  //   ${userCode.trim()}
+
+  // codeAnswer = []
+  // expectedCodeAnswer = []
+
+  //   ${tests}
+  //   `);
+
+  // }
+
+  if (lang === 'python' || lang === 'python3') {
+    const formatPyValue = (val: any) => {
+      if (typeof val === 'string') {
+        try {
+          val = JSON.parse(val);
+        } catch {
+          return `"${val}"`;
+        }
+      }
+
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '[]';
+        if (Array.isArray(val[0])) {
+          const inner: any = val.map(formatPyValue).join(', ');
+          return `[${inner}]`;
+        }
+        return `[${val.join(', ')}]`;
+      }
+
+      if (typeof val === 'boolean') return val ? 'True' : 'False';
+      if (val === null) return 'None';
+
+      return `${val}`;
+    };
+
     const tests = testCases
       .map(({ input, output }, idx) => {
+        const expectedFormatted = formatPyValue(output);
+        const callExpr = className
+          ? `${className}().${functionName}(*${JSON.stringify(input)})`
+          : `${functionName}(*${JSON.stringify(input)})`;
+
         return `
-try:
-    result = ${functionName}(*${JSON.stringify(input)})
-    expected = ${JSON.stringify(output)}
-    if str(result) == expected:
-        print("Test ${idx + 1} passed")
-        codeAnswer.append(result)
-        expectedCodeAnswer.append(result)
-    else:
-        print("Test ${idx + 1} failed: expected", expected, "got", result)
-        codeAnswer.append(result)
-        expectedCodeAnswer.append(expected)
-    print("RESULT:", result)
-except Exception as e:
-    import traceback
-    traceback.print_exc()
-`;
+  try:
+      result = ${callExpr}
+      expected = ${expectedFormatted}
+      result_str = str(result).replace(' ', '')
+      expected_str = str(expected).replace(' ', '')
+      if str(result_str) == str(result_str):
+          print("Test ${idx + 1} passed")
+          codeAnswer.append(result_str)
+          expectedCodeAnswer.append(expected_str)
+      else:
+          print("Test ${idx + 1} failed: expected", expected_str, "got", result_str)
+          codeAnswer.append(result_str)
+          expectedCodeAnswer.append(expected_str)
+      print("RESULT:", result_str)
+  except Exception as e:
+      import traceback
+      traceback.print_exc()
+    `;
       })
       .join('\n');
 
-    return `
-${userCode}
-
-codeAnswer = []
-expectedCodeAnswer = []
-
-${tests}
-`;
+    return dedent(`
+    ${userCode.trim()}
+    
+  codeAnswer = []
+  expectedCodeAnswer = []
+  
+  ${tests}
+  `);
   }
+
   return `# Unsupported language: ${lang}`;
 }
 
@@ -1062,6 +1449,27 @@ function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCa
 
 type Language = 'javascript' | 'typescript' | 'python' | 'java' | 'csharp' | 'cpp' | 'c';
 
+export function extractClassName(userCode: string, lang: Language): string | null {
+  const patterns: Record<Language, RegExp[]> = {
+    javascript: [/class\s+([a-zA-Z_$][\w$]*)\s*/],
+    typescript: [/class\s+([a-zA-Z_$][\w$]*)\s*/],
+    python: [/class\s+([a-zA-Z_][\w]*)\s*(\(|:)/],
+    java: [/class\s+([A-Z][\w]*)\s*/],
+    csharp: [/class\s+([A-Z][\w]*)\s*/],
+    cpp: [/class\s+([A-Z][\w]*)\s*/, /struct\s+([A-Z][\w]*)\s*/],
+    c: [/struct\s+([A-Z][\w]*)\s*/],
+  };
+
+  if (!patterns[lang]) return null;
+
+  for (const pattern of patterns[lang]) {
+    const match = userCode.match(pattern);
+    if (match) return match[1];
+  }
+
+  return null;
+}
+
 export function extractFunctionName(userCode: string, lang: Language): string | null {
   const patterns: Record<Language, RegExp[]> = {
     javascript: [
@@ -1078,17 +1486,17 @@ export function extractFunctionName(userCode: string, lang: Language): string | 
       /static\s+([a-zA-Z_$][\w$]*)\s*\(/,
     ],
     typescript: [
-      /function\s+([a-zA-Z_$][\w$]*)\s*\(/, // function fnName(...) { }
-      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function\s*\(/, // const fnName = function(...) { }
-      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(.*?\)\s*=>/, // const fnName = (...) => { }
-      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*async\s*\(.*?\)\s*=>/, // const fnName = async (...) => { }
-      /export\s+function\s+([a-zA-Z_$][\w$]*)\s*\(/, // export function fnName(...) { }
-      /export\s+default\s+function\s+([a-zA-Z_$][\w$]*)?\s*\(/, // export default function [fnName](...) { }
+      /function\s+([a-zA-Z_$][\w$]*)\s*\(/,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function\s*\(/,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(.*?\)\s*=>/,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*async\s*\(.*?\)\s*=>/,
+      /export\s+function\s+([a-zA-Z_$][\w$]*)\s*\(/,
+      /export\s+default\s+function\s+([a-zA-Z_$][\w$]*)?\s*\(/,
     ],
     python: [/def\s+([a-zA-Z_][\w]*)\s*\(/],
-    java: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/],
+    java: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>\[\]]+\s+([a-zA-Z_][\w]*)\s*\(/],
     csharp: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/],
-    cpp: [/(?:[\w:*&]+)\s+([a-zA-Z_][\w]*)\s*\(/],
+    cpp: [/(?:^[\w\s:*&<>]+)?\s+([a-zA-Z_][\w]*)\s*\([^)]*\)\s*(?:const)?\s*(?:\{|;)/m],
     c: [/(?:[\w\s*]+)\s+([a-zA-Z_][\w]*)\s*\(/],
   };
 
@@ -1129,19 +1537,18 @@ export const runOrSubmitCodeService = async (
     }));
     // get function name from typed code
     const problemFunctionName = extractFunctionName(typed_code, lang.toLowerCase() as Language);
+    const problemClassName = extractClassName(typed_code, lang.toLowerCase() as Language);
     // generate runner code
     const runnerCode = generateRunnerCode(
       typed_code,
       problemFunctionName as string,
+      problemClassName as string,
       testCases,
       lang,
     );
+
     // run code -> use docker from docker hub -> start -> create image -> run
     const { shortErrorLine, errorOutput, output, runTime } = await startDocker(lang, runnerCode);
-
-    console.log('output', output);
-    console.log('errorOutput', errorOutput);
-    console.log('shortErrorLine', shortErrorLine);
 
     let match = extractErrorSnippet(output, lang);
     const memoryUsed = process.memoryUsage().rss; // in bytes
@@ -1215,9 +1622,10 @@ export const runOrSubmitCodeService = async (
       expected_status_code: 0,
       expected_lang: lang,
       expected_run_success: true,
-      expected_status_runtime: '2000 ms',
+      expected_status_runtime: '10000 ms',
       expected_memory: 0,
       expected_display_runtime: '0',
+      // expected_code_answer: testCases.map((t) => t.output),
       expected_code_answer: testCases.map((t) => t.output),
       expected_code_output: [],
       expected_std_output_list: [],
