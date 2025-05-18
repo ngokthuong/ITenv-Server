@@ -8,6 +8,12 @@ export enum CodeSandboxFileType {
   CSS = 'css',
   JSON = 'json',
   MARKDOWN = 'markdown',
+  // Image types
+  PNG = 'png',
+  JPG = 'jpg',
+  JPEG = 'jpeg',
+  GIF = 'gif',
+  SVG = 'svg',
   OTHER = 'other',
 }
 

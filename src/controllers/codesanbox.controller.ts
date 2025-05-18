@@ -4,8 +4,100 @@ import { logEvents } from '../helper/logEvents';
 import asyncHandler from 'express-async-handler';
 import { AuthRequest } from '../types/AuthRequest.type';
 import { ResponseType } from '../types/Response.type';
+import { CodeSandboxFileType } from '../enums/codeSandbox.enum';
+import { SandboxRequirement } from '../models/sandboxRequirement';
 
 const codeSandboxService = new CodeSandboxService();
+
+const getFileTypeFromExtension = (fileName: string): CodeSandboxFileType => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'js':
+    case 'jsx':
+      return CodeSandboxFileType.JAVASCRIPT;
+    case 'ts':
+    case 'tsx':
+      return CodeSandboxFileType.TYPESCRIPT;
+    case 'html':
+      return CodeSandboxFileType.HTML;
+    case 'css':
+      return CodeSandboxFileType.CSS;
+    case 'json':
+      return CodeSandboxFileType.JSON;
+    case 'md':
+      return CodeSandboxFileType.MARKDOWN;
+    case 'py':
+      return CodeSandboxFileType.PYTHON;
+    case 'java':
+      return CodeSandboxFileType.JAVA;
+    case 'c':
+    case 'cpp':
+      return CodeSandboxFileType.CPP;
+    case 'png':
+      return CodeSandboxFileType.PNG;
+    case 'jpg':
+    case 'jpeg':
+      return CodeSandboxFileType.JPG;
+    case 'gif':
+      return CodeSandboxFileType.GIF;
+    case 'svg':
+      return CodeSandboxFileType.SVG;
+    default:
+      return CodeSandboxFileType.OTHER;
+  }
+};
+
+const validateAndFormatFileName = (
+  fileName: string,
+): { isValid: boolean; message?: string; formattedName?: string } => {
+  // Check if filename is empty or only whitespace
+  if (!fileName || !fileName.trim()) {
+    return { isValid: false, message: 'File name is required' };
+  }
+
+  // Remove leading/trailing whitespace
+  let formattedName = fileName.trim();
+
+  // Check for invalid characters
+  const invalidChars = /[<>:"/\\|?*\x00-\x1F]/g;
+  if (invalidChars.test(formattedName)) {
+    return {
+      isValid: false,
+      message:
+        'File name contains invalid characters. Cannot contain: < > : " / \\ | ? * or control characters',
+    };
+  }
+
+  // Check if filename is too long (255 characters is a common limit)
+  if (formattedName.length > 255) {
+    return { isValid: false, message: 'File name is too long (maximum 255 characters)' };
+  }
+
+  // Ensure the file has an extension
+  if (!formattedName.includes('.')) {
+    return { isValid: false, message: 'File must have an extension' };
+  }
+
+  // Split into name and extension
+  const lastDotIndex = formattedName.lastIndexOf('.');
+  const name = formattedName.substring(0, lastDotIndex);
+  const extension = formattedName.substring(lastDotIndex + 1).toLowerCase();
+
+  // Check if name part is empty
+  if (!name) {
+    return { isValid: false, message: 'File name cannot be empty' };
+  }
+
+  // Check if extension is empty
+  if (!extension) {
+    return { isValid: false, message: 'File extension cannot be empty' };
+  }
+
+  // Format the name (remove extra spaces, convert to lowercase)
+  formattedName = `${name.trim()}.${extension}`;
+
+  return { isValid: true, formattedName };
+};
 
 export const createCodeSandboxController = asyncHandler(
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -67,7 +159,7 @@ export const findAllCodeSandboxesController = asyncHandler(
       const limit = parseInt(req.query.pageSize as string) || 10;
       const search = req.query.search as string;
       const skip = (page - 1) * limit;
-
+      const createdBy = req.query.createdBy;
       const sortField = (req.query.sortField as string) || 'createdAt';
       const sortOrder = (req.query.sortOrder as string) || 'DESC';
 
@@ -77,6 +169,7 @@ export const findAllCodeSandboxesController = asyncHandler(
           limit,
           language: req.query.language as string,
           search,
+          createdBy: (createdBy as string) || '',
           sortField,
           sortOrder: sortOrder as 'ASC' | 'DESC',
         }),
@@ -182,7 +275,27 @@ export const addFileToSandboxController = asyncHandler(
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { folderId } = req.query;
-      const sandbox = await codeSandboxService.addFile(req.params.id, req.body, folderId as string);
+      const { name } = req.body;
+
+      // Validate and format the file name
+      const validationResult = validateAndFormatFileName(name);
+      if (!validationResult.isValid) {
+        const response: ResponseType<null> = {
+          success: false,
+          message: validationResult.message || 'Invalid file name',
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const fileType = getFileTypeFromExtension(validationResult.formattedName!);
+      const fileData = {
+        ...req.body,
+        name: validationResult.formattedName,
+        type: fileType,
+      };
+
+      const sandbox = await codeSandboxService.addFile(req.params.id, fileData, folderId as string);
       if (!sandbox) {
         const response: ResponseType<null> = {
           success: false,
@@ -211,6 +324,29 @@ export const addFileToSandboxController = asyncHandler(
 export const updateFileInSandboxController = asyncHandler(
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const { name } = req.body;
+
+      // If name is being updated, validate and format it
+      if (name) {
+        const validationResult = validateAndFormatFileName(name);
+        if (!validationResult.isValid) {
+          const response: ResponseType<null> = {
+            success: false,
+            message: validationResult.message || 'Invalid file name',
+          };
+          res.status(400).json(response);
+          return;
+        }
+
+        // Update the file type based on the new extension
+        const fileType = getFileTypeFromExtension(validationResult.formattedName!);
+        req.body = {
+          ...req.body,
+          name: validationResult.formattedName,
+          type: fileType,
+        };
+      }
+
       const sandbox = await codeSandboxService.updateFile(
         req.params.id,
         req.params.fileId,
@@ -381,7 +517,7 @@ export const updateMemberRoleController = asyncHandler(
 export const updateFolderInSandboxController = async (req: AuthRequest, res: Response) => {
   try {
     const { id, folderId } = req.params;
-    const { name } = req.body;
+    const { folderName: name } = req.body;
 
     if (!name?.trim()) {
       return res.status(400).json({ message: 'Folder name is required' });
@@ -410,3 +546,143 @@ export const deleteFolderFromSandboxController = async (req: AuthRequest, res: R
     res.status(400).json({ message: error.message });
   }
 };
+
+export const addImageToSandboxController = asyncHandler(
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        const response: ResponseType<null> = {
+          success: false,
+          message: 'No file uploaded',
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const { folderId } = req.query;
+      const sandbox = await codeSandboxService.addImageFile(
+        req.params.id,
+        req.file,
+        folderId as string,
+      );
+
+      const response: ResponseType<typeof sandbox> = {
+        success: true,
+        data: sandbox,
+        message: 'Image added successfully',
+      };
+      res.status(201).json(response);
+    } catch (error: any) {
+      await logEvents(error.message);
+      const response: ResponseType<null> = {
+        success: false,
+        message: error.message,
+      };
+      res.status(500).json(response);
+    }
+  },
+);
+
+export const requestAccessController = asyncHandler(
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { role, message } = req.body;
+      const sandboxId = req.params.id;
+      const requesterId = req.user?.userId;
+
+      if (!requesterId) {
+        const response: ResponseType<null> = {
+          success: false,
+          message: 'User not authenticated',
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      const request = await codeSandboxService.requestAccess(sandboxId, requesterId, role, message);
+
+      const response: ResponseType<typeof request> = {
+        success: true,
+        data: request,
+        message: 'Access request submitted successfully',
+      };
+      res.status(201).json(response);
+    } catch (error: any) {
+      await logEvents(error.message);
+      const response: ResponseType<null> = {
+        success: false,
+        message: error.message,
+      };
+      res.status(500).json(response);
+    }
+  },
+);
+
+export const getAccessRequestsController = asyncHandler(
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const sandboxId = req.params.id;
+      const requests = await codeSandboxService.getAccessRequests(sandboxId);
+
+      const response: ResponseType<typeof requests> = {
+        success: true,
+        data: requests,
+      };
+      res.json(response);
+    } catch (error: any) {
+      await logEvents(error.message);
+      const response: ResponseType<null> = {
+        success: false,
+        message: error.message,
+      };
+      res.status(500).json(response);
+    }
+  },
+);
+
+export const handleAccessRequestController = asyncHandler(
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { requestId } = req.params;
+      const { action } = req.body;
+
+      const request = await codeSandboxService.handleAccessRequest(requestId, action);
+
+      const response: ResponseType<typeof request> = {
+        success: true,
+        data: request,
+        message: `Request ${action}ed successfully`,
+      };
+      res.json(response);
+    } catch (error: any) {
+      await logEvents(error.message);
+      const response: ResponseType<null> = {
+        success: false,
+        message: error.message,
+      };
+      res.status(500).json(response);
+    }
+  },
+);
+
+export const deleteAccessRequestController = asyncHandler(
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { requestId } = req.params;
+      const request = await codeSandboxService.deleteAccessRequest(requestId);
+
+      const response: ResponseType<null> = {
+        success: true,
+        message: 'Request deleted successfully',
+      };
+      res.json(response);
+    } catch (error: any) {
+      await logEvents(error.message);
+      const response: ResponseType<null> = {
+        success: false,
+        message: error.message,
+      };
+      res.status(500).json(response);
+    }
+  },
+);
