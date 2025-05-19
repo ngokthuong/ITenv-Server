@@ -8,12 +8,16 @@ interface IInitialCode {
   code?: string;
 }
 
+export interface ITestCaseInput {
+  name: string;
+  value: string;
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'null';
+}
+
+
 export interface ITestCase {
-  input: {
-    name: string;
-    value: string;
-  }[];
-  output: string[];
+  input: ITestCaseInput[];
+  output: string;
   isHidden: boolean;
 }
 
@@ -30,7 +34,7 @@ export interface IProblem extends Document {
   testCase?: ITestCase[];
   vote: mongoose.Types.ObjectId[];
   downVote: mongoose.Types.ObjectId[];
-
+  
   postAt: Date;
   editAt?: Date;
   status: boolean;
@@ -65,12 +69,13 @@ const testCaseSchema: Schema<ITestCase> = new mongoose.Schema({
       },
       value: {
         type: String,
-        required: true,
+        default: "",
+        // required: true,
       },
     },
   ],
   output: {
-    type: [String],
+    type: String,
     required: true,
   },
   isHidden: {
