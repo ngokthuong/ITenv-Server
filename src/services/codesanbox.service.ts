@@ -1,8 +1,9 @@
 import { CodeSandbox, ICodeSandbox } from '../models/codeSandbox';
-import { CodeSandboxStatus } from '../enums/codeSandbox.enum';
+import { CodeSandboxFileType, CodeSandboxStatus } from '../enums/codeSandbox.enum';
 import mongoose from 'mongoose';
 import { CodeSandboxFile, ICodeSandboxFile } from '../models/fileSanbox';
 import { CodeSandboxFolder, ICodeSandboxFolder } from '../models/folderSanbox';
+import { SandboxRequirement } from '../models/sandboxRequirement';
 
 type PlainFolder = Omit<ICodeSandboxFolder, keyof Document>;
 type PlainFile = Omit<ICodeSandboxFile, keyof Document>;
@@ -25,6 +26,7 @@ interface PaginationParams {
   sortField?: string;
   sortOrder?: 'ASC' | 'DESC' | 'asc' | 'desc';
   search?: string;
+  createdBy?: string;
 }
 
 export class CodeSandboxService {
@@ -95,6 +97,7 @@ export class CodeSandboxService {
     skip = 0,
     limit = 10,
     language,
+    createdBy,
     sortField = 'createdAt',
     sortOrder = 'DESC',
     search,
@@ -109,11 +112,16 @@ export class CodeSandboxService {
         { description: { $regex: search, $options: 'i' } },
       ];
     }
+    if (createdBy) filter.createdBy = createdBy;
     const sort: any = {};
     sort[sortField] = sortOrder.toUpperCase() === 'ASC' ? 1 : -1;
 
     return await CodeSandbox.find(filter)
       .populate('createdBy', 'username avatar')
+      .populate({
+        path: 'members.user',
+        select: 'username avatar _id',
+      })
       .sort(sort)
       .skip(skip)
       .limit(limit);
@@ -184,15 +192,70 @@ export class CodeSandboxService {
     return newFile;
   }
 
-  async updateFile(sandboxId: string, fileId: string, fileData: any): Promise<ICodeSandbox | null> {
-    return await CodeSandbox.findOneAndUpdate(
+  async addImageFile(
+    sandboxId: string,
+    file: Express.Multer.File,
+    parentFolderId?: string,
+  ): Promise<ICodeSandboxFile> {
+    if (!file.originalname || !file.mimetype) throw new Error('File name and type are required');
+
+    // Get file extension and determine file type
+    const extension = file.originalname.split('.').pop()?.toLowerCase();
+    let fileType: CodeSandboxFileType;
+    switch (extension) {
+      case 'png':
+        fileType = CodeSandboxFileType.PNG;
+        break;
+      case 'jpg':
+      case 'jpeg':
+        fileType = CodeSandboxFileType.JPG;
+        break;
+      case 'gif':
+        fileType = CodeSandboxFileType.GIF;
+        break;
+      case 'svg':
+        fileType = CodeSandboxFileType.SVG;
+        break;
+      default:
+        throw new Error('Unsupported image format');
+    }
+
+    // Check for duplicate in the same parent
+    const exists = await CodeSandboxFile.findOne({
+      sandboxId,
+      parentFolder: parentFolderId || null,
+      name: file.originalname,
+    });
+    if (exists) throw new Error('A file with this name already exists in this location');
+
+    // Create new file record
+    const newFile = await CodeSandboxFile.create({
+      name: file.originalname,
+      type: fileType,
+      sandboxId,
+      parentFolder: parentFolderId || null,
+      isImage: true,
+      imageUrl: file.path, // Cloudinary URL
+      imageSize: file.size,
+      imageMimeType: file.mimetype,
+    });
+
+    return newFile;
+  }
+
+  async updateFile(
+    sandboxId: string,
+    fileId: string,
+    fileData: any,
+  ): Promise<ICodeSandboxFile | null> {
+    return await CodeSandboxFile.findOneAndUpdate(
       {
-        _id: sandboxId,
-        'files._id': fileId,
+        _id: fileId,
+        sandboxId: sandboxId,
       },
       {
         $set: {
-          'files.$': { ...fileData, updatedAt: new Date() },
+          ...fileData,
           updatedAt: new Date(),
         },
         $inc: { version: 1 },
@@ -201,16 +264,11 @@ export class CodeSandboxService {
     );
   }
 
-  async deleteFile(sandboxId: string, fileId: string): Promise<ICodeSandbox | null> {
-    return await CodeSandbox.findByIdAndUpdate(
-      sandboxId,
-      {
-        $pull: { files: { _id: fileId } },
-        $inc: { version: 1 },
-        updatedAt: new Date(),
-      },
-      { new: true },
-    );
+  async deleteFile(sandboxId: string, fileId: string): Promise<ICodeSandboxFile | null> {
+    return await CodeSandboxFile.findOneAndDelete({
+      _id: fileId,
+      sandboxId: sandboxId,
+    });
   }
 
   async addMember(
@@ -324,5 +382,92 @@ export class CodeSandboxService {
     });
 
     return await CodeSandboxFolder.findByIdAndDelete(folderId);
+  }
+
+  async requestAccess(
+    sandboxId: string,
+    requesterId: string,
+    role: 'owner' | 'editor' | 'viewer',
+    message?: string,
+  ): Promise<any> {
+    // Check if sandbox exists
+    const sandbox = await CodeSandbox.findById(sandboxId);
+    if (!sandbox) {
+      throw new Error('Sandbox not found');
+    }
+
+    // Check if user is already a member
+    const isMember = sandbox.members.some((member) => member.user.toString() === requesterId);
+    if (isMember) {
+      throw new Error('You are already a member of this sandbox');
+    }
+
+    // Check if user already has a pending request
+    const existingRequest = await SandboxRequirement.findOne({
+      sandbox: sandboxId,
+      requester: requesterId,
+      status: 'pending',
+    });
+    if (existingRequest) {
+      throw new Error('You already have a pending request for this sandbox');
+    }
+
+    // Create new request
+    const request = await SandboxRequirement.create({
+      sandbox: sandboxId,
+      requester: requesterId,
+      requestedRole: role,
+      message,
+      status: 'pending',
+    });
+
+    return request;
+  }
+
+  async getAccessRequests(sandboxId: string): Promise<any[]> {
+    // Check if sandbox exists
+    const sandbox = await CodeSandbox.findById(sandboxId);
+    if (!sandbox) {
+      throw new Error('Sandbox not found');
+    }
+
+    // Get all requests for this sandbox
+    const requests = await SandboxRequirement.find({ sandbox: sandboxId })
+      .populate('requester', 'username avatar _id')
+      .sort({ createdAt: -1 });
+
+    return requests;
+  }
+
+  async handleAccessRequest(requestId: string, action: 'approve' | 'reject'): Promise<any> {
+    const request = await SandboxRequirement.findById(requestId);
+    if (!request) {
+      throw new Error('Request not found');
+    }
+
+    if (action === 'approve') {
+      // Add member to sandbox
+      await this.addMember(
+        request.sandbox.toString(),
+        request.requester.toString(),
+        request.requestedRole,
+      );
+      request.status = 'approved';
+    } else if (action === 'reject') {
+      request.status = 'rejected';
+    } else {
+      throw new Error('Invalid action');
+    }
+
+    await request.save();
+    return request;
+  }
+
+  async deleteAccessRequest(requestId: string): Promise<any> {
+    const request = await SandboxRequirement.findByIdAndDelete(requestId);
+    if (!request) {
+      throw new Error('Request not found');
+    }
+    return request;
   }
 }

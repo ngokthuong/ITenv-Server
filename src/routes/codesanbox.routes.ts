@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { verifyAccessToken } from '../middlewares/verifyToken.mdw';
 import { isUser } from '../middlewares/verify_roles';
+import { checkSandboxPermission } from '../middlewares/checkSandboxPermission.mdw';
+import uploadCloud from '../config/cloudinary';
 import {
   createCodeSandboxController,
   findCodeSandboxByIdController,
@@ -14,33 +16,124 @@ import {
   addFolderToSandboxController,
   updateFolderInSandboxController,
   deleteFolderFromSandboxController,
+  addImageToSandboxController,
+  requestAccessController,
+  getAccessRequestsController,
+  handleAccessRequestController,
+  deleteAccessRequestController,
 } from '../controllers/codesanbox.controller';
 
 const router = Router();
 
-// Public routes
+// Public routes (only for viewing)
 router.get('/', findAllCodeSandboxesController);
-router.get('/:id', findCodeSandboxByIdController);
 router.get('/user/:userId', findCodeSandboxesByUserController);
 
-// Protected routes
+// Protected routes that need authentication
+router.get(
+  '/:id',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('viewer'),
+  findCodeSandboxByIdController,
+);
 router.post('/', verifyAccessToken, isUser, createCodeSandboxController);
-router.put('/:id', verifyAccessToken, isUser, updateCodeSandboxController);
-router.delete('/:id', verifyAccessToken, isUser, deleteCodeSandboxController);
+router.put(
+  '/:id',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('editor'),
+  updateCodeSandboxController,
+);
+router.delete(
+  '/:id',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('owner'),
+  deleteCodeSandboxController,
+);
 
 // File management routes
-router.post('/:id/files', verifyAccessToken, isUser, addFileToSandboxController);
-router.put('/:id/files/:fileId', verifyAccessToken, isUser, updateFileInSandboxController);
-router.delete('/:id/files/:fileId', verifyAccessToken, isUser, deleteFileFromSandboxController);
+router.post(
+  '/:id/files',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('editor'),
+  addFileToSandboxController,
+);
+router.put(
+  '/:id/files/:fileId',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('editor'),
+  updateFileInSandboxController,
+);
+router.delete(
+  '/:id/files/:fileId',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('editor'),
+  deleteFileFromSandboxController,
+);
+
+// Image upload route
+router.post(
+  '/:id/images',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('editor'),
+  uploadCloud.single('image'),
+  addImageToSandboxController,
+);
 
 // Folder management routes
-router.post('/:id/folders', verifyAccessToken, isUser, addFolderToSandboxController);
-router.put('/:id/folders/:folderId', verifyAccessToken, isUser, updateFolderInSandboxController);
+router.post(
+  '/:id/folders',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('editor'),
+  addFolderToSandboxController,
+);
+router.put(
+  '/:id/folders/:folderId',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('editor'),
+  updateFolderInSandboxController,
+);
 router.delete(
   '/:id/folders/:folderId',
   verifyAccessToken,
   isUser,
+  checkSandboxPermission('editor'),
   deleteFolderFromSandboxController,
+);
+
+// Access request routes
+router.post('/:id/request-access', verifyAccessToken, isUser, requestAccessController);
+
+router.get(
+  '/:id/access-requests',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('owner'),
+  getAccessRequestsController,
+);
+
+router.put(
+  '/:id/access-requests/:requestId',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('owner'),
+  handleAccessRequestController,
+);
+
+router.delete(
+  '/:id/access-requests/:requestId',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('owner'),
+  deleteAccessRequestController,
 );
 
 export default router;
