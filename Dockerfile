@@ -1,20 +1,39 @@
-# Sử dụng Node.js 22 trên Alpine Linux (nhẹ)
-FROM node:22-alpine 
+# Use Node.js 20 LTS on Alpine Linux (more stable)
+FROM node:20-alpine
 
-# Đặt thư mục làm việc trong container
-WORKDIR /ITenv-Server 
+# Install necessary dependencies and system libraries
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    libc6-compat \
+    build-base \
+    krb5 \
+    krb5-dev \
+    openssl \
+    openssl-dev \
+    libffi \
+    libffi-dev \
+    zlib \
+    zlib-dev
 
-# Sao chép package.json và yarn.lock vào container
-COPY package.json yarn.lock ./  
+# Set working directory
+WORKDIR /ITenv-Server
 
-# Cài đặt dependencies, dùng chính xác phiên bản
-RUN yarn install --frozen-lockfile  
+# Copy package files
+COPY package.json yarn.lock ./
 
-# Sao chép toàn bộ mã nguồn vào container
-COPY . .  
+# Install dependencies and rebuild bcrypt
+RUN yarn install --frozen-lockfile && \
+    cd node_modules/bcrypt && \
+    npm rebuild bcrypt --build-from-source && \
+    cd ../..
 
-# Mở cổng (ex: 8080)
-EXPOSE 8080  
+# Copy source code
+COPY . .
 
-# Lệnh chạy ứng dụng
+# Expose port
+EXPOSE 8080
+
+# Start the application
 CMD ["yarn", "start"]
