@@ -25,6 +25,7 @@ import submission from '../models/submission';
 import { SubmitType } from '../types/SubmitType';
 import Docker from 'dockerode';
 import { CodeActionType } from '../enums/CodeAction.enum';
+import { RunCodeResultType } from '../types/ProblemType.type';
 // const docker = new Docker();
 // const TIMEOUT = 2000;
 export const insertProblemsController = asyncHandler(async (req: any, res: any) => {
@@ -168,6 +169,9 @@ export const runCodeControllerRefactor = async (req: AuthRequest, res: any) => {
 export const submitProblemController = async (req: AuthRequest, res: any) => {
   const { lang, typed_code }: SubmitType = req.body;
   const { name: titleSlug } = req.params;
+  const { userId } = req.user!;
+  const problem = await Problem.findOne({ slug: titleSlug });
+  console.log('problemmmm: ', problem);
   if (!titleSlug || !lang || !typed_code) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
@@ -177,8 +181,21 @@ export const submitProblemController = async (req: AuthRequest, res: any) => {
     titleSlug,
     CodeActionType.SUBMITCODE,
   );
+  if (!result) return res.status(400).json({ message: 'Invalid result from code execution' });
+  const detailSubmission = await submission.create({
+    ...result,
+    submitBy: userId,
+    problem,
+    code: { content: typed_code, language: lang },
+    score: (result.total_correct / result.total_testcases) * 100,
+    isAccepted: result.total_correct === result.total_testcases,
+  });
+  if (!detailSubmission) {
+    return res.status(400).json({ message: 'Submission failed' });
+  }
+  result.submission_id = detailSubmission._id as unknown as string;
   return res.json({
-    success: result?.run_success,
+    success: result.run_success,
     data: result,
   });
 };
@@ -251,7 +268,7 @@ export const submitProblemController = async (req: AuthRequest, res: any) => {
 export const getDetailSubmissionController = asyncHandler(async (req: any, res: any) => {
   const { submissionId } = req.params;
   try {
-    const submissionDetailResponse = await submissionDetail(+submissionId);
+    const submissionDetailResponse = await submissionDetail(submissionId);
     if (!submissionDetailResponse)
       res.status(400).json({ success: false, message: 'Submission detail not found' });
     else
@@ -401,10 +418,8 @@ export const getDailysolvedProblemsController = asyncHandler(async (req: AuthReq
   return res.status(200).json(response);
 });
 
-
-export const refactorCodeWithAiController = asyncHandler(async(req: AuthRequest, res: any) =>{
+export const refactorCodeWithAiController = asyncHandler(async (req: AuthRequest, res: any) => {
   const { typedCode, lang } = req.body;
   const result = await refactorCodeWithAiService(typedCode, lang);
   return res.status(200).json({ refactoredCode: result });
-
-})
+});
