@@ -18,4 +18,5 @@ export enum ApiProblem {
   DATA_PAGE = '/data/page',
   DELETE_PROBLEM = '/:_id',
   DAILY_SOLVED_PROBLEMS = '/chart/solved',
+  REFACTOR_TYPED_CODE = '/refactor'
 }
