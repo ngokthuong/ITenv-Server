@@ -1,10 +1,10 @@
-import mongoose, { disconnect } from 'mongoose';
+import mongoose from 'mongoose';
 
 export const connection = async () => {
   try {
     const a = 0;
     const dbCon = await mongoose.connect(
-      process.env.MONGO_URL ?? 'mongodb://localhost:27018/DevArticlesDB',
+      process.env.MONGO_URL ?? 'mongodb+srv://trinhngocthuong17523:ighLNRGp-8d57sQ@cluster0.iblhqgw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
     );
     mongoose.connection.on('error', (error: Error) => console.log(error));
     if (dbCon.connection.readyState === 1) {

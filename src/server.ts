@@ -27,8 +27,6 @@ countConnect();
 // phân tích các cookie gửi từ client trong yêu cầu HTTP.
 app.use(cookieParser());
 // phân tích dữ liệu JSON từ body của các yêu cầu HTTP.
-app.use(bodyParser.json());
-// chi doc duoc json
 app.use(express.json());
 // Nếu client push lên ko phải là string, json mà là mảng ... thì nó có thể convert qua json rồi đọc
 app.use(express.urlencoded({ extended: true }));

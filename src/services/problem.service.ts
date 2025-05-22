@@ -6,6 +6,7 @@ import { EnumTag } from '../enums/schemaTag.enum';
 import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import { QueryOption } from '../types/QueryOption.type';
 import axios from 'axios';
+import acorn from 'acorn';
 import {
   runCodeErrorType,
   RunCodeResultSuccessType,
@@ -111,6 +112,7 @@ const fetchEditorData = async (titleSlug: string) => {
 // Function to insert problems into the database
 export const insertProblems = async () => {
   try {
+    console.log('Start inserting problems');
     const tasks = [];
     for (let skip = 0; skip < total; skip += 1) {
       tasks.push(
@@ -542,6 +544,36 @@ export const deletedProblemsByAdminService = async (_id: string) => {
   }
 };
 
+
+export const refactorCodeWithAiService = async (typedCode: string, lang: Language) => {
+  const prompt = `You are an experienced software engineer and code reviewer. I will provide a code snippet in the following format:
+Language: ${lang}
+TypedCode:
+${typedCode}
+Please perform a detailed review of the provided code. Only output the parts of the code that need to be revised (if any). If the code is already of high quality, suggest alternative implementations or simply respond with "Your code meets the requirements." Do not provide any explanations or comments.`;
+
+
+  try {
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model: process.env.MODEL ,
+      messages: [
+        { role: 'user', content: prompt }
+      ]
+    }, {
+      headers: {
+        'Authorization': process.env.OPENROUTER_API_KEY ,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = response.data.choices[0].message.content;
+    return result;
+
+  } catch (error: any) {
+    console.error(error.message);
+  }
+};
+
 export const getDailysolvedProblemsService = async () => {
   try {
     const today = new Date();
@@ -734,6 +766,133 @@ function extractErrorSnippet(errorOutput: string, lang: string): string | null {
   return match ? match[0] : '';
 }
 
+// async function startDocker(
+//   lang: string,
+//   typed_code: string,
+// ): Promise<{
+//   shortErrorLine: string;
+//   errorOutput: string;
+//   output: string;
+//   memory: number;
+//   runTime: number;
+// }> {
+//   let image = '';
+//   let filename = '';
+//   let runCmd: string[] = [];
+//   console.log('lang', lang);
+
+//   // Decide the language and set up the correct parameters
+//   if (lang === 'javascript') {
+//     image = 'node:18-alpine';
+//     filename = 'main.js';
+//     runCmd = ['node', `/src/temp/${filename}`];
+//   } else if (lang === 'typescript') {
+//     image = 'node:18-alpine';
+//     filename = 'main.ts';
+//     runCmd = ['ts-node', `/src/temp/${filename}`];
+//   } else if (lang === 'python') {
+//     image = 'python:3.11-alpine';
+//     filename = 'main.py';
+//     runCmd = ['python3', `/src/temp/${filename}`];
+//   } else {
+//     throw new Error(`Unsupported language: ${lang}`);
+//   }
+
+//   // Ensure image exists
+//   await ensureImageExists(image);
+//   console.log('lang1', lang);
+
+//   // Prepare source directory
+//   const srcDir = path.join(process.cwd(), 'src', 'temp');
+//   const filePath = path.join(srcDir, filename);
+//   fs.mkdirSync(srcDir, { recursive: true });
+//   fs.writeFileSync(filePath, typed_code);
+//   console.log('lang2', lang);
+
+//   // Check if the container already exists, else create a new one
+//   let container;
+//   try {
+//     container = await docker.getContainer('my-container-id'); // Replace with your actual container ID or logic to find it
+//     await container.start();  // Start the container if it exists
+//   } catch (error) {
+//     console.log('Container not found, creating new container');
+//     // Create a new container if it doesn't exist
+//     container = await docker.createContainer({
+//       Image: image,
+//       Cmd: runCmd,
+//       WorkingDir: '/src',
+//       AttachStdout: true,
+//       AttachStderr: true,
+//       Tty: false,
+//       Volumes: { '/src': {} },
+//       HostConfig: {
+//         Binds: [`${process.cwd()}/src:/src`],
+//         Memory: 1024 * 1024 * 1024,
+//         CpuShares: 512,
+//       },
+//     });
+//   }
+
+//   const statsStream = (await container.stats({ stream: true })) as Readable;
+//   let peakMemory = 0;
+//   statsStream.on('data', (chunk) => {
+//     const stats = JSON.parse(chunk.toString());
+//     const mem = stats.memory_stats?.usage ?? 0;
+//     if (mem > peakMemory) {
+//       peakMemory = mem;
+//     }
+//   });
+
+//   const startTime = Date.now();
+
+//   // Attach to container's streams
+//   const stream = await container.attach({
+//     stream: true,
+//     stdout: true,
+//     stderr: true,
+//   });
+
+//   const stdout = new PassThrough();
+//   const stderr = new PassThrough();
+//   container.modem.demuxStream(stream, stdout, stderr);
+
+//   let output = '';
+//   let errorOutput = '';
+
+//   stdout.on('data', (data) => {
+//     output += data.toString();
+//   });
+
+//   stderr.on('data', (data) => {
+//     errorOutput += data.toString();
+//   });
+
+//   let shortErrorLine: string | null = '';
+//   const timeoutPromise = new Promise<void>((_, reject) =>
+//     setTimeout(() => reject(new Error('⏰ Code execution timed out')), 10000),
+//   );
+
+//   const streamEndPromise = new Promise<void>((resolve) => {
+//     stream.on('end', () => {
+//       statsStream.destroy();
+//       if (errorOutput) {
+//         shortErrorLine = extractErrorSnippet(errorOutput, lang);
+//       }
+//       resolve();
+//     });
+//   });
+
+//   await Promise.race([streamEndPromise, timeoutPromise]);
+
+//   // Optionally remove the container after execution
+//   await container.remove({ force: true });
+
+//   const endTime = Date.now();
+//   const runTime = endTime - startTime;
+
+//   return { shortErrorLine, errorOutput, output, memory: peakMemory, runTime };
+// }
+
 async function startDocker(
   lang: string,
   typed_code: string,
@@ -880,68 +1039,75 @@ function generateRunnerCode(
   className: string,
   testCases: any[],
   lang: string,
+  isCheckExcludeFunctionName: boolean,
 ): string {
-  // if (lang === 'javascript') {
-  //   const tests = testCases
-  //     .map(({ input, output }, idx) => {
-  //       return `
-  // try {
-  //   const result = ${functionName}(...${JSON.stringify(input)});
-  //   const expected = JSON.parse(${JSON.stringify(output)});
-  //   if (JSON.stringify(result) === JSON.stringify(expected)) {
-  //     console.log("Test ${idx + 1} passed");
-  //     codeAnswer.push(result);
-  //     expectedCodeAnswer.push(expected);
-  //   } else {
-  //     console.log("Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(result));
-  //     codeAnswer.push(result);
-  //     expectedCodeAnswer.push(expected);
-  //   }
-  //   console.log("RESULT:", JSON.stringify(result));
-  // } catch (e) {
-  //   console.log(e.stack);
-  // }
-  // `;
-  //     })
-  //     .join('\n');
-
-  //   return `
-  // ${userCode}
-
-  // const codeAnswer = [];
-  // const expectedCodeAnswer = [];
-
-  // ${tests}
-
-  // return {
-  //   codeAnswer,
-  //   expectedCodeAnswer
-  // };
-  // `;
-  // }
 
   if (lang === 'javascript') {
     const tests = testCases
-      .map(({ input, output }, idx) => {
-        // Nếu có className thì gọi method trên instance class
+      .map(({ input, output, type, lenghtInput }, idx) => {
+        // if input is an array with more than 1 element, use spread operator
+        // if input is a string, parse it to JSON
+        let parseInput;
+        try {
+          if (type === 'string') {
+            parseInput = input;
+            if (typeof input === "number") {
+              parseInput = JSON.stringify(input);
+              console.log('parseInput', parseInput);
+            }
+          } else {
+            parseInput = JSON.parse(input);
+          }
+        } catch (e) {
+          parseInput = input;
+        }
+        let args;
+        if (isCheckExcludeFunctionName) {
+          if (hasNestedArray(parseInput)) {
+            if (userCode.includes('ListNode')) {
+              // Convert nested arrays to ListNodes
+              args = parseInput.map((arr: any) => `arrayToList(${JSON.stringify(arr)})`).join(', ');
+            } else {
+              args = `...${JSON.stringify(parseInput)}`;
+            }
+          } else {
+            if (userCode.includes('ListNode') && Array.isArray(parseInput)) {
+              args = `arrayToList(${JSON.stringify(parseInput)})`;
+            } else {
+              args = JSON.stringify(parseInput);
+            }
+          }
+        }
+        else {
+          if (hasNestedArray(parseInput)) {
+            args = `...${JSON.stringify(parseInput)}`;
+          }
+          if (lenghtInput > 1) {
+            args = `...${JSON.stringify(parseInput)}`;
+          }
+          else {
+            args = JSON.stringify(parseInput);
+          }
+        }
         const callExpression = className
-          ? `instance.${functionName}(...${JSON.stringify(input)})`
-          : `${functionName}(...${JSON.stringify(input)})`;
-
+          ? `instance.${functionName}(${args})`
+          : `${functionName}(${args})`;
         return `
-  try {
+  try { 
+    
     const result = ${callExpression};
-    const expected = JSON.parse(${JSON.stringify(output)});
-    if (JSON.stringify(result) === JSON.stringify(expected)) {
+    const expected = ${JSON.stringify(output)};
+    const actual = ${isCheckExcludeFunctionName ? 'listToArray(result)' : 'result'};
+    if (JSON.stringify(actual) === JSON.stringify(expected)) {
       console.log("Test ${idx + 1} passed");
-      codeAnswer.push(result);
+      codeAnswer.push(actual);
       expectedCodeAnswer.push(expected);
     } else {
-      console.log("Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(result));
-      codeAnswer.push(result);
-      expectedCodeAnswer.push(expected);
+      console.log("Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(actual));
+      codeAnswer.push(actual);
+      expectedCodeAnswer.push(expected); 
     }
-    console.log("RESULT:", JSON.stringify(result));
+    console.log("RESULT:", JSON.stringify(actual));
   } catch (e) {
     console.log(e.stack);
   }
@@ -950,6 +1116,35 @@ function generateRunnerCode(
       .join('\n');
 
     return `
+
+    ${isCheckExcludeFunctionName ? `
+class ListNode {
+  constructor(val = 0, next = null) {
+    this.val = val;
+    this.next = next;
+  }
+}
+
+function listToArray(head) {
+  const arr = [];
+  while (head) {
+    arr.push(head.val);
+    head = head.next;
+  }
+  return arr;
+}
+
+function arrayToList(arr) {
+  let dummy = new ListNode(0);
+  let current = dummy;
+  for (const val of arr) {
+    current.next = new ListNode(val);
+    current = current.next;
+  }
+  return dummy.next;
+}
+` : ''}
+
   ${userCode}
 
   const codeAnswer = [];
@@ -1193,9 +1388,13 @@ function generateRunnerCode(
   //   if (lang === 'typescript') {
   //     const tests = testCases
   //       .map(({ input, output }, idx) => {
+  //         const callExpr = className
+  //           ? `new ${className}().${functionName}(...${JSON.stringify(input)})`
+  //           : `${functionName}(...${JSON.stringify(input)})`;
+
   //         return `
   // try {
-  //   const result = ${functionName}(...${JSON.stringify(input)});
+  //   const result = ${callExpr};
   //   const expected = ${JSON.stringify(output)};
   //   if (JSON.stringify(result) === JSON.stringify(expected)) {
   //     console.log("✅ Test ${idx + 1} passed");
@@ -1207,7 +1406,7 @@ function generateRunnerCode(
   //     expectedCodeAnswer.push(expected);
   //   }
   //   console.log("RESULT:", JSON.stringify(result));
-  // } catch (e:any) {
+  // } catch (e: any) {
   //   console.error("❗ Error in test ${idx + 1}:", e.stack);
   // }
   // `;
@@ -1235,50 +1434,122 @@ function generateRunnerCode(
 
   if (lang === 'typescript') {
     const tests = testCases
-      .map(({ input, output }, idx) => {
-        const callExpr = className
-          ? `new ${className}().${functionName}(...${JSON.stringify(input)})`
-          : `${functionName}(...${JSON.stringify(input)})`;
+      .map(({ input, output, type, lenghtInput }, idx) => {
+        let parseInput;
+        try {
+          if (type === 'string') {
+            parseInput = input;
+            if (typeof input === 'number') {
+              parseInput = JSON.stringify(input);
+              console.log('parseInput', parseInput);
+            }
+          } else {
+            parseInput = JSON.parse(input);
+          }
+        } catch (e) {
+          parseInput = input;
+        }
+
+        let args;
+        if (isCheckExcludeFunctionName) {
+          if (hasNestedArray(parseInput)) {
+            if (userCode.includes('ListNode')) {
+              args = parseInput.map((arr: any) => `arrayToList(${JSON.stringify(arr)})`).join(', ');
+            } else {
+              args = `...${JSON.stringify(parseInput)}`;
+            }
+          } else {
+            if (userCode.includes('ListNode') && Array.isArray(parseInput)) {
+              args = `arrayToList(${JSON.stringify(parseInput)})`;
+            } else {
+              args = JSON.stringify(parseInput);
+            }
+          }
+        } else {
+          if (hasNestedArray(parseInput)) {
+            args = `...${JSON.stringify(parseInput)}`;
+          }
+          if (lenghtInput > 1) {
+            args = `...${JSON.stringify(parseInput)}`;
+          }
+          else {
+            args = JSON.stringify(parseInput);
+          }
+        }
+
+        const callExpression = className
+          ? `instance.${functionName}(${args})`
+          : `${functionName}(${args})`;
 
         return `
-try {
-  const result = ${callExpr};
+try { 
+  const result = ${callExpression};
   const expected = ${JSON.stringify(output)};
-  if (JSON.stringify(result) === JSON.stringify(expected)) {
-    console.log("✅ Test ${idx + 1} passed");
-    codeAnswer.push(result);
+  const actual = ${isCheckExcludeFunctionName ? 'listToArray(result)' : 'result'};
+  if (JSON.stringify(actual) === JSON.stringify(expected)) {
+    console.log("Test ${idx + 1} passed");
+    codeAnswer.push(actual);
     expectedCodeAnswer.push(expected);
   } else {
-    console.log("❌ Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(result));
-    codeAnswer.push(result);
-    expectedCodeAnswer.push(expected);
+    console.log("Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(actual));
+    codeAnswer.push(actual);
+    expectedCodeAnswer.push(expected); 
   }
-  console.log("RESULT:", JSON.stringify(result));
-} catch (e: any) {
-  console.error("❗ Error in test ${idx + 1}:", e.stack);
+  console.log("RESULT:", JSON.stringify(actual));
+} catch (e:any) {
+  console.log(e.stack);
 }
-`;
+      `;
       })
       .join('\n');
 
     return `
-// ===== User Code =====
+${isCheckExcludeFunctionName ? `
+class ListNode {
+  val: number;
+  next: ListNode | null;
+  constructor(val = 0, next: ListNode | null = null) {
+    this.val = val;
+    this.next = next;
+  }
+}
+
+function listToArray(head: ListNode | null): number[] {
+  const arr: number[] = [];
+  while (head) {
+    arr.push(head.val);
+    head = head.next;
+  }
+  return arr;
+}
+
+function arrayToList(arr: number[]): ListNode | null {
+  let dummy = new ListNode(0);
+  let current = dummy;
+  for (const val of arr) {
+    current.next = new ListNode(val);
+    current = current.next;
+  }
+  return dummy.next;
+}
+` : ''}
+
 ${userCode}
 
-// ===== Result Arrays =====
-const codeAnswer = [];
-const expectedCodeAnswer = [];
+const codeAnswer: any[] = [];
+const expectedCodeAnswer: any[] = [];
 
-// ===== Test Cases =====
+${className ? `const instance = new ${className}();` : ''}
+
 ${tests}
 
-// ===== Export for Validation =====
-module.exports = {
-  codeAnswer,
-  expectedCodeAnswer
-};
-`;
+  module.exports = {
+    codeAnswer,
+    expectedCodeAnswer
+  };
+  `;
   }
+
 
   // if (lang === 'python' || lang === 'python3') {
   //   const formatPyValue = (val: any) => {
@@ -1417,6 +1688,8 @@ function extractResultsFromOutput(output: string[]) {
 type ParsedTestCase = {
   input: [number[], number];
   output: any;
+  type: string;
+  lenghtInput: number;
 };
 
 /**
@@ -1426,26 +1699,115 @@ type ParsedTestCase = {
  * @returns An array of parsed test cases.
  * Get input and output from test case
  */
+// function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCase[] {
+//   return testCases
+//     .filter((test) => isHidden || !test.isHidden)
+//     .map((test) => {
+//       const [first, second] = test.input.map((i) => {
+//         try {
+//           return JSON.parse(i.value);
+//         } catch {
+//           return Number(i.value);
+//         }
+//       });
+
+//       const output = test.output[0];
+
+//       return {
+//         input: [first, second],
+//         output, // output -> string
+//       };
+//     });
+// }
+
+
+// function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCase[] {
+//   let type: string = '';
+//   return testCases
+//     .filter((test) => isHidden || !test.isHidden)
+//     .map((test) => {
+
+//       const parsedInputs = test.input.map((i) => {
+//         i = (i as any).toObject();
+//         const value = i.value;
+//         type = i.type;
+//         try {
+//           const parsed = JSON.parse(value);
+//           return parsed;
+//         } catch {
+//           // Fallback: cố gắng parse thủ công nếu không phải JSON hợp lệ
+//           if (!isNaN(Number(value))) return Number(value);
+//           if (value === "true") return true;
+//           if (value === "false") return false;
+//           return value; // fallback cuối cùng: trả về string
+//         }
+//       });
+
+
+//       const outputStr = test.output;
+//       let parsedOutput: any;
+//       try {
+//         console.log('outputStr', outputStr);
+//         parsedOutput = JSON.parse(outputStr);
+//       } catch {
+//         if (!isNaN(Number(outputStr))) parsedOutput = Number(outputStr);
+//         else if (outputStr === "true") parsedOutput = true;
+//         else if (outputStr === "false") parsedOutput = false;
+//         else parsedOutput = outputStr;
+//       }
+
+
+//       return {
+//         input: parsedInputs.length === 1 ? parsedInputs[0] : parsedInputs,
+//         output: parsedOutput,
+//         type: type,
+//       };
+//       type = "";
+//     });
+// }
+
 function parseTestCases(testCases: ITestCase[], isHidden: boolean): ParsedTestCase[] {
   return testCases
     .filter((test) => isHidden || !test.isHidden)
     .map((test) => {
-      const [first, second] = test.input.map((i) => {
+      const inputs = test.input.map((i) => (i as any).toObject());
+      const parsedInputs = inputs.map((i) => {
+        const value = i.value;
         try {
-          return JSON.parse(i.value);
+          return JSON.parse(value);
         } catch {
-          return Number(i.value);
+          console.log('value', value);
+          if (i.type === 'string' && !value) {
+            return "";
+          }
+          if (!isNaN(Number(value))) return Number(value);
+          if (value === "true") return true;
+          if (value === "false") return false;
+          return value;
         }
       });
 
-      const output = test.output[0];
+      const outputStr = test.output;
+      let parsedOutput: any;
+      try {
+        parsedOutput = JSON.parse(outputStr);
+      } catch {
+        if (!isNaN(Number(outputStr))) parsedOutput = Number(outputStr);
+        else if (outputStr === "true") parsedOutput = true;
+        else if (outputStr === "false") parsedOutput = false;
+        else parsedOutput = outputStr;
+      }
 
       return {
-        input: [first, second],
-        output, // output -> string
+        input: parsedInputs.length === 1 ? parsedInputs[0] : parsedInputs,
+        output: parsedOutput,
+        type: inputs.length === 1 ? inputs[0].type : undefined,
+        lenghtInput: test.input.length,
       };
     });
 }
+
+
 
 type Language = 'javascript' | 'typescript' | 'python' | 'java' | 'csharp' | 'cpp' | 'c';
 
@@ -1470,48 +1832,164 @@ export function extractClassName(userCode: string, lang: Language): string | nul
   return null;
 }
 
-export function extractFunctionName(userCode: string, lang: Language): string | null {
+
+
+// export function extractFunctionName(userCode: string, lang: Language): string | null {
+//   const patterns: Record<Language, RegExp[]> = {
+//     javascript: [
+//       /function\s+([a-zA-Z_$][\w$]*)\s*\(/,                      // function declaration
+//       /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,             // const f = function
+//       /let\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,
+//       /var\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,
+//       /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,       // arrow functions
+//       /let\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,
+//       /var\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,
+//       /([a-zA-Z_$][\w$]*)\s*:\s*function\s*\(/,                 // object method function
+//       /([a-zA-Z_$][\w$]*)\s*:\s*\(?.*?\)?\s*=>/,               // object method arrow
+//     ],
+//     typescript: [
+//       /function\s+([a-zA-Z_$][\w$]*)\s*\(/,
+//       /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function\s*\(/,
+//       /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(.*?\)\s*=>/,
+//       /const\s+([a-zA-Z_$][\w$]*)\s*=\s*async\s*\(.*?\)\s*=>/,
+//       /export\s+function\s+([a-zA-Z_$][\w$]*)\s*\(/,
+//       /export\s+default\s+function\s+([a-zA-Z_$][\w$]*)?\s*\(/,
+//     ],
+//     python: [/def\s+([a-zA-Z_][\w]*)\s*\(/],
+//     java: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>\[\]]+\s+([a-zA-Z_][\w]*)\s*\(/],
+//     csharp: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/],
+//     cpp: [/(?:^[\w\s:*&<>]+)?\s+([a-zA-Z_][\w]*)\s*\([^)]*\)\s*(?:const)?\s*(?:\{|;)/m],
+//     c: [/(?:[\w\s*]+)\s+([a-zA-Z_][\w]*)\s*\(/],
+//   };
+
+//   const langKey = lang.toLowerCase() as Language;
+//   const langPatterns = patterns[langKey];
+
+//   if (!langPatterns) return null;
+
+//   for (const regex of langPatterns) {
+//     const match = userCode.match(regex);
+//     if (match) return match[1];
+//   }
+
+//   return null;
+// }
+
+
+
+function getTopLevelFunctions(code: string) {
+  const ast = acorn.parse(code, { ecmaVersion: 2023, sourceType: 'module' });
+  const funcs = [];
+
+  function extractFromVariableDeclaration(node: any) {
+    for (const decl of node.declarations) {
+      if (
+        decl.init &&
+        (decl.init.type === 'FunctionExpression' || decl.init.type === 'ArrowFunctionExpression')
+      ) {
+        if (decl.id.type === 'Identifier') {
+          funcs.push(decl.id.name);
+        }
+      }
+    }
+  }
+
+  for (const node of ast.body) {
+    switch (node.type) {
+      case 'FunctionDeclaration':
+        if (node.id && node.id.name) funcs.push(node.id.name);
+        break;
+
+      case 'VariableDeclaration':
+        extractFromVariableDeclaration(node);
+        break;
+
+      case 'ExportNamedDeclaration':
+        if (node.declaration) {
+          if (node.declaration.type === 'FunctionDeclaration' && node.declaration.id) {
+            funcs.push(node.declaration.id.name);
+          } else if (node.declaration.type === 'VariableDeclaration') {
+            extractFromVariableDeclaration(node.declaration);
+          }
+        }
+        break;
+
+      case 'ExportDefaultDeclaration':
+        if (
+          node.declaration.type === 'FunctionDeclaration' &&
+          node.declaration.id &&
+          node.declaration.id.name
+        ) {
+          funcs.push(node.declaration.id.name);
+        }
+        break;
+
+      default:
+        // ignore other types
+        break;
+    }
+  }
+
+  return [...new Set(funcs)]; // loại trùng
+}
+
+export function extractFunctionNames(
+  userCode: string,
+  lang: Language,
+  excludeNames: string[] = []
+): { functionNames: string[]; isCheckExcludeFunctionName: boolean } {
   const patterns: Record<Language, RegExp[]> = {
     javascript: [
-      /function\s+([a-zA-Z_$][\w$]*)\s*\(/,
-      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,
-      /let\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,
-      /var\s+([a-zA-Z_$][\w$]*)\s*=\s*function/,
-      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,
-      /let\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,
-      /var\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/,
-      /([a-zA-Z_$][\w$]*)\s*:\s*function\s*\(/,
-      /([a-zA-Z_$][\w$]*)\s*:\s*\(?.*?\)?\s*=>/,
-      /class\s+[a-zA-Z_$][\w$]*\s*{[^}]*?\b([a-zA-Z_$][\w$]*)\s*\(.*?\)\s*{/,
-      /static\s+([a-zA-Z_$][\w$]*)\s*\(/,
+      /var\s+([a-zA-Z_$][\w$]*)\s*=\s*function/g,
+      /function\s+([a-zA-Z_$][\w$]*)\s*\(/g,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function/g,
+      /let\s+([a-zA-Z_$][\w$]*)\s*=\s*function/g,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/g,
+      /let\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/g,
+      /var\s+([a-zA-Z_$][\w$]*)\s*=\s*\(?.*?\)?\s*=>/g,
+      /([a-zA-Z_$][\w$]*)\s*:\s*function\s*\(/g,
+      /([a-zA-Z_$][\w$]*)\s*:\s*\(?.*?\)?\s*=>/g,
     ],
     typescript: [
-      /function\s+([a-zA-Z_$][\w$]*)\s*\(/,
-      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function\s*\(/,
-      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(.*?\)\s*=>/,
-      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*async\s*\(.*?\)\s*=>/,
-      /export\s+function\s+([a-zA-Z_$][\w$]*)\s*\(/,
-      /export\s+default\s+function\s+([a-zA-Z_$][\w$]*)?\s*\(/,
+      /function\s+([a-zA-Z_$][\w$]*)\s*\(/g,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*function\s*\(/g,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*\(.*?\)\s*=>/g,
+      /const\s+([a-zA-Z_$][\w$]*)\s*=\s*async\s*\(.*?\)\s*=>/g,
+      /export\s+function\s+([a-zA-Z_$][\w$]*)\s*\(/g,
+      /export\s+default\s+function\s+([a-zA-Z_$][\w$]*)?\s*\(/g,
     ],
-    python: [/def\s+([a-zA-Z_][\w]*)\s*\(/],
-    java: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>\[\]]+\s+([a-zA-Z_][\w]*)\s*\(/],
-    csharp: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/],
-    cpp: [/(?:^[\w\s:*&<>]+)?\s+([a-zA-Z_][\w]*)\s*\([^)]*\)\s*(?:const)?\s*(?:\{|;)/m],
-    c: [/(?:[\w\s*]+)\s+([a-zA-Z_][\w]*)\s*\(/],
+    python: [/def\s+([a-zA-Z_][\w]*)\s*\(/g],
+    java: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>\[\]]+\s+([a-zA-Z_][\w]*)\s*\(/g],
+    csharp: [/(?:public|private|protected)?\s*(?:static)?\s*[\w<>]+\s+([a-zA-Z_][\w]*)\s*\(/g],
+    cpp: [/(?:^[\w\s:*&<>]+)?\s+([a-zA-Z_][\w]*)\s*\([^)]*\)\s*(?:const)?\s*(?:\{|;)/gm],
+    c: [/(?:[\w\s*]+)\s+([a-zA-Z_][\w]*)\s*\(/g],
   };
 
   const langKey = lang.toLowerCase() as Language;
   const langPatterns = patterns[langKey];
+  if (!langPatterns) return { functionNames: [], isCheckExcludeFunctionName: false };
 
-  if (!langPatterns) return null;
+  const functionNames: string[] = [];
 
   for (const regex of langPatterns) {
-    const match = userCode.match(regex);
-    if (match) return match[1];
+    let match;
+    while ((match = regex.exec(userCode)) !== null) {
+      const name = match[1];
+      if (name && !excludeNames.includes(name)) {
+        functionNames.push(name);
+      }
+    }
   }
 
-  return null;
+  const isCheckExcludeFunctionName = /(?:^|\s)ListNode(?:\s|[\(\{;=])/m.test(userCode);
+
+  return {
+    functionNames: [...new Set(functionNames)],
+    isCheckExcludeFunctionName,
+  };
 }
+
+
 
 export const runOrSubmitCodeService = async (
   lang: string,
@@ -1520,38 +1998,55 @@ export const runOrSubmitCodeService = async (
   codeActionType: CodeActionType,
 ) => {
   try {
+    console.log('problem1');
     const problem = await Problem.findOne({ slug: titleSlug });
+    console.log('problem', problem);
     let testInDb = problem?.testCase;
     if (!testInDb) return;
     // isHidden false -> get test case with isHidden = false
     // parse test case -> get input and output
+    console.log('testInDb', testInDb);
     const testResult = parseTestCases(
       testInDb,
       codeActionType === CodeActionType.RUNCODE ? false : true,
     );
 
+    console.log('testResult', testResult);
+
     if (!testResult) return;
     const testCases = testResult.map((tc) => ({
       input: tc.input,
       output: tc.output,
+      type: tc.type,
+      lenghtInput: tc.lenghtInput,
     }));
+
     // get function name from typed code
-    const problemFunctionName = extractFunctionName(typed_code, lang.toLowerCase() as Language);
+    let functionName = [""];
+    if (lang === 'javascript')
+      functionName = getTopLevelFunctions(typed_code);
+    console.log('functions', functionName);
+    const problemFunctionName: { functionNames: string[]; isCheckExcludeFunctionName: boolean } = extractFunctionNames(typed_code, lang.toLowerCase() as Language, ["ListNode"]);
     const problemClassName = extractClassName(typed_code, lang.toLowerCase() as Language);
+    console.log('problemFunctionName', problemFunctionName);
+    console.log('problemClassName', problemClassName);
     // generate runner code
+    console.log('testcase1', testCases);
+    const isExcludeNames = problemFunctionName.isCheckExcludeFunctionName;
     const runnerCode = generateRunnerCode(
       typed_code,
-      problemFunctionName as string,
+      functionName[0] ? functionName[0] : problemFunctionName.functionNames[0],
       problemClassName as string,
       testCases,
       lang,
+      isExcludeNames,
     );
 
     // run code -> use docker from docker hub -> start -> create image -> run
     const { shortErrorLine, errorOutput, output, runTime } = await startDocker(lang, runnerCode);
 
     let match = extractErrorSnippet(output, lang);
-    const memoryUsed = process.memoryUsage().rss; // in bytes
+    const memoryUsed = process.memoryUsage().rss;
 
     if (errorOutput || shortErrorLine) {
       match = errorOutput ? errorOutput : shortErrorLine;
@@ -1587,6 +2082,9 @@ export const runOrSubmitCodeService = async (
     // success
     const total = testCases.length;
     let cleanedOutput = output.replace(/!/g, '');
+
+    console.log('cleanedOutput', cleanedOutput);
+
     let outputArray = cleanedOutput.split('\n');
     for (let i = 0; i < outputArray.length; i++) {
       outputArray[i] = outputArray[i].replace(/[\x00-\x1F\x7F]+/g, '');
@@ -1601,10 +2099,51 @@ export const runOrSubmitCodeService = async (
     const expectedResults = testCases.map((t) => t.output);
 
     for (let i = 0; i < actualResults.length; i++) {
-      if (actualResults[i] === expectedResults[i]) {
+      const actual = normalize(actualResults[i]);
+      const expected = normalize(expectedResults[i]);
+      console.log('actual', actual);
+      console.log('expected', expected);
+      if (actual === expected) {
         correctCount++;
       }
     }
+
+    // run success -> seave typecode 
+
+    // if (problem) {
+    //   const codeBlock = problem.initialCode.find(code => code.langSlug === lang);
+    //   if (codeBlock) {
+    //     codeBlock.code = typed_code;
+    //     await problem.save(); 
+    //   }
+    // }
+
+    if (problem) {
+      if (!Array.isArray(problem.initialCode)) {
+        console.error('initialCode is not an array or is missing');
+        return;
+      }
+
+      const codeBlock = problem.initialCode.find(code => code.langSlug === lang);
+      if (!codeBlock) {
+        console.error('No code block found for lang:', lang);
+        return;
+      }
+
+      // Nếu typed_code undefined thì đổi sang ""
+      codeBlock.code = typed_code === undefined ? "" : typed_code;
+
+      try {
+        await problem.save();
+        console.log('Problem saved successfully');
+      } catch (e) {
+        console.error('Error saving problem:', e);
+      }
+    } else {
+      console.error('Problem not found');
+    }
+
+
 
     const runCodeResult: RunCodeResultSuccessType = {
       status_code: results.length === total ? 15 : 20,
@@ -1626,7 +2165,8 @@ export const runOrSubmitCodeService = async (
       expected_memory: 0,
       expected_display_runtime: '0',
       // expected_code_answer: testCases.map((t) => t.output),
-      expected_code_answer: testCases.map((t) => t.output),
+      expected_code_answer: testCases.map((t) => JSON.stringify(t.output)),
+      // expected_code_answer: testCases.map((t) => t.output),
       expected_code_output: [],
       expected_std_output_list: [],
       expected_elapsed_time: 0,
@@ -1647,6 +2187,27 @@ export const runOrSubmitCodeService = async (
 
     return runCodeResult;
   } catch (error: any) {
-    throw new Error(`Run or submit code failed: ${error.message}`);
+    throw new Error(`Run or submit code failed: ${error.stack}`);
   }
 };
+
+const normalize = (value: any): string => {
+  if (typeof value !== 'string') {
+    return JSON.stringify(value);
+  }
+
+  if (value.startsWith('"') && value.endsWith('"')) {
+    return value.slice(1, -1);
+  }
+
+  return value;
+};
+
+
+function hasNestedArray(arr: any[]): boolean {
+  if (!Array.isArray(arr)) {
+    return false;
+  }
+  return arr.some(item => Array.isArray(item));
+}
+
