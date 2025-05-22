@@ -22,7 +22,6 @@ import path from 'path';
 import fs from 'fs';
 import { CodeActionType } from '../enums/CodeAction.enum';
 import dedent from 'dedent';
-import { isArray } from 'lodash';
 
 const docker = new Docker();
 const total = 10;
@@ -113,6 +112,7 @@ const fetchEditorData = async (titleSlug: string) => {
 // Function to insert problems into the database
 export const insertProblems = async () => {
   try {
+    console.log('Start inserting problems');
     const tasks = [];
     for (let skip = 0; skip < total; skip += 1) {
       tasks.push(
@@ -541,6 +541,36 @@ export const deletedProblemsByAdminService = async (_id: string) => {
     return result;
   } catch (error: any) {
     throw new Error(error.message);
+  }
+};
+
+
+export const refactorCodeWithAiService = async (typedCode: string, lang: Language) => {
+  const prompt = `You are an experienced software engineer and code reviewer. I will provide a code snippet in the following format:
+Language: ${lang}
+TypedCode:
+${typedCode}
+Please perform a detailed review of the provided code. Only output the parts of the code that need to be revised (if any). If the code is already of high quality, suggest alternative implementations or simply respond with "Your code meets the requirements." Do not provide any explanations or comments.`;
+
+
+  try {
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model: process.env.MODEL ,
+      messages: [
+        { role: 'user', content: prompt }
+      ]
+    }, {
+      headers: {
+        'Authorization': process.env.OPENROUTER_API_KEY ,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = response.data.choices[0].message.content;
+    return result;
+
+  } catch (error: any) {
+    console.error(error.message);
   }
 };
 
@@ -1052,7 +1082,7 @@ function generateRunnerCode(
           if (hasNestedArray(parseInput)) {
             args = `...${JSON.stringify(parseInput)}`;
           }
-          if(lenghtInput > 1) {
+          if (lenghtInput > 1) {
             args = `...${JSON.stringify(parseInput)}`;
           }
           else {
@@ -1439,7 +1469,7 @@ function arrayToList(arr) {
           if (hasNestedArray(parseInput)) {
             args = `...${JSON.stringify(parseInput)}`;
           }
-          if(lenghtInput > 1) {
+          if (lenghtInput > 1) {
             args = `...${JSON.stringify(parseInput)}`;
           }
           else {

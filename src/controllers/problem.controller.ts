@@ -15,6 +15,7 @@ import {
   insertProblems,
   upSertProblemService,
   runOrSubmitCodeService,
+  refactorCodeWithAiService,
 } from '../services/problem.service';
 import { checkSubmissionStatus, runCode, submissionDetail } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
@@ -399,3 +400,11 @@ export const getDailysolvedProblemsController = asyncHandler(async (req: AuthReq
   };
   return res.status(200).json(response);
 });
+
+
+export const refactorCodeWithAiController = asyncHandler(async(req: AuthRequest, res: any) =>{
+  const { typedCode, lang } = req.body;
+  const result = await refactorCodeWithAiService(typedCode, lang);
+  return res.status(200).json({ refactoredCode: result });
+
+})
