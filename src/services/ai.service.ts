@@ -60,11 +60,10 @@ export class LangchainService {
       const testCasesStr = visibleTestCases
         .map((tc) => {
           const inputs = tc.input.map((input) => `${input.name}: ${input.value}`).join(', ');
-          const outputs = tc.output.join(', ');
+          const outputs = tc.output;
           return `Input: ${inputs}\nExpected Output: ${outputs}`;
         })
         .join('\n\n');
-
       const refactorPrompt = PromptTemplate.fromTemplate(
         `You are an expert code refactoring assistant. Please help refactor the following code while maintaining its functionality to solve the problem.
 

@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { EnumRoleAccount } from '../enums/schemaAccount.enum';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 interface IAccount extends Document {
