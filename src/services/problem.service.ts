@@ -198,90 +198,12 @@ export const getProblemsService = async (queryOption: QueryOption) => {
   }
 };
 
-export const runCode = async (
-  name: string,
-  submissionBody: SubmissionBody & { data_input: string },
-) => {
-  try {
-    const response = await axios.post(
-      `https://leetcode.com/problems/${name}/interpret_solution/`,
-      {
-        lang: submissionBody.lang,
-        typed_code: submissionBody.typed_code,
-        question_id: submissionBody.question_id,
-        data_input: submissionBody.data_input,
-      },
-      {
-        headers: {
-          Host: 'leetcode.com',
-          Origin: 'https://leetcode.com',
-          'Content-Type': 'application/json',
-          'x-csrftoken': process.env.CSRF_TOKEN,
-          Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION}; csrftoken=${process.env.CSRF_TOKEN}`,
-          Referer: `https://leetcode.com/problems/${name}/interpret_solution/`,
-        },
-      },
-    );
-    return response;
-  } catch (error) {
-    throw new Error('Error in runCode: ' + error);
-  }
-};
-
-export const submit = async (name: string, submissionBody: SubmissionBody) => {
-  try {
-    const response = await axios.post(
-      `https://leetcode.com/problems/${name}/submit/`,
-      {
-        lang: submissionBody.lang,
-        typed_code: submissionBody.typed_code,
-        question_id: submissionBody.question_id,
-      },
-      {
-        headers: {
-          Host: 'leetcode.com',
-          Origin: 'https://leetcode.com',
-          'Content-Type': 'application/json',
-          'x-csrftoken': process.env.CSRF_TOKEN,
-          Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION}; csrftoken=${process.env.CSRF_TOKEN}`,
-          Referer: `https://leetcode.com/problems/${name}/submit/`,
-        },
-      },
-    );
-    return response;
-  } catch (error) {
-    throw new Error('Error in submit: ' + error);
-  }
-};
-
-export const checkSubmissionStatus = async (submissionId: string, titleSlug: string) => {
-  try {
-    const response = await axios.get(
-      `https://leetcode.com/submissions/detail/${submissionId}/check/`,
-
-      {
-        headers: {
-          Host: 'leetcode.com',
-          Origin: 'https://leetcode.com',
-          'Content-Type': 'application/json',
-          'x-csrftoken': process.env.CSRF_TOKEN,
-          Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION}; csrftoken=${process.env.CSRF_TOKEN}`,
-          Referer: `https://leetcode.com/problems/${titleSlug}`,
-        },
-      },
-    );
-    return response;
-  } catch (error) {
-    console.error(error);
-  }
-};
-
 export const submissionDetail = async (submissionId: number) => {
   try {
     const submissionDoc = await submission
       .findById(submissionId)
-      .populate('submitBy')
-      .populate('problem')
+      .populate('submitBy', '_id username avatar')
+      .populate('problem', '_id title slug')
       .lean();
 
     if (!submissionDoc) {
@@ -1626,30 +1548,30 @@ export const runOrSubmitCodeService = async (
     //   }
     // }
 
-    if (problem) {
-      if (!Array.isArray(problem.initialCode)) {
-        console.error('initialCode is not an array or is missing');
-        return;
-      }
+    // if (problem) {
+    //   if (!Array.isArray(problem.initialCode)) {
+    //     console.error('initialCode is not an array or is missing');
+    //     return;
+    //   }
 
-      const codeBlock = problem.initialCode.find((code) => code.langSlug === lang);
-      if (!codeBlock) {
-        console.error('No code block found for lang:', lang);
-        return;
-      }
+    //   const codeBlock = problem.initialCode.find((code) => code.langSlug === lang);
+    //   if (!codeBlock) {
+    //     console.error('No code block found for lang:', lang);
+    //     return;
+    //   }
 
-      // Nếu typed_code undefined thì đổi sang ""
-      codeBlock.code = typed_code === undefined ? '' : typed_code;
+    //   // Nếu typed_code undefined thì đổi sang ""
+    //   codeBlock.code = typed_code === undefined ? '' : typed_code;
 
-      try {
-        await problem.save();
-        console.log('Problem saved successfully');
-      } catch (e) {
-        console.error('Error saving problem:', e);
-      }
-    } else {
-      console.error('Problem not found');
-    }
+    //   try {
+    //     await problem.save();
+    //     console.log('Problem saved successfully');
+    //   } catch (e) {
+    //     console.error('Error saving problem:', e);
+    //   }
+    // } else {
+    //   console.error('Problem not found');
+    // }
 
     const runCodeResult: RunCodeResultType = {
       status_code: results.length === total ? 15 : 20,

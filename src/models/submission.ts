@@ -5,6 +5,27 @@ interface ICode {
   content: string;
 }
 
+interface IReview {
+  overallScore: number;
+  feedback: string;
+  suggestions: string[];
+  bestPractices: string[];
+  complexityAnalysis: {
+    timeComplexity: string;
+    spaceComplexity: string;
+    bigONotation: string;
+  };
+  memoryUsage: {
+    estimatedMemory: string;
+    potentialMemoryIssues: string[];
+  };
+  algorithmSuitability: {
+    isOptimal: boolean;
+    alternativeApproaches: string[];
+    reasoning: string;
+  };
+}
+
 export interface ISubmission extends Document {
   submitBy: mongoose.Types.ObjectId;
   problem: mongoose.Types.ObjectId;
@@ -30,6 +51,7 @@ export interface ISubmission extends Document {
   state: string;
   compile_error?: string;
   full_compile_error?: string;
+  review?: IReview;
   createdAt: Date;
   updatedAt: Date;
   isDeleted: boolean;
@@ -43,6 +65,69 @@ const codeSchema: Schema<ICode> = new Schema({
   content: {
     type: String,
     required: true,
+  },
+});
+
+const reviewSchema: Schema<IReview> = new Schema({
+  overallScore: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 10,
+  },
+  feedback: {
+    type: String,
+    required: true,
+  },
+  suggestions: [
+    {
+      type: String,
+    },
+  ],
+  bestPractices: [
+    {
+      type: String,
+    },
+  ],
+  complexityAnalysis: {
+    timeComplexity: {
+      type: String,
+      required: true,
+    },
+    spaceComplexity: {
+      type: String,
+      required: true,
+    },
+    bigONotation: {
+      type: String,
+      required: true,
+    },
+  },
+  memoryUsage: {
+    estimatedMemory: {
+      type: String,
+      required: true,
+    },
+    potentialMemoryIssues: [
+      {
+        type: String,
+      },
+    ],
+  },
+  algorithmSuitability: {
+    isOptimal: {
+      type: Boolean,
+      required: true,
+    },
+    alternativeApproaches: [
+      {
+        type: String,
+      },
+    ],
+    reasoning: {
+      type: String,
+      required: true,
+    },
   },
 });
 
@@ -149,6 +234,9 @@ const submissionSchema: Schema<ISubmission> = new Schema(
     full_compile_error: {
       type: String,
     },
+    review: {
+      type: reviewSchema,
+    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -156,5 +244,10 @@ const submissionSchema: Schema<ISubmission> = new Schema(
   },
   { timestamps: true },
 );
+
+// Add indexes for better query performance
+submissionSchema.index({ submitBy: 1, problem: 1 });
+submissionSchema.index({ createdAt: -1 });
+submissionSchema.index({ isDeleted: 1 });
 
 export default mongoose.model<ISubmission>('Submission', submissionSchema);

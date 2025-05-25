@@ -107,4 +107,115 @@ export class LangchainService {
       throw error;
     }
   }
+
+  async reviewCode(
+    code: string,
+    lang: string,
+    problemId: string,
+  ): Promise<{
+    overallScore: number;
+    feedback: string;
+    suggestions: string[];
+    bestPractices: string[];
+    complexityAnalysis: {
+      timeComplexity: string;
+      spaceComplexity: string;
+      bigONotation: string;
+    };
+    memoryUsage: {
+      estimatedMemory: string;
+      potentialMemoryIssues: string[];
+    };
+    algorithmSuitability: {
+      isOptimal: boolean;
+      alternativeApproaches: string[];
+      reasoning: string;
+    };
+  }> {
+    try {
+      // Get problem details
+      const problem = await Problem.findById(problemId);
+      if (!problem) {
+        throw new Error('Problem not found');
+      }
+
+      // Get visible test cases
+      const visibleTestCases = problem.testCase?.filter((tc) => !tc.isHidden) || [];
+      const testCasesStr = visibleTestCases
+        .map((tc) => {
+          const inputs = tc.input.map((input) => `${input.name}: ${input.value}`).join(', ');
+          const outputs = tc.output;
+          return `Input: ${inputs}\nExpected Output: ${outputs}`;
+        })
+        .join('\n\n');
+      console.log('content: ', problem.content);
+      console.log('testcases: ', testCasesStr);
+      console.log('code: ', code), console.log('lang: ', lang);
+      const reviewPrompt = PromptTemplate.fromTemplate(
+        `You are an expert code reviewer and algorithm analyst. Please review the following code and provide a detailed analysis.
+
+        Problem Description:
+        {problemDescription}
+
+        Test Cases:
+        {testCases}
+
+        Code to Review:
+        {code}
+
+        Programming Language: {lang}
+
+        Please provide a comprehensive code review that includes:
+        1. An overall score from 1-10
+        2. Detailed feedback on code quality
+        3. Specific suggestions for improvement
+        4. Best practices that should be followed
+        5. Time and Space Complexity Analysis
+        6. Memory Usage Analysis
+        7. Algorithm Suitability Analysis
+
+        Format your response as a JSON object with the following structure:
+        {{
+          "overallScore": number,
+          "feedback": string,
+          "suggestions": string[],
+          "bestPractices": string[],
+          "complexityAnalysis": {{
+            "timeComplexity": string,
+            "spaceComplexity": string,
+            "bigONotation": string
+      }},
+          "memoryUsage": {{
+            "estimatedMemory": string,
+            "potentialMemoryIssues": string[]
+          }},
+          "algorithmSuitability": {{
+            "isOptimal": boolean,
+            "alternativeApproaches": string[],
+            "reasoning": string
+          }}
+      }}`,
+      );
+
+      const reviewChain = RunnableSequence.from([
+        reviewPrompt,
+        this.model,
+        new StringOutputParser(),
+      ]);
+
+      const response = await reviewChain.invoke({
+        problemDescription: problem.content,
+        testCases: testCasesStr,
+        code,
+        lang,
+      });
+      console.log('review response: ', response);
+      // Parse the JSON response
+      const reviewResult = JSON.parse(response);
+      return reviewResult;
+    } catch (error) {
+      console.error('Error reviewing code:', error);
+      throw error;
+    }
+  }
 }
