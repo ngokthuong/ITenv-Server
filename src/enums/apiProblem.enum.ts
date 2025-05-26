@@ -6,7 +6,8 @@ export enum ApiProblem {
 
   RUNCODE = '/:name/run',
   SUBMIT = '/:name/submit',
-  SUBMISSIONS = '/user/submissions/:userId',
+  SUBMISSIONS = '/submissions/:userId',
+  SUBMISSIONS_BY_PROBLEM = '/submissions/:userId/problem',
   DETAIL_SUBMISSION = '/submission/:submissionId',
 
   // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
@@ -18,5 +19,5 @@ export enum ApiProblem {
   DATA_PAGE = '/data/page',
   DELETE_PROBLEM = '/:_id',
   DAILY_SOLVED_PROBLEMS = '/chart/solved',
-  REFACTOR_TYPED_CODE = '/refactor'
+  REFACTOR_TYPED_CODE = '/refactor',
 }

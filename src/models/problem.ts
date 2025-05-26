@@ -14,7 +14,6 @@ export interface ITestCaseInput {
   type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'null';
 }
 
-
 export interface ITestCase {
   input: ITestCaseInput[];
   output: string;
@@ -34,7 +33,7 @@ export interface IProblem extends Document {
   testCase?: ITestCase[];
   vote: mongoose.Types.ObjectId[];
   downVote: mongoose.Types.ObjectId[];
-  
+
   postAt: Date;
   editAt?: Date;
   status: boolean;
@@ -69,7 +68,7 @@ const testCaseSchema: Schema<ITestCase> = new mongoose.Schema({
       },
       value: {
         type: String,
-        default: "",
+        default: '',
         // required: true,
       },
     },
@@ -151,7 +150,7 @@ const problemSchema: Schema<IProblem> = new mongoose.Schema(
     },
     status: {
       type: Boolean,
-      required: true,
+      required: false,
     },
     category: [
       {

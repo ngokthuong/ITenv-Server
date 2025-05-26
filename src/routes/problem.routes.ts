@@ -10,6 +10,7 @@ import {
   getProblemsDataDistributionByYearController,
   getSingleProblem,
   getSubmissionsByUserIdController,
+  getSubmissionsByUserIdAndProblemIdController,
   getTopProblemSolversController,
   getTotalActiveProblemsController,
   getTotalProblemsController,
@@ -74,13 +75,24 @@ router.get(
 
 // router.post(ApiProblem.INSERT_PROBLEMS, insertProblemsController);
 router.get(ApiProblem.GET_PROBLEMS, getProblemsController);
-router.post(ApiProblem.REFACTOR_TYPED_CODE, verifyAccessToken, isUser, refactorCodeWithAiController)
+router.post(
+  ApiProblem.REFACTOR_TYPED_CODE,
+  verifyAccessToken,
+  isUser,
+  refactorCodeWithAiController,
+);
 
 // router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeController);
 router.post(ApiProblem.RUNCODE, verifyAccessToken, isUser, runCodeControllerRefactor);
 // router.post(ApiProblem.SUBMIT, verifyAccessToken, isUser, submitProblemController);
 router.post(ApiProblem.SUBMIT, verifyAccessToken, isUser, submitProblemController);
 router.get(ApiProblem.SUBMISSIONS, getSubmissionsByUserIdController);
+router.get(
+  ApiProblem.SUBMISSIONS_BY_PROBLEM,
+  verifyAccessToken,
+  isUser,
+  getSubmissionsByUserIdAndProblemIdController,
+);
 router.get(ApiProblem.PROBLEM_ACTIVITIES, getProblemActivitiesController);
 router.get(ApiProblem.DETAIL_SUBMISSION, verifyAccessToken, getDetailSubmissionController);
 
