@@ -943,6 +943,8 @@ function arrayToList(arr) {
 
     const tests = testCases
       .map(({ input, output, type, lenghtInput }, idx) => {
+        console.log('input', input);
+        console.log('output', output);
         let parseInput;
         try {
           if (type === 'string') {
@@ -958,34 +960,35 @@ function arrayToList(arr) {
         }
 
         const isListNode = userCode.includes('ListNode');
+
         let args;
         if (isListNode && Array.isArray(parseInput)) {
+          console.log('parseinput', parseInput);
           if (Array.isArray(parseInput[0])) {
             args = parseInput
-              .map((arr: any[]) => `arrayToList(new int[]{${arr.join(',')}})`)
+              .map((item) => {
+                if (Array.isArray(item)) {
+                  return `arrayToList(new int[]{${item.join(',')}})`;
+                } else {
+                  return `${item}`;
+                }
+              })
               .join(', ');
           } else {
             args = `arrayToList(new int[]{${parseInput.join(',')}})`;
           }
         } else {
           if (Array.isArray(parseInput)) {
-            // Nếu các phần tử là số -> truyền vào như new int[]{...}
             if (parseInput.every((x) => typeof x === 'number')) {
               args = `new int[]{${parseInput.map(formatJavaValue).join(', ')}}`;
-            }
-            // Nếu mảng các chuỗi (ví dụ ["a", "b", "c"]) thì:
-            else if (parseInput.every((x) => typeof x === 'string')) {
+            } else if (parseInput.every((x) => typeof x === 'string')) {
               args = `new String[]{${parseInput.map(formatJavaValue).join(', ')}}`;
-            }
-            // Nếu là mảng 2 chiều (threeSum trả về List<List<Integer>>)
-            else if (parseInput.every((x) => Array.isArray(x))) {
-              // Tùy vào function, có thể cần thêm logic đặc biệt ở đây
+            } else if (parseInput.every((x) => Array.isArray(x))) {
               args = parseInput
                 .map((sub) => `Arrays.asList(${sub.map(formatJavaValue).join(', ')})`)
                 .join(', ');
               args = `Arrays.asList(${args})`;
             } else {
-              // fallback
               args = parseInput.map(formatJavaValue).join(', ');
             }
           } else if (type === 'string' && input !== '' && input !== '' && input !== ``) {
@@ -999,6 +1002,9 @@ function arrayToList(arr) {
           : `Object result = ${functionName}(${args});`;
 
         const expected = formatJavaValue(output);
+        const isStringArrayExpected = expected.includes('new String[]');
+
+        console.log('expected', expected);
         const resultFormat = isListNode ? 'listToArray((ListNode)result)' : 'result';
 
         return `
@@ -1011,8 +1017,10 @@ if (result == null) {
     resultStr = "[]";
 } else if (result instanceof List) {
     List<?> list = (List<?>) result;
-    String[] arr = list.stream().map(e -> e == null ? "null" : e.toString()).toArray(String[]::new);
-    resultStr = toQuotedStringArray(arr);
+        String[] arr = list.stream()
+                           .map(e -> e == null ? "null" : e.toString())
+                           .toArray(String[]::new);
+        resultStr = ${isStringArrayExpected ? 'toQuotedStringArray(arr);' : 'Arrays.toString(arr);'};
 } else if (result instanceof int[]) {
     resultStr = Arrays.toString((int[]) result);
 } else if (result instanceof double[]) {
@@ -1037,6 +1045,7 @@ else {
 
 
 String expectedStr;
+
 if (expected == null) {
     expectedStr = "[]";
 } else if (expected instanceof int[]) {
@@ -1725,6 +1734,7 @@ export const runOrSubmitCodeService = async (
     // success
     const total = testCases.length;
     let cleanedOutput = output.replace(/!/g, '');
+    console.log('output', output);
 
     let outputArray = cleanedOutput.split('\n');
     for (let i = 0; i < outputArray.length; i++) {
@@ -1758,8 +1768,21 @@ export const runOrSubmitCodeService = async (
     const expectedResultWithJava: string[] =
       lang === 'java' && isValidJSONArray
         ? testCases.map((t) => {
-            const arr = Array.isArray(t.output) ? t.output : JSON.parse(t.output);
-            return JSON.stringify(arr).replace(/,/g, ', ');
+            try {
+              const arr = Array.isArray(t.output) ? t.output : JSON.parse(t.output);
+              const isStringArray =
+                Array.isArray(arr) && arr.every((item) => typeof item === 'string');
+
+              if (isStringArray) {
+                return JSON.stringify(arr).replace(/,/g, ', ');
+              } else if (Array.isArray(arr)) {
+                return JSON.stringify(arr);
+              } else {
+                return JSON.stringify(t.output);
+              }
+            } catch {
+              return JSON.stringify(t.output);
+            }
           })
         : testCases.map((t) => JSON.stringify(t.output));
 
@@ -1798,6 +1821,9 @@ export const runOrSubmitCodeService = async (
       console.error('Problem not found');
     }
 
+    console.log('expectedResultWithJava', expectedResultWithJava);
+    console.log('result ', results);
+
     const runCodeResult: RunCodeResultType = {
       status_code: results.length === total ? 15 : 20,
       lang,
@@ -1805,8 +1831,10 @@ export const runOrSubmitCodeService = async (
       status_runtime: `${runTime} ms`,
       memory: memoryUsed,
       display_runtime: `${runTime} ms`,
-      code_answer: results,
-      code_output: results,
+      code_answer:
+        correctCount === total ? (lang === 'java' ? expectedResultWithJava : results) : results,
+      code_output:
+        correctCount === total ? (lang === 'java' ? expectedResultWithJava : results) : results,
       std_output_list: [''],
       expected_code_answer:
         lang === 'java' ? expectedResultWithJava : testCases.map((t) => JSON.stringify(t.output)),
