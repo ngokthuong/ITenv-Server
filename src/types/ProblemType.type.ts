@@ -18,7 +18,7 @@ export type RunCodeResultType = {
   code_answer: string[]; // List of answers produced by the code
   code_output: string[]; // List of actual outputs produced by the code
   std_output_list: string[]; // List of standard outputs
-  expected_code_answer?: string[]; // Expected code answers
+  expected_code_answer?: string[] | string; // Expected code answers
   expected_code_output?: string[]; // Expected code outputs
   expected_std_output_list?: string[]; // Expected standard outputs
   correct_answer?: boolean; // Whether the answer is correct
