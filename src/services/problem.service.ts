@@ -7,11 +7,11 @@ import { EnumLevelProblem } from '../enums/schemaProblem.enum';
 import { QueryOption } from '../types/QueryOption.type';
 import axios from 'axios';
 import acorn from 'acorn';
-import { RunCodeResultType, SubmissionBody } from '../types/ProblemType.type';
+import { RunCodeResultType } from '../types/ProblemType.type';
 import user from '../models/user';
 import submission from '../models/submission';
 import problem from '../models/problem';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { PassThrough, Readable } from 'stream';
 import Docker from 'dockerode';
 import path from 'path';
@@ -713,7 +713,7 @@ function generateRunnerCode(
           } else {
             parseInput = JSON.parse(input);
           }
-        } catch (e) {
+        } catch {
           parseInput = input;
         }
         let args;
@@ -770,8 +770,7 @@ function generateRunnerCode(
 
     return `
 
-    ${
-      isCheckExcludeFunctionName
+    ${isCheckExcludeFunctionName
         ? `
 class ListNode {
   constructor(val = 0, next = null) {
@@ -800,7 +799,7 @@ function arrayToList(arr) {
 }
 `
         : ''
-    }
+      }
 
   ${userCode}
 
@@ -818,94 +817,124 @@ function arrayToList(arr) {
   `;
   }
 
-  // if (lang === 'java') {
-  //   const formatJavaValue = (val: any): string => {
-  //     if (typeof val === 'string') {
-  //       // Thử parse val nếu nó là chuỗi JSON array string
-  //       try {
-  //         const parsed = JSON.parse(val);
-  //         if (Array.isArray(parsed)) {
-  //           // Nếu là mảng, gọi lại chính hàm để xử lý mảng
-  //           return formatJavaValue(parsed);
-  //         }
-  //         // Nếu không phải mảng, trả lại chuỗi có dấu ngoặc kép
-  //         return `"${val}"`;
-  //       } catch {
-  //         // Không parse được thì trả lại chuỗi nguyên bản với dấu ngoặc kép
-  //         return `"${val}"`;
-  //       }
-  //     }
+  if (lang === 'typescript') {
+    const tests = testCases
+      .map(({ input, output, type, lenghtInput }, idx) => {
+        let parseInput;
+        try {
+          if (type === 'string') {
+            parseInput = input;
+            if (typeof input === 'number') {
+              parseInput = JSON.stringify(input);
+            }
+          } else {
+            parseInput = JSON.parse(input);
+          }
+        } catch (e) {
+          parseInput = input;
+        }
 
-  //     if (typeof val === 'boolean') return val ? 'true' : 'false';
-  //     if (val === null) return 'null';
+        let args;
+        if (isCheckExcludeFunctionName) {
+          if (hasNestedArray(parseInput)) {
+            if (userCode.includes('ListNode')) {
+              args = parseInput.map((arr: any) => `arrayToList(${JSON.stringify(arr)})`).join(', ');
+            } else {
+              args = `...${JSON.stringify(parseInput)}`;
+            }
+          } else {
+            if (userCode.includes('ListNode') && Array.isArray(parseInput)) {
+              args = `arrayToList(${JSON.stringify(parseInput)})`;
+            } else {
+              args = JSON.stringify(parseInput);
+            }
+          }
+        } else {
+          if (hasNestedArray(parseInput)) {
+            args = `...${JSON.stringify(parseInput)}`;
+          }
+          if (lenghtInput > 1) {
+            args = `...${JSON.stringify(parseInput)}`;
+          } else {
+            args = JSON.stringify(parseInput);
+          }
+        }
 
-  //     if (Array.isArray(val)) {
-  //       if (val.length === 0) return 'new int[]{}';
+        const callExpression = className
+          ? `instance.${functionName}(${args})`
+          : `${functionName}(${args})`;
 
-  //       if (Array.isArray(val[0])) {
-  //         // 2D array
-  //         const innerArrays = val.map((innerArr: any[]) => {
-  //           return `new int[]{${innerArr.join(',')}}`;
-  //         });
-  //         return `new int[][]{${innerArrays.join(',')}}`;
-  //       }
+        return `
+try { 
+  const result = ${callExpression};
+  const expected = ${JSON.stringify(output)};
+  const actual = ${isCheckExcludeFunctionName ? 'listToArray(result)' : 'result'};
+  if (JSON.stringify(actual) === JSON.stringify(expected)) {
+    console.log("Test ${idx + 1} passed");
+    codeAnswer.push(actual);
+    expectedCodeAnswer.push(expected);
+  } else {
+    console.log("Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(actual));
+    codeAnswer.push(actual);
+    expectedCodeAnswer.push(expected); 
+  }
+  console.log("RESULT:", JSON.stringify(actual));
+} catch (e:any) {
+  console.log(e.stack);
+}
+      `;
+      })
+      .join('\n');
 
-  //       if (typeof val[0] === 'number') {
-  //         return `new int[]{${val.join(',')}}`;
-  //       }
-  //     }
+    return `
+${isCheckExcludeFunctionName
+        ? `
+class ListNode {
+  val: number;
+  next: ListNode | null;
+  constructor(val = 0, next: ListNode | null = null) {
+    this.val = val;
+    this.next = next;
+  }
+}
 
-  //     return `${val}`;
-  //   };
+function listToArray(head: ListNode | null): number[] {
+  const arr: number[] = [];
+  while (head) {
+    arr.push(head.val);
+    head = head.next;
+  }
+  return arr;
+}
 
-  //   const tests = testCases
-  //     .map(({ input, output }, idx) => {
-  //       const args = input.map(formatJavaValue).join(', ');
-  //       const expected = formatJavaValue(output);
+function arrayToList(arr: number[]): ListNode | null {
+  let dummy = new ListNode(0);
+  let current = dummy;
+  for (const val of arr) {
+    current.next = new ListNode(val);
+    current = current.next;
+  }
+  return dummy.next;
+}
+`
+        : ''
+      }
 
-  //       const callExpr = className
-  //         ? `${className} instance = new ${className}();\n      int[] result = instance.${functionName}(${args});`
-  //         : `int[] result = ${functionName}(${args});`;
+${userCode}
 
-  //       return `
-  //       try {
-  //         ${callExpr}
-  //         int[] expected = ${expected};
-  //         String resultStr = java.util.Arrays.toString(result).replace(" ", "");
-  //         String expectedStr = java.util.Arrays.toString(expected).replace(" ", "");
-  //         if (resultStr.equals(expectedStr)) {
-  //           System.out.println("✅ Test ${idx + 1} passed");
-  //         } else {
-  //           System.out.println("❌ Test ${idx + 1} failed: expected " + expectedStr + ", got " + resultStr);
-  //         }
-  //         System.out.println("RESULT: " + resultStr);
-  //         codeAnswer.add(resultStr);
-  //         expectedCodeAnswer.add(expectedStr);
-  //       } catch (Exception e) {
-  //         e.printStackTrace();
-  //       }`;
-  //     })
-  //     .join('\n');
+const codeAnswer: any[] = [];
+const expectedCodeAnswer: any[] = [];
 
-  //   return `
-  // import java.util.*;
+${className ? `const instance = new ${className}();` : ''}
 
-  // public class Main {
-  //   public static List<String> codeAnswer = new ArrayList<>();
-  //   public static List<String> expectedCodeAnswer = new ArrayList<>();
+${tests}
 
-  //   public static void main(String[] args) {
-  //     ${tests}
-
-  //     System.out.println("All results: " + codeAnswer);
-  //     System.out.println("All expected: " + expectedCodeAnswer);
-  //   }
-  // }
-
-  // // User code begins here:
-  // ${userCode}
-  // `;
-  // }
+  module.exports = {
+    codeAnswer,
+    expectedCodeAnswer
+  };
+  `;
+  }
 
   if (lang === 'java') {
     const typedCode = addStaticToInnerClasses(userCode);
@@ -943,8 +972,6 @@ function arrayToList(arr) {
 
     const tests = testCases
       .map(({ input, output, type, lenghtInput }, idx) => {
-        console.log('input', input);
-        console.log('output', output);
         let parseInput;
         try {
           if (type === 'string') {
@@ -958,12 +985,9 @@ function arrayToList(arr) {
         } catch {
           parseInput = input;
         }
-
         const isListNode = userCode.includes('ListNode');
-
         let args;
         if (isListNode && Array.isArray(parseInput)) {
-          console.log('parseinput', parseInput);
           if (Array.isArray(parseInput[0])) {
             args = parseInput
               .map((item) => {
@@ -978,7 +1002,7 @@ function arrayToList(arr) {
             args = `arrayToList(new int[]{${parseInput.join(',')}})`;
           }
         } else {
-          if (Array.isArray(parseInput)) {
+          if (Array.isArray(parseInput) && isAllArray(parseInput)) {
             if (parseInput.every((x) => typeof x === 'number')) {
               args = `new int[]{${parseInput.map(formatJavaValue).join(', ')}}`;
             } else if (parseInput.every((x) => typeof x === 'string')) {
@@ -989,8 +1013,43 @@ function arrayToList(arr) {
                 .join(', ');
               args = `Arrays.asList(${args})`;
             } else {
-              args = parseInput.map(formatJavaValue).join(', ');
+              args = Array.isArray(parseInput)
+                ? (parseInput as unknown[]).map(formatJavaValue).join(', ')
+                : formatJavaValue(parseInput);
             }
+          } else if (Array.isArray(parseInput) && type === 'array') {
+            if (parseInput.every((x) => typeof x === 'number')) {
+              args = `new int[]{${parseInput.map(formatJavaValue).join(', ')}}`;
+            } else if (parseInput.every((x) => typeof x === 'string')) {
+              args = `new String[]{${parseInput.map(formatJavaValue).join(', ')}}`;
+            } else if (parseInput.every((x) => Array.isArray(x))) {
+              args = parseInput
+                .map((sub) => `Arrays.asList(${sub.map(formatJavaValue).join(', ')})`)
+                .join(', ');
+              args = `Arrays.asList(${args})`;
+            } else {
+              args = Array.isArray(parseInput)
+                ? (parseInput as unknown[]).map(formatJavaValue).join(', ')
+                : formatJavaValue(parseInput);
+            }
+          } else if (Array.isArray(parseInput) && !isAllArray(parseInput)) {
+            args = parseInput
+              .map((item) => {
+                if (Array.isArray(item)) {
+                  if (item.every((x) => typeof x === 'number')) {
+                    return `new int[]{${item.map(formatJavaValue).join(', ')}}`;
+                  }
+                  if (item.every((x) => typeof x === 'string')) {
+                    return `new String[]{${item.map(formatJavaValue).join(', ')}}`;
+                  }
+                  return `Arrays.asList(${item.map(formatJavaValue).join(', ')})`;
+                } else if (typeof item === 'string') {
+                  return `"${item}"`;
+                } else {
+                  return formatJavaValue(item);
+                }
+              })
+              .join(', ');
           } else if (type === 'string' && input !== '' && input !== '' && input !== ``) {
             args = JSON.stringify(parseInput);
           } else {
@@ -1003,8 +1062,6 @@ function arrayToList(arr) {
 
         const expected = formatJavaValue(output);
         const isStringArrayExpected = expected.includes('new String[]');
-
-        console.log('expected', expected);
         const resultFormat = isListNode ? 'listToArray((ListNode)result)' : 'result';
 
         return `
@@ -1030,15 +1087,14 @@ if (result == null) {
 } else if (result instanceof Object[]) {
     resultStr = Arrays.deepToString((Object[]) result);
 }
-${
-  isListNode
-    ? `
+${isListNode
+            ? `
 else if (result instanceof ListNode) {
     List<Integer> arr = listToArray((ListNode) result);
     resultStr = arr.toString();
 }`
-    : ''
-}
+            : ''
+          }
 else {
     resultStr = result.toString();
 }
@@ -1104,8 +1160,7 @@ class main {
 }
 
 
-    ${
-      typedCode.includes('ListNode')
+    ${typedCode.includes('ListNode')
         ? `
     static class ListNode {
         int val;
@@ -1133,7 +1188,7 @@ class main {
     }
     `
         : ''
-    }
+      }
 
     // --- USER CODE ---
     ${typedCode}
@@ -1276,7 +1331,7 @@ class main {
     `;
   }
 
-  if (lang === 'typescript') {
+  if (lang === 'python') {
     const tests = testCases
       .map(({ input, output, type, lenghtInput }, idx) => {
         let parseInput;
@@ -1289,7 +1344,7 @@ class main {
           } else {
             parseInput = JSON.parse(input);
           }
-        } catch (e) {
+        } catch {
           parseInput = input;
         }
 
@@ -1297,23 +1352,20 @@ class main {
         if (isCheckExcludeFunctionName) {
           if (hasNestedArray(parseInput)) {
             if (userCode.includes('ListNode')) {
-              args = parseInput.map((arr: any) => `arrayToList(${JSON.stringify(arr)})`).join(', ');
+              args = parseInput.map((arr: any) => `array_to_list(${JSON.stringify(arr)})`).join(', ');
             } else {
-              args = `...${JSON.stringify(parseInput)}`;
+              args = JSON.stringify(parseInput);
             }
           } else {
             if (userCode.includes('ListNode') && Array.isArray(parseInput)) {
-              args = `arrayToList(${JSON.stringify(parseInput)})`;
+              args = `array_to_list(${JSON.stringify(parseInput)})`;
             } else {
               args = JSON.stringify(parseInput);
             }
           }
         } else {
-          if (hasNestedArray(parseInput)) {
-            args = `...${JSON.stringify(parseInput)}`;
-          }
-          if (lenghtInput > 1) {
-            args = `...${JSON.stringify(parseInput)}`;
+          if (hasNestedArray(parseInput) || lenghtInput > 1) {
+            args = parseInput.map((x:any) => JSON.stringify(x)).join(', ');
           } else {
             args = JSON.stringify(parseInput);
           }
@@ -1324,150 +1376,88 @@ class main {
           : `${functionName}(${args})`;
 
         return `
-try { 
-  const result = ${callExpression};
-  const expected = ${JSON.stringify(output)};
-  const actual = ${isCheckExcludeFunctionName ? 'listToArray(result)' : 'result'};
-  if (JSON.stringify(actual) === JSON.stringify(expected)) {
-    console.log("Test ${idx + 1} passed");
-    codeAnswer.push(actual);
-    expectedCodeAnswer.push(expected);
-  } else {
-    console.log("Test ${idx + 1} failed: expected " + JSON.stringify(expected) + ", got " + JSON.stringify(actual));
-    codeAnswer.push(actual);
-    expectedCodeAnswer.push(expected); 
-  }
-  console.log("RESULT:", JSON.stringify(actual));
-} catch (e:any) {
-  console.log(e.stack);
-}
-      `;
+try:
+    result = ${callExpression}
+    expected = ${ typeof output === "boolean" ? convertToPythonBoolean(output) : JSON.stringify(output)}
+    actual = ${isCheckExcludeFunctionName ? 'list_to_array(result)' : 'result'}
+    if actual == expected:
+        print("Test ${idx + 1} passed")
+        code_answer.append(actual)
+        expected_code_answer.append(expected)
+    else:
+        print(f"Test ${idx + 1} failed: expected {expected}, got {actual}")
+        code_answer.append(actual)
+        expected_code_answer.append(expected)
+    print(f"RESULT: {actual}")
+except Exception as e:
+    print(str(e))
+`;
       })
       .join('\n');
 
     return `
-${
-  isCheckExcludeFunctionName
-    ? `
-class ListNode {
-  val: number;
-  next: ListNode | null;
-  constructor(val = 0, next: ListNode | null = null) {
-    this.val = val;
-    this.next = next;
-  }
-}
+  ${isCheckExcludeFunctionName
+        ? `
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
 
-function listToArray(head: ListNode | null): number[] {
-  const arr: number[] = [];
-  while (head) {
-    arr.push(head.val);
-    head = head.next;
-  }
-  return arr;
-}
+def list_to_array(head):
+    arr = []
+    current = head
+    while current:
+        arr.append(current.val)
+        current = current.next
+    return arr
 
-function arrayToList(arr: number[]): ListNode | null {
-  let dummy = new ListNode(0);
-  let current = dummy;
-  for (const val of arr) {
-    current.next = new ListNode(val);
-    current = current.next;
-  }
-  return dummy.next;
-}
-`
-    : ''
-}
-
+def array_to_list(arr):
+    if not arr:
+        return None
+    head = ListNode(arr[0])
+    current = head
+    for val in arr[1:]:
+        current.next = ListNode(val)
+        current = current.next
+    return head
+  `
+        : ''}
+  
 ${userCode}
-
-const codeAnswer: any[] = [];
-const expectedCodeAnswer: any[] = [];
-
-${className ? `const instance = new ${className}();` : ''}
-
-${tests}
-
-  module.exports = {
-    codeAnswer,
-    expectedCodeAnswer
-  };
-  `;
-  }
-
-  if (lang === 'python' || lang === 'python3') {
-    const formatPyValue = (val: any) => {
-      if (typeof val === 'string') {
-        try {
-          val = JSON.parse(val);
-        } catch {
-          return `"${val}"`;
-        }
-      }
-
-      if (Array.isArray(val)) {
-        if (val.length === 0) return '[]';
-        if (Array.isArray(val[0])) {
-          const inner: any = val.map(formatPyValue).join(', ');
-          return `[${inner}]`;
-        }
-        return `[${val.join(', ')}]`;
-      }
-
-      if (typeof val === 'boolean') return val ? 'True' : 'False';
-      if (val === null) return 'None';
-
-      return `${val}`;
-    };
-
-    const tests = testCases
-      .map(({ input, output }, idx) => {
-        const expectedFormatted = formatPyValue(output);
-        const callExpr = className
-          ? `${className}().${functionName}(*${JSON.stringify(input)})`
-          : `${functionName}(*${JSON.stringify(input)})`;
-
-        return `
-  try:
-      result = ${callExpr}
-      expected = ${expectedFormatted}
-      result_str = str(result).replace(' ', '')
-      expected_str = str(expected).replace(' ', '')
-      if str(result_str) == str(result_str):
-          print("Test ${idx + 1} passed")
-          codeAnswer.append(result_str)
-          expectedCodeAnswer.append(expected_str)
-      else:
-          print("Test ${idx + 1} failed: expected", expected_str, "got", result_str)
-          codeAnswer.append(result_str)
-          expectedCodeAnswer.append(expected_str)
-      print("RESULT:", result_str)
-  except Exception as e:
-      import traceback
-      traceback.print_exc()
-    `;
-      })
-      .join('\n');
-
-    return dedent(`
-    ${userCode.trim()}
-    
-  codeAnswer = []
-  expectedCodeAnswer = []
+  
+code_answer = []
+expected_code_answer = []
+  
+  ${className ? `instance = ${className}()` : ''}
   
   ${tests}
-  `);
+  
+  # Return results
+result = {
+    "code_answer": code_answer,
+    "expected_code_answer": expected_code_answer
+}
+  `;
   }
 
   return `# Unsupported language: ${lang}`;
 }
+
 
 function extractResultsFromOutput(output: string[]) {
   return output
     .filter((line) => line.startsWith('RESULT:'))
     .map((line) => line.replace('RESULT:', '').trim());
 }
+
+function convertToPythonBoolean(val: boolean) {
+  if (val === true) return "True";
+  if (val === false) return "False";
+  return JSON.stringify(val); // fallback cho các kiểu khác (string, number, array, etc.)
+}
+
+
+
 type ParsedTestCase = {
   input: [number[], number];
   output: any;
@@ -1709,6 +1699,7 @@ export const runOrSubmitCodeService = async (
     if (errorOutput || shortErrorLine) {
       match = errorOutput ? errorOutput : shortErrorLine;
     }
+
     if (match) {
       if (match) {
         const runCodeError: RunCodeResultType = {
@@ -1734,9 +1725,8 @@ export const runOrSubmitCodeService = async (
     // success
     const total = testCases.length;
     let cleanedOutput = output.replace(/!/g, '');
-    console.log('output', output);
-
     let outputArray = cleanedOutput.split('\n');
+
     for (let i = 0; i < outputArray.length; i++) {
       outputArray[i] = outputArray[i].replace(/[\x00-\x1F\x7F]+/g, '');
     }
@@ -1766,24 +1756,24 @@ export const runOrSubmitCodeService = async (
       }
     }
     const expectedResultWithJava: string[] =
-      lang === 'java' && isValidJSONArray
+      (lang === 'java' || lang === 'python') && isValidJSONArray
         ? testCases.map((t) => {
-            try {
-              const arr = Array.isArray(t.output) ? t.output : JSON.parse(t.output);
-              const isStringArray =
-                Array.isArray(arr) && arr.every((item) => typeof item === 'string');
+          try {
+            const arr = Array.isArray(t.output) ? t.output : JSON.parse(t.output);
+            const isStringArray =
+              Array.isArray(arr) && arr.every((item) => typeof item === 'string');
 
-              if (isStringArray) {
-                return JSON.stringify(arr).replace(/,/g, ', ');
-              } else if (Array.isArray(arr)) {
-                return JSON.stringify(arr);
-              } else {
-                return JSON.stringify(t.output);
-              }
-            } catch {
+            if (isStringArray) {
+              return JSON.stringify(arr).replace(/,/g, ', ');
+            } else if (Array.isArray(arr)) {
+              return JSON.stringify(arr);
+            } else {
               return JSON.stringify(t.output);
             }
-          })
+          } catch {
+            return JSON.stringify(t.output);
+          }
+        })
         : testCases.map((t) => JSON.stringify(t.output));
 
     // run success -> seave typecode
@@ -1821,9 +1811,6 @@ export const runOrSubmitCodeService = async (
       console.error('Problem not found');
     }
 
-    console.log('expectedResultWithJava', expectedResultWithJava);
-    console.log('result ', results);
-
     const runCodeResult: RunCodeResultType = {
       status_code: results.length === total ? 15 : 20,
       lang,
@@ -1832,12 +1819,12 @@ export const runOrSubmitCodeService = async (
       memory: memoryUsed,
       display_runtime: `${runTime} ms`,
       code_answer:
-        correctCount === total ? (lang === 'java' ? expectedResultWithJava : results) : results,
+        correctCount === total ? (lang === 'java' || lang === 'python' ? expectedResultWithJava : results) : results,
       code_output:
-        correctCount === total ? (lang === 'java' ? expectedResultWithJava : results) : results,
+        correctCount === total ? (lang === 'java' || lang === 'python' ? expectedResultWithJava : results) : results,
       std_output_list: [''],
       expected_code_answer:
-        lang === 'java' ? expectedResultWithJava : testCases.map((t) => JSON.stringify(t.output)),
+        lang === 'java' || lang === 'python' ? expectedResultWithJava : testCases.map((t) => JSON.stringify(t.output)),
       expected_code_output: [],
       expected_std_output_list: [],
       correct_answer: correctCount === total,
@@ -1939,4 +1926,8 @@ function addStaticToInnerClasses(userCode: string): string {
     }
   }
   return userCode;
+}
+
+function isAllArray(parseInput: any[]) {
+  return Array.isArray(parseInput) && parseInput.every(Array.isArray);
 }
