@@ -117,7 +117,14 @@ export const runCodeControllerRefactor = async (req: AuthRequest, res: any) => {
   if (!titleSlug || !lang || !typed_code) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
-  const result = await runOrSubmitCodeService(lang, typed_code, titleSlug, CodeActionType.RUNCODE);
+
+  const result = await runOrSubmitCodeService(
+    req.user?.userId as string,
+    lang,
+    typed_code,
+    titleSlug,
+    CodeActionType.RUNCODE,
+  );
   return res.json({
     success: result?.run_success,
     data: result,
@@ -133,6 +140,13 @@ export const submitProblemController = async (req: AuthRequest, res: any) => {
   if (!titleSlug || !lang || !typed_code) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
+  const result = await runOrSubmitCodeService(
+    req.user?.userId as string,
+    lang,
+    typed_code,
+    titleSlug,
+    CodeActionType.SUBMITCODE,
+  );
 
   if (!problem) {
     return res.status(404).json({ message: 'Problem not found' });
@@ -141,6 +155,7 @@ export const submitProblemController = async (req: AuthRequest, res: any) => {
   try {
     // Run the code submission
     const result = await runOrSubmitCodeService(
+      req.user?.userId as string,
       lang,
       typed_code,
       titleSlug,
@@ -285,6 +300,7 @@ export const getDetailSubmissionController = asyncHandler(async (req: any, res: 
 
 export const getSubmissionsByUserIdController = asyncHandler(async (req: any, res: any) => {
   const { userId } = req.params;
+  console.log('userIds', userId);
   try {
     const submissions = await submission
       .find({ submitBy: userId })

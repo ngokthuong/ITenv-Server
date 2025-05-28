@@ -1,20 +1,20 @@
-# Sử dụng Node.js 22 trên Alpine Linux (nhẹ)
+# Use node 22 on Alpine Linux
 FROM node:22-alpine 
 
-# Đặt thư mục làm việc trong container
+# Place folder in container 
 WORKDIR /ITenv-Server 
 
-# Sao chép package.json và yarn.lock vào container
+# copy package.json and yarn.lock.json to container
 COPY package.json yarn.lock ./  
 
-# Cài đặt dependencies, dùng chính xác phiên bản
+# install dependencies
 RUN yarn install --frozen-lockfile  
 
-# Sao chép toàn bộ mã nguồn vào container
+# Copy source to container
 COPY . .  
 
-# Mở cổng (ex: 8080)
+# (ex: 8080)
 EXPOSE 8080  
 
-# Lệnh chạy ứng dụng
+# Start server
 CMD ["yarn", "start"]
