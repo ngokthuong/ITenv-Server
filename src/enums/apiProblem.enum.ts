@@ -9,6 +9,7 @@ export enum ApiProblem {
   SUBMISSIONS = '/submissions/:userId',
   SUBMISSIONS_BY_PROBLEM = '/submissions/:userId/problem',
   DETAIL_SUBMISSION = '/submission/:submissionId',
+  COMPILE_CODE = '/compile',
 
   // ----------------------------------------------------------ADMIN----------------------------------------------------------------------
   GET_AVGPROBLEMS_PER_USER = '/average/per-user',

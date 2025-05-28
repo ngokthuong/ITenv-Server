@@ -659,11 +659,11 @@ async function startDocker(
   let errorOutput = '';
 
   stdout.on('data', (data) => {
-    output += data.toString();
+    output += data?.toString();
   });
 
   stderr.on('data', (data) => {
-    errorOutput += data.toString();
+    errorOutput += data?.toString();
   });
 
   let shortErrorLine: string | null = '';
@@ -2171,3 +2171,99 @@ function addStaticToInnerClasses(userCode: string): string {
 function isAllArray(parseInput: any[]) {
   return Array.isArray(parseInput) && parseInput.every(Array.isArray);
 }
+
+export const compileCodeService = async (lang: string, typed_code: string) => {
+  try {
+    // Check if Docker is running
+    try {
+      await docker.ping();
+    } catch (error) {
+      throw new Error('Docker is not running. Please start Docker and try again.');
+    }
+
+    // Generate a simple runner code that just executes the user's code
+    let runnerCode = '';
+
+    if (lang === 'javascript') {
+      runnerCode = `
+${typed_code}
+
+// Add console.log to capture output
+const originalConsoleLog = console.log;
+console.log = function(...args) {
+  originalConsoleLog.apply(console, args);
+  process.stdout.write(args.join(' ') + '\\n');
+};
+      `;
+    } else if (lang === 'typescript') {
+      runnerCode = `
+${typed_code}
+
+// Add console.log to capture output
+const originalConsoleLog = console.log;
+console.log = function(...args) {
+  originalConsoleLog.apply(console, args);
+  process.stdout.write(args.join(' ') + '\\n');
+};
+      `;
+    } else if (lang === 'python' || lang === 'python3') {
+      runnerCode = typed_code;
+    } else if (lang === 'java') {
+      runnerCode = `
+   ${typed_code}
+      `;
+    } else if (lang === 'cpp') {
+      runnerCode = `
+${typed_code}
+
+      `;
+    }
+
+    // Run the code using Docker
+    const { shortErrorLine, errorOutput, output, runTime } = await startDocker(lang, runnerCode);
+    const memoryUsed = process.memoryUsage().rss;
+
+    // Handle compilation errors
+    if (errorOutput || shortErrorLine) {
+      return {
+        status_code: 20,
+        lang,
+        run_success: false,
+        compile_error: shortErrorLine || 'Unknown error',
+        full_compile_error: errorOutput || output,
+        status_runtime: 'loading',
+        memory: memoryUsed,
+        code_output: [],
+        std_output_list: [''],
+        status_memory: 'N/A',
+        status_msg: 'Compile Error',
+        state: 'SUCCESS',
+      };
+    }
+
+    // Success case
+    return {
+      status_code: 15,
+      lang,
+      run_success: true,
+      status_runtime: `${runTime} ms`,
+      memory: memoryUsed,
+      display_runtime: `${runTime} ms`,
+      code_output: output.split('\n').filter((line) => line.trim()),
+      std_output_list: output.split('\n').filter((line) => line.trim()),
+      status_memory: 'N/A',
+      status_msg: 'Success',
+      state: 'SUCCESS',
+    };
+  } catch (error: any) {
+    // Handle specific Docker-related errors
+    if (error.message.includes('docker_engine')) {
+      throw new Error('Docker is not running. Please start Docker and try again.');
+    } else if (error.message.includes('ENOENT')) {
+      throw new Error(
+        'Docker is not installed or not properly configured. Please install Docker and try again.',
+      );
+    }
+    throw new Error(`Compile code failed: ${error.message}`);
+  }
+};

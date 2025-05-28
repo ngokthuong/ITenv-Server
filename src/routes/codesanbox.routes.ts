@@ -22,7 +22,7 @@ import {
   handleAccessRequestController,
   deleteAccessRequestController,
 } from '../controllers/codesanbox.controller';
-
+import { compileCodeController } from '../controllers/problem.controller';
 const router = Router();
 
 // Public routes (only for viewing)
@@ -135,5 +135,6 @@ router.delete(
   checkSandboxPermission('owner'),
   deleteAccessRequestController,
 );
+router.post('/compile', verifyAccessToken, isUser, compileCodeController);
 
 export default router;

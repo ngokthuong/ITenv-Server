@@ -1,5 +1,9 @@
 import { CodeSandbox, ICodeSandbox } from '../models/codeSandbox';
-import { CodeSandboxFileType, CodeSandboxStatus } from '../enums/codeSandbox.enum';
+import {
+  CodeSandboxFileType,
+  CodeSandboxLanguage,
+  CodeSandboxStatus,
+} from '../enums/codeSandbox.enum';
 import mongoose from 'mongoose';
 import { CodeSandboxFile, ICodeSandboxFile } from '../models/fileSanbox';
 import { CodeSandboxFolder, ICodeSandboxFolder } from '../models/folderSanbox';
@@ -28,6 +32,30 @@ interface PaginationParams {
   search?: string;
   createdBy?: string;
 }
+
+const getLanguageFromExtension = (extension: string): CodeSandboxLanguage | null => {
+  switch (extension.toLowerCase()) {
+    case 'html':
+      return CodeSandboxLanguage.HTML;
+    case 'css':
+      return CodeSandboxLanguage.CSS;
+    case 'js':
+      return CodeSandboxLanguage.JAVASCRIPT;
+    case 'ts':
+    case 'tsx':
+      return CodeSandboxLanguage.TYPESCRIPT;
+    case 'py':
+      return CodeSandboxLanguage.PYTHON;
+    case 'java':
+      return CodeSandboxLanguage.JAVA;
+    case 'cpp':
+    case 'cc':
+    case 'cxx':
+      return CodeSandboxLanguage.CPP;
+    default:
+      return null;
+  }
+};
 
 export class CodeSandboxService {
   async create(data: Partial<ICodeSandbox>): Promise<ICodeSandbox> {
@@ -177,6 +205,23 @@ export class CodeSandboxService {
 
   async addFile(sandboxId: string, file: any, parentFolderId?: string): Promise<ICodeSandboxFile> {
     if (!file.name || !file.type) throw new Error('File name and type are required');
+
+    // Get file extension and validate against sandbox languages
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (!extension) throw new Error('File must have an extension');
+
+    const language = getLanguageFromExtension(extension);
+    if (!language) throw new Error('Unsupported file extension');
+
+    // Get sandbox and check if language is allowed
+    const sandbox = await CodeSandbox.findById(sandboxId);
+    if (!sandbox) throw new Error('Sandbox not found');
+    if (!sandbox.language.includes(language)) {
+      throw new Error(
+        `File type not allowed in this sandbox. Allowed languages: ${sandbox.language.join(', ')}`,
+      );
+    }
+
     // Check for duplicate in the same parent
     const exists = await CodeSandboxFile.findOne({
       sandboxId,
@@ -184,6 +229,7 @@ export class CodeSandboxService {
       name: file.name,
     });
     if (exists) throw new Error('A file with this name already exists in this location');
+
     const newFile = await CodeSandboxFile.create({
       ...file,
       sandboxId,
@@ -198,6 +244,13 @@ export class CodeSandboxService {
     parentFolderId?: string,
   ): Promise<ICodeSandboxFile> {
     if (!file.originalname || !file.mimetype) throw new Error('File name and type are required');
+
+    // Check if sandbox allows HTML (which is required for images)
+    const sandbox = await CodeSandbox.findById(sandboxId);
+    if (!sandbox) throw new Error('Sandbox not found');
+    if (!sandbox.language.includes(CodeSandboxLanguage.HTML)) {
+      throw new Error('Image files are only allowed in sandboxes that support HTML');
+    }
 
     // Get file extension and determine file type
     const extension = file.originalname.split('.').pop()?.toLowerCase();
@@ -248,6 +301,64 @@ export class CodeSandboxService {
     fileId: string,
     fileData: any,
   ): Promise<ICodeSandboxFile | null> {
+    // If name is being updated, validate the extension and update type
+    if (fileData.name) {
+      const extension = fileData.name.split('.').pop()?.toLowerCase();
+      if (!extension) throw new Error('File must have an extension');
+
+      const language = getLanguageFromExtension(extension);
+      if (!language) throw new Error('Unsupported file extension');
+
+      // Get sandbox and check if language is allowed
+      const sandbox = await CodeSandbox.findById(sandboxId);
+      if (!sandbox) throw new Error('Sandbox not found');
+      if (!sandbox.language.includes(language)) {
+        throw new Error(
+          `File type not allowed in this sandbox. Allowed languages: ${sandbox.language.join(', ')}`,
+        );
+      }
+
+      // Check for duplicate name in the same parent
+      const existingFile = await CodeSandboxFile.findById(fileId);
+      if (existingFile) {
+        const duplicate = await CodeSandboxFile.findOne({
+          sandboxId,
+          parentFolder: existingFile.parentFolder,
+          name: fileData.name,
+          _id: { $ne: fileId },
+        });
+        if (duplicate) throw new Error('A file with this name already exists in this location');
+
+        // Update file type based on new extension
+        switch (extension) {
+          case 'html':
+            fileData.type = CodeSandboxFileType.HTML;
+            break;
+          case 'css':
+            fileData.type = CodeSandboxFileType.CSS;
+            break;
+          case 'js':
+            fileData.type = CodeSandboxFileType.JAVASCRIPT;
+            break;
+          case 'ts':
+          case 'tsx':
+            fileData.type = CodeSandboxFileType.TYPESCRIPT;
+            break;
+          case 'py':
+            fileData.type = CodeSandboxFileType.PYTHON;
+            break;
+          case 'java':
+            fileData.type = CodeSandboxFileType.JAVA;
+            break;
+          case 'cpp':
+          case 'cc':
+          case 'cxx':
+            fileData.type = CodeSandboxFileType.CPP;
+            break;
+        }
+      }
+    }
+
     return await CodeSandboxFile.findOneAndUpdate(
       {
         _id: fileId,
