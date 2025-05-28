@@ -17,6 +17,7 @@ import {
   runOrSubmitCodeService,
   refactorCodeWithAiService,
   submissionDetail,
+  compileCodeService,
 } from '../services/problem.service';
 import { AuthRequest } from '../types/AuthRequest.type';
 import { SubmissionBody } from '../types/ProblemType.type';
@@ -463,3 +464,28 @@ export const refactorCodeWithAiController = asyncHandler(async (req: AuthRequest
   const result = await refactorCodeWithAiService(typedCode, lang);
   return res.status(200).json({ refactoredCode: result });
 });
+
+export const compileCodeController = async (req: AuthRequest, res: any) => {
+  const { lang, typed_code } = req.body;
+
+  if (!lang || !typed_code) {
+    return res.status(400).json({
+      success: false,
+      message: 'Language and code are required.',
+    });
+  }
+
+  try {
+    const result = await compileCodeService(lang, typed_code);
+    return res.json({
+      success: result?.run_success,
+      data: result,
+    });
+  } catch (error) {
+    console.error('Error in compileCodeController:', error);
+    return res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'An error occurred during compilation',
+    });
+  }
+};
