@@ -770,7 +770,8 @@ function generateRunnerCode(
 
     return `
 
-    ${isCheckExcludeFunctionName
+    ${
+      isCheckExcludeFunctionName
         ? `
 class ListNode {
   constructor(val = 0, next = null) {
@@ -799,7 +800,7 @@ function arrayToList(arr) {
 }
 `
         : ''
-      }
+    }
 
   ${userCode}
 
@@ -887,8 +888,9 @@ try {
       .join('\n');
 
     return `
-${isCheckExcludeFunctionName
-        ? `
+${
+  isCheckExcludeFunctionName
+    ? `
 class ListNode {
   val: number;
   next: ListNode | null;
@@ -917,8 +919,8 @@ function arrayToList(arr: number[]): ListNode | null {
   return dummy.next;
 }
 `
-        : ''
-      }
+    : ''
+}
 
 ${userCode}
 
@@ -1087,14 +1089,15 @@ if (result == null) {
 } else if (result instanceof Object[]) {
     resultStr = Arrays.deepToString((Object[]) result);
 }
-${isListNode
-            ? `
+${
+  isListNode
+    ? `
 else if (result instanceof ListNode) {
     List<Integer> arr = listToArray((ListNode) result);
     resultStr = arr.toString();
 }`
-            : ''
-          }
+    : ''
+}
 else {
     resultStr = result.toString();
 }
@@ -1160,7 +1163,8 @@ class main {
 }
 
 
-    ${typedCode.includes('ListNode')
+    ${
+      typedCode.includes('ListNode')
         ? `
     static class ListNode {
         int val;
@@ -1188,147 +1192,12 @@ class main {
     }
     `
         : ''
-      }
+    }
 
     // --- USER CODE ---
     ${typedCode}
 }
 `;
-  }
-
-  if (lang === 'cpp') {
-    const formatCppValue = (val: any): string => {
-      if (typeof val === 'string') {
-        try {
-          val = JSON.parse(val);
-        } catch {
-          return val;
-        }
-      }
-
-      if (typeof val === 'boolean') {
-        return val ? 'true' : 'false';
-      }
-
-      if (Array.isArray(val)) {
-        if (val.length === 0) return 'std::vector<int>{}';
-        if (Array.isArray(val[0])) {
-          const inner = val.map(formatCppValue).join(', ');
-          return `std::vector<std::vector<int>>{{${inner}}}`;
-        }
-        const inner = val.join(', ');
-        return `std::vector<int>{${inner}}`;
-      }
-      return `${val}`;
-    };
-
-    const tests = testCases
-      .map(({ input, output }, idx) => {
-        const nums = input[0];
-        const target = input[1];
-        const numsStr = formatCppValue(nums);
-        const expectedStr = formatCppValue(output);
-
-        // const callExpr = className
-        // ? `sol.${functionName}(${numsStr}, ${target})`
-        // : `${functionName}(${numsStr}, ${target})`;
-
-        return `
-      try {
-        ${className ? `${className} sol;` : ''}
-        // Solution sol;
-        std::vector<int> nums = ${numsStr};
-        auto result = sol.${functionName}(nums, ${target});
-        auto expected = ${expectedStr};
-        results.push_back(result);
-        expecteds.push_back(expected);
-  
-        if (result == expected) {
-          std::cout << "✅ Test ${idx + 1} passed" << std::endl;
-        } else {
-          std::cout << "❌ Test ${idx + 1} failed: expected ";
-          printValue(expected);
-          std::cout << ", got ";
-          printValue(result);
-          std::cout << std::endl;
-        }
-        std::cout << "RESULT: ";
-        printValue(result);
-        std::cout << std::endl;
-      } catch (const std::exception& e) {
-        std::cout << "❗ Error in test ${idx + 1}: " << e.what() << std::endl;
-      }`;
-      })
-      .join('\n');
-
-    return `
-    #include <vector>
-    #include <iostream>
-    #include <string>
-    #include <sstream>
-    using namespace std;
-  
-    ${userCode}
-  
-    template <typename T>
-    void printValue(const T& value) {
-        std::cout << value;
-    }
-  
-    template <typename T>
-    void printValue(const std::vector<T>& vec) {
-        std::cout << "[";
-        for (size_t i = 0; i < vec.size(); ++i) {
-            printValue(vec[i]);
-            if (i != vec.size() - 1) std::cout << ",";
-        }
-        std::cout << "]";
-    }
-  
-    template <typename T>
-    void printValue(const std::vector<std::vector<T>>& vec) {
-        std::cout << "[";
-        for (size_t i = 0; i < vec.size(); ++i) {
-            printValue(vec[i]);
-            if (i != vec.size() - 1) std::cout << ",";
-        }
-        std::cout << "]";
-    }
-  
-    std::string vectorToJson(const std::vector<int>& vec) {
-        std::ostringstream oss;
-        oss << "[";
-        for (size_t i = 0; i < vec.size(); ++i) {
-            oss << vec[i];
-            if (i != vec.size() - 1) oss << ",";
-        }
-        oss << "]";
-        return oss.str();
-    }
-  
-    std::string vectorsToJson(const std::vector<std::vector<int>>& vecs) {
-        std::ostringstream oss;
-        oss << "[";
-        for (size_t i = 0; i < vecs.size(); ++i) {
-            oss << vectorToJson(vecs[i]);
-            if (i != vecs.size() - 1) oss << ",";
-        }
-        oss << "]";
-        return oss.str();
-    }
-  
-    int main() {
-        std::vector<std::vector<int>> results;
-        std::vector<std::vector<int>> expecteds;
-  
-        ${tests}
-  
-        std::cout << "Results: " << vectorsToJson(results) << std::endl;
-        std::cout << "Expecteds: " << vectorsToJson(expecteds) << std::endl;
-  
-        return 0;
-    }
-    `;
   }
 
   if (lang === 'python') {
@@ -1352,7 +1221,9 @@ class main {
         if (isCheckExcludeFunctionName) {
           if (hasNestedArray(parseInput)) {
             if (userCode.includes('ListNode')) {
-              args = parseInput.map((arr: any) => `array_to_list(${JSON.stringify(arr)})`).join(', ');
+              args = parseInput
+                .map((arr: any) => `array_to_list(${JSON.stringify(arr)})`)
+                .join(', ');
             } else {
               args = JSON.stringify(parseInput);
             }
@@ -1365,7 +1236,7 @@ class main {
           }
         } else {
           if (hasNestedArray(parseInput) || lenghtInput > 1) {
-            args = parseInput.map((x:any) => JSON.stringify(x)).join(', ');
+            args = parseInput.map((x: any) => JSON.stringify(x)).join(', ');
           } else {
             args = JSON.stringify(parseInput);
           }
@@ -1378,7 +1249,7 @@ class main {
         return `
 try:
     result = ${callExpression}
-    expected = ${ typeof output === "boolean" ? convertToPythonBoolean(output) : JSON.stringify(output)}
+    expected = ${typeof output === 'boolean' ? convertToPythonBoolean(output) : JSON.stringify(output)}
     actual = ${isCheckExcludeFunctionName ? 'list_to_array(result)' : 'result'}
     if actual == expected:
         print("Test ${idx + 1} passed")
@@ -1396,8 +1267,9 @@ except Exception as e:
       .join('\n');
 
     return `
-  ${isCheckExcludeFunctionName
-        ? `
+  ${
+    isCheckExcludeFunctionName
+      ? `
 class ListNode:
     def __init__(self, val=0, next=None):
         self.val = val
@@ -1421,7 +1293,8 @@ def array_to_list(arr):
         current = current.next
     return head
   `
-        : ''}
+      : ''
+  }
   
 ${userCode}
   
@@ -1440,9 +1313,368 @@ result = {
   `;
   }
 
+  // if (lang === 'cpp') {
+  //   const formatCppValue = (val: any): string => {
+  //     if (typeof val === 'string') {
+  //       try {
+  //         val = JSON.parse(val);
+  //       } catch {
+  //         return val;
+  //       }
+  //     }
+
+  //     if (typeof val === 'boolean') {
+  //       return val ? 'true' : 'false';
+  //     }
+
+  //     if (Array.isArray(val)) {
+  //       if (val.length === 0) return 'std::vector<int>{}';
+  //       if (Array.isArray(val[0])) {
+  //         const inner = val.map(formatCppValue).join(', ');
+  //         return `std::vector<std::vector<int>>{{${inner}}}`;
+  //       }
+  //       const inner = val.join(', ');
+  //       return `std::vector<int>{${inner}}`;
+  //     }
+  //     return `${val}`;
+  //   };
+
+  //   const tests = testCases
+  //     .map(({ input, output }, idx) => {
+  //       const nums = input[0];
+  //       const target = input[1];
+  //       const numsStr = formatCppValue(nums);
+  //       const expectedStr = formatCppValue(output);
+
+  //       // const callExpr = className
+  //       // ? `sol.${functionName}(${numsStr}, ${target})`
+  //       // : `${functionName}(${numsStr}, ${target})`;
+
+  //       return `
+  //     try {
+  //       ${className ? `${className} sol;` : ''}
+  //       // Solution sol;
+  //       std::vector<int> nums = ${numsStr};
+  //       auto result = sol.${functionName}(nums, ${target});
+  //       auto expected = ${expectedStr};
+  //       results.push_back(result);
+  //       expecteds.push_back(expected);
+
+  //       if (result == expected) {
+  //         std::cout << "✅ Test ${idx + 1} passed" << std::endl;
+  //       } else {
+  //         std::cout << "❌ Test ${idx + 1} failed: expected ";
+  //         printValue(expected);
+  //         std::cout << ", got ";
+  //         printValue(result);
+  //         std::cout << std::endl;
+  //       }
+  //       std::cout << "RESULT: ";
+  //       printValue(result);
+  //       std::cout << std::endl;
+  //     } catch (const std::exception& e) {
+  //       std::cout << "❗ Error in test ${idx + 1}: " << e.what() << std::endl;
+  //     }`;
+  //     })
+  //     .join('\n');
+
+  //   return `
+  //   #include <vector>
+  //   #include <iostream>
+  //   #include <string>
+  //   #include <sstream>
+  //   using namespace std;
+
+  //   ${userCode}
+
+  //   template <typename T>
+  //   void printValue(const T& value) {
+  //       std::cout << value;
+  //   }
+
+  //   template <typename T>
+  //   void printValue(const std::vector<T>& vec) {
+  //       std::cout << "[";
+  //       for (size_t i = 0; i < vec.size(); ++i) {
+  //           printValue(vec[i]);
+  //           if (i != vec.size() - 1) std::cout << ",";
+  //       }
+  //       std::cout << "]";
+  //   }
+
+  //   template <typename T>
+  //   void printValue(const std::vector<std::vector<T>>& vec) {
+  //       std::cout << "[";
+  //       for (size_t i = 0; i < vec.size(); ++i) {
+  //           printValue(vec[i]);
+  //           if (i != vec.size() - 1) std::cout << ",";
+  //       }
+  //       std::cout << "]";
+  //   }
+
+  //   std::string vectorToJson(const std::vector<int>& vec) {
+  //       std::ostringstream oss;
+  //       oss << "[";
+  //       for (size_t i = 0; i < vec.size(); ++i) {
+  //           oss << vec[i];
+  //           if (i != vec.size() - 1) oss << ",";
+  //       }
+  //       oss << "]";
+  //       return oss.str();
+  //   }
+
+  //   std::string vectorsToJson(const std::vector<std::vector<int>>& vecs) {
+  //       std::ostringstream oss;
+  //       oss << "[";
+  //       for (size_t i = 0; i < vecs.size(); ++i) {
+  //           oss << vectorToJson(vecs[i]);
+  //           if (i != vecs.size() - 1) oss << ",";
+  //       }
+  //       oss << "]";
+  //       return oss.str();
+  //   }
+
+  //   int main() {
+  //       std::vector<std::vector<int>> results;
+  //       std::vector<std::vector<int>> expecteds;
+
+  //       ${tests}
+
+  //       std::cout << "Results: " << vectorsToJson(results) << std::endl;
+  //       std::cout << "Expecteds: " << vectorsToJson(expecteds) << std::endl;
+
+  //       return 0;
+  //   }
+  //   `;
+  // }
+
+  interface TestCase {
+    input: any;
+    output: any;
+    type?: string;
+    lenghtInput: number;
+  }
+
+  if (lang === 'cpp') {
+    const formatCppValue = (val: string, isListNode: boolean): string => {
+      try {
+        const parsed = JSON.parse(val);
+        if (typeof parsed === 'boolean') {
+          return parsed ? 'true' : 'false';
+        }
+        if (Array.isArray(parsed)) {
+          if (parsed.length === 0) {
+            return isListNode ? 'nullptr' : 'std::vector<int>{}';
+          }
+          if (Array.isArray(parsed[0])) {
+            const inner = parsed
+              .map((v: any) => formatCppValue(JSON.stringify(v), isListNode))
+              .join(', ');
+            return isListNode
+              ? parsed.map((v: any) => `arrayToList(${JSON.stringify(v)})`).join(', ')
+              : `std::vector<std::vector<int>>{${inner}}`;
+          }
+          const inner = parsed.join(', ');
+          return isListNode
+            ? `arrayToList(${JSON.stringify(parsed)})`
+            : `std::vector<int>{${inner}}`;
+        }
+        if (typeof parsed === 'string') {
+          return `"${parsed}"`;
+        }
+        return `${parsed}`; // Number
+      } catch {
+        return val[0] === '"' && val[val.length - 1] === '"' ? val : `"${val}"`;
+      }
+    };
+
+    const hasNestedArray = (input: any): boolean => {
+      try {
+        const parsed = Array.isArray(input) ? input : JSON.parse(input);
+        return Array.isArray(parsed) && parsed.some(Array.isArray);
+      } catch {
+        return false;
+      }
+    };
+
+    const getResultType = (output: any, isListNode: boolean): string => {
+      if (isListNode) return 'std::vector<int>';
+      if (Array.isArray(output)) {
+        return output.length > 0 && Array.isArray(output[0])
+          ? 'std::vector<std::vector<int>>'
+          : 'std::vector<int>';
+      }
+      if (typeof output === 'boolean') return 'bool';
+      if (typeof output === 'number') return 'int';
+      if (typeof output === 'string') return 'std::string';
+      return 'auto';
+    };
+
+    const firstOutput = testCases.length > 0 ? testCases[0].output : null;
+    const resultType = getResultType(firstOutput, isCheckExcludeFunctionName);
+
+    const tests = testCases
+      .map(({ input, output, type, lenghtInput }: TestCase, idx: number) => {
+        const isListNode = isCheckExcludeFunctionName && userCode.includes('ListNode');
+
+        let args: string;
+        if (lenghtInput > 1 || hasNestedArray(input)) {
+          const inputs = Array.isArray(input) ? input : JSON.parse(input);
+          args = inputs.map((v: any) => formatCppValue(JSON.stringify(v), isListNode)).join(', ');
+        } else {
+          args =
+            type === 'string' && typeof input !== 'number'
+              ? `"${input}"`
+              : formatCppValue(JSON.stringify(input), isListNode);
+        }
+
+        const expected = formatCppValue(JSON.stringify(output), isListNode);
+
+        const callExpression = className
+          ? `instance.${functionName}(${args})`
+          : `${functionName}(${args})`;
+
+        const resultCompare = isCheckExcludeFunctionName
+          ? 'compareVectors(actual, expected)'
+          : 'actual == expected';
+
+        const expectedPrint = isCheckExcludeFunctionName
+          ? 'vectorToString(expected)'
+          : 'toString(expected)';
+
+        const actualPrint = isCheckExcludeFunctionName
+          ? 'vectorToString(actual)'
+          : 'toString(actual)';
+
+        const resultValue = isCheckExcludeFunctionName ? 'listToArray(result)' : 'result';
+
+        return `
+      try {
+        auto result = ${callExpression};
+        auto expected = ${expected};
+        auto actual = ${resultValue};
+        if (${resultCompare}) {
+          cout << "Test ${idx + 1} passed" << endl;
+          codeAnswer.push_back(actual);
+          expectedCodeAnswer.push_back(expected);
+        } else {
+          cout << "Test ${idx + 1} failed: expected " << ${expectedPrint} << ", got " << ${actualPrint} << endl;
+          codeAnswer.push_back(actual);
+          expectedCodeAnswer.push_back(expected);
+        }
+        cout << "RESULT: " << ${actualPrint} << endl;
+      } catch (const std::exception& e) {
+        cout << "Error: " << e.what() << endl;
+      }
+      `;
+      })
+      .join('\n');
+
+    return `
+  #include <iostream>
+  #include <vector>
+  #include <string>
+  using namespace std;
+  
+  ${
+    isCheckExcludeFunctionName
+      ? `
+  struct ListNode {
+    int val;
+    ListNode* next;
+    ListNode(int x = 0, ListNode* n = nullptr) : val(x), next(n) {}
+  };
+  
+  vector<int> listToArray(ListNode* head) {
+    vector<int> arr;
+    while (head) {
+      arr.push_back(head->val);
+      head = head->next;
+    }
+    return arr;
+  }
+  
+  ListNode* arrayToList(vector<int> arr) {
+    ListNode dummy(0);
+    ListNode* current = &dummy;
+    for (int val : arr) {
+      current->next = new ListNode(val);
+      current = current->next;
+    }
+    return dummy.next;
+  }
+  
+  string vectorToString(const vector<int>& vec) {
+    string result = "{";
+    for (size_t i = 0; i < vec.size(); ++i) {
+      result += to_string(vec[i]);
+      if (i < vec.size() - 1) result += ", ";
+    }
+    result += "}";
+    return result;
+  }
+  
+  bool compareVectors(const vector<int>& v1, const vector<int>& v2) {
+    if (v1.size() != v2.size()) return false;
+    for (size_t i = 0; i < v1.size(); ++i) {
+      if (v1[i] != v2[i]) return false;
+    }
+    return true;
+  }
+  `
+      : ''
+  }
+  
+  // Fallback toString for scalar types
+  template<typename T>
+  string toString(const T& val) {
+    return to_string(val);
+  }
+  
+  // Specialization for string
+  string toString(const string& val) {
+    return '"' + val + '"';
+  }
+  
+  // Specialization for vector<int>
+  string toString(const vector<int>& vec) {
+    string result = "{";
+    for (size_t i = 0; i < vec.size(); ++i) {
+      result += to_string(vec[i]);
+      if (i < vec.size() - 1) result += ", ";
+    }
+    result += "}";
+    return result;
+  }
+  
+  // Specialization for vector<vector<int>>
+  string toString(const vector<vector<int>>& mat) {
+    string result = "{";
+    for (size_t i = 0; i < mat.size(); ++i) {
+      result += toString(mat[i]);
+      if (i < mat.size() - 1) result += ", ";
+    }
+    result += "}";
+    return result;
+  }
+  
+  ${userCode}
+  
+  int main() {
+    vector<${resultType}> codeAnswer;
+    vector<${resultType}> expectedCodeAnswer;
+  
+    ${className ? `${className} instance;` : ''}
+  
+    ${tests}
+  
+    return 0;
+  }
+  `;
+  }
+
   return `# Unsupported language: ${lang}`;
 }
-
 
 function extractResultsFromOutput(output: string[]) {
   return output
@@ -1451,12 +1683,10 @@ function extractResultsFromOutput(output: string[]) {
 }
 
 function convertToPythonBoolean(val: boolean) {
-  if (val === true) return "True";
-  if (val === false) return "False";
+  if (val === true) return 'True';
+  if (val === false) return 'False';
   return JSON.stringify(val); // fallback cho các kiểu khác (string, number, array, etc.)
 }
-
-
 
 type ParsedTestCase = {
   input: [number[], number];
@@ -1758,22 +1988,22 @@ export const runOrSubmitCodeService = async (
     const expectedResultWithJava: string[] =
       (lang === 'java' || lang === 'python') && isValidJSONArray
         ? testCases.map((t) => {
-          try {
-            const arr = Array.isArray(t.output) ? t.output : JSON.parse(t.output);
-            const isStringArray =
-              Array.isArray(arr) && arr.every((item) => typeof item === 'string');
+            try {
+              const arr = Array.isArray(t.output) ? t.output : JSON.parse(t.output);
+              const isStringArray =
+                Array.isArray(arr) && arr.every((item) => typeof item === 'string');
 
-            if (isStringArray) {
-              return JSON.stringify(arr).replace(/,/g, ', ');
-            } else if (Array.isArray(arr)) {
-              return JSON.stringify(arr);
-            } else {
+              if (isStringArray) {
+                return JSON.stringify(arr).replace(/,/g, ', ');
+              } else if (Array.isArray(arr)) {
+                return JSON.stringify(arr);
+              } else {
+                return JSON.stringify(t.output);
+              }
+            } catch {
               return JSON.stringify(t.output);
             }
-          } catch {
-            return JSON.stringify(t.output);
-          }
-        })
+          })
         : testCases.map((t) => JSON.stringify(t.output));
 
     // run success -> seave typecode
@@ -1819,12 +2049,22 @@ export const runOrSubmitCodeService = async (
       memory: memoryUsed,
       display_runtime: `${runTime} ms`,
       code_answer:
-        correctCount === total ? (lang === 'java' || lang === 'python' ? expectedResultWithJava : results) : results,
+        correctCount === total
+          ? lang === 'java' || lang === 'python'
+            ? expectedResultWithJava
+            : results
+          : results,
       code_output:
-        correctCount === total ? (lang === 'java' || lang === 'python' ? expectedResultWithJava : results) : results,
+        correctCount === total
+          ? lang === 'java' || lang === 'python'
+            ? expectedResultWithJava
+            : results
+          : results,
       std_output_list: [''],
       expected_code_answer:
-        lang === 'java' || lang === 'python' ? expectedResultWithJava : testCases.map((t) => JSON.stringify(t.output)),
+        lang === 'java' || lang === 'python'
+          ? expectedResultWithJava
+          : testCases.map((t) => JSON.stringify(t.output)),
       expected_code_output: [],
       expected_std_output_list: [],
       correct_answer: correctCount === total,
