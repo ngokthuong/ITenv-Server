@@ -16,7 +16,10 @@ export interface ITestCaseInput {
 
 export interface ITestCase {
   input: ITestCaseInput[];
-  output: string;
+  output: {
+    value: string;
+    type: string;
+  };
   isHidden: boolean;
 }
 
@@ -74,8 +77,13 @@ const testCaseSchema: Schema<ITestCase> = new mongoose.Schema({
     },
   ],
   output: {
-    type: String,
-    required: true,
+    value: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+    }
   },
   isHidden: {
     type: Boolean,
