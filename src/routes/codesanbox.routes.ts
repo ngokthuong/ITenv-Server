@@ -21,6 +21,8 @@ import {
   getAccessRequestsController,
   handleAccessRequestController,
   deleteAccessRequestController,
+  updateMemberRoleController,
+  removeMemberFromSandboxController,
 } from '../controllers/codesanbox.controller';
 import { compileCodeController } from '../controllers/problem.controller';
 const router = Router();
@@ -135,6 +137,24 @@ router.delete(
   checkSandboxPermission('owner'),
   deleteAccessRequestController,
 );
+
+// Member management routes
+router.put(
+  '/:id/members/:userId/role',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('owner'),
+  updateMemberRoleController,
+);
+
+router.delete(
+  '/:id/members/:userId',
+  verifyAccessToken,
+  isUser,
+  checkSandboxPermission('owner'),
+  removeMemberFromSandboxController,
+);
+
 router.post('/compile', verifyAccessToken, isUser, compileCodeController);
 
 export default router;
