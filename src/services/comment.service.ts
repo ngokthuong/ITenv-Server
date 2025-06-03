@@ -7,7 +7,7 @@ import comment from '../models/comment';
 // GET CMT ( ALL )
 const getChildrenComments = async (commentId: string) => {
   const children = await Comment.find({ parentComment: commentId })
-    .populate('commentBy', 'username avatar _id')
+    .populate('commentedBy', 'username avatar _id')
     .sort({ isAccepted: -1, vote: -1, createdAt: -1 })
     .exec();
   // De quy lay cmt child
@@ -23,7 +23,7 @@ export const getCommentsByPostIdService = async (postId: string, page: number) =
   try {
     // Lấy bình luận gốc ( ko co parentcmt)
     const comments = await Comment.find({ postId, parentComment: null, isDeleted: false }) // Bình luận không có cha
-      .populate('commentBy', 'username avatar _id')
+      .populate('commentedBy', 'username avatar _id')
       .sort({ isAccepted: -1, vote: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -45,7 +45,7 @@ export const postCommentService = async (
   parentComment: string,
   content: string,
   postId: string,
-  commentBy: string,
+  commentedBy: string,
 ) => {
   try {
     const findParentComment = await comment.findById(parentComment);
@@ -55,7 +55,7 @@ export const postCommentService = async (
     if (!parentComment) {
       const createdParentComment = await Comment.create({
         postId,
-        commentBy,
+        commentedBy,
         content,
         parentComment: null,
       });
@@ -63,14 +63,14 @@ export const postCommentService = async (
     } else if (!findParentComment?.parentComment && parentComment) {
       const createdChildComment = await Comment.create({
         postId,
-        commentBy,
+        commentedBy,
         content,
         parentComment,
       });
       return createdChildComment;
     } else {
       const createdChildComment = await Comment.create({
-        commentBy,
+        commentedBy,
         content,
         parentComment: findParentComment?.parentComment,
         postId,
@@ -86,7 +86,7 @@ export const postCommentService = async (
 export const voteCommentService = async (commentId: string, userId: string, typeVote: number) => {
   try {
     let findComment = await Comment.findById(commentId).populate(
-      'commentBy',
+      'commentedBy',
       'username avatar _id',
     );
     const userObjectId = new mongoose.Types.ObjectId(userId);
@@ -122,7 +122,7 @@ export const editCommentByIdService = async (commentId: string, content: string)
     if (currentComment)
       return await comment
         .findByIdAndUpdate(commentId, { content: content }, { new: true })
-        .populate('commentBy', 'username avatar _id');
+        .populate('commentedBy', 'username avatar _id');
     else return null;
   } catch (error: any) {
     throw new Error(error.message);

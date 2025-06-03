@@ -47,13 +47,13 @@ export const notifySocket = async (
       case NotificationTypeEnum.DOWNVOTE_COMMENT: {
         const getComment = await comment.findById(notificationReq.commentId);
         if (getComment) {
-          const commentBy = getComment.commentedBy;
+          const commentedBy = getComment.commentedBy;
           newNotification = new notification({
             postedBy: user._id,
             notificationType: notificationReq.notificationType,
             postId: notificationReq.postId,
             commentId: notificationReq.commentId,
-            receivers: [commentBy],
+            receivers: [commentedBy],
             content: `<strong>${user.username}</strong> ${
               notificationReq.notificationType === NotificationTypeEnum.VOTE_COMMENT
                 ? 'voted'
