@@ -11,7 +11,7 @@ WORKDIR /ITenv-Server
 COPY package.json package-lock.json ./
 
 # Cài dependencies từ npm
-RUN npm ci
+RUN RUN npm ci --legacy-peer-deps
 
 # Copy toàn bộ source code vào container
 COPY . .
