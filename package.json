@@ -4,7 +4,8 @@
   "description": "backend ITenv",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/server.ts",
+     "build": "tsc",
+  "start": "node dist/server.js",
     "test": "jest --coverage",
     "lint:fix": "npx eslint . --ext .ts",
     "format": "prettier --write ."
