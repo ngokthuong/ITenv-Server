@@ -1,20 +1,24 @@
-# Use node 22 on Alpine Linux
-FROM node:22-alpine 
+# Stage 1: Build
+FROM node:22-alpine as builder
 
-# Place folder in container 
-WORKDIR /ITenv-Server 
+WORKDIR /app
 
-# copy package.json and yarn.lock.json to container
-COPY package.json yarn.lock ./  
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
-# install dependencies
-RUN yarn install --frozen-lockfile  
+COPY . .
+RUN yarn build
 
-# Copy source to container
-COPY . .  
+# Stage 2: Run
+FROM node:22-alpine
 
-# (ex: 8080)
-EXPOSE 8080  
+WORKDIR /app
 
-# Start server
-CMD ["yarn", "start"]
+COPY package.json yarn.lock ./
+RUN yarn install --production --frozen-lockfile
+
+COPY --from=builder /app/dist ./dist
+
+EXPOSE 8080
+
+CMD ["node", "dist/server.js"]
