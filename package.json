@@ -4,8 +4,8 @@
   "description": "backend ITenv",
   "main": "index.js",
   "scripts": {
-     "build": "tsc",
-  "start": "node dist/server.js",
+    "build": "node --max-old-space-size=2048 ./node_modules/typescript/bin/tsc",
+    "start": "node dist/server.js",
     "test": "jest --coverage",
     "lint:fix": "npx eslint . --ext .ts",
     "format": "prettier --write ."
@@ -15,9 +15,7 @@
   ],
   "author": "Thuong-Thieu",
   "license": "MIT",
-  "devDependencies": {
-    
-  },
+  "devDependencies": {},
   "dependencies": {
     "@langchain/community": "^0.3.43",
     "@langchain/core": "^0.3.56",
