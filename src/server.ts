@@ -21,6 +21,12 @@ app.use(
   }),
 );
 
+app.options('*', cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+}));
+
+
 //  nén các phản hồi HTTP từ server trước khi gửi chúng về cho client.
 app.use(compression());
 countConnect();
