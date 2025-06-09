@@ -36,9 +36,10 @@ export const getAllMesssOfCvssByCvssIdController = asyncHandler(
 // create message
 export const addMessForConversationByUserIdController = asyncHandler(
   async (req: AuthRequest, res: any) => {
-    const files = req?.files as unknown as FilesObject;
-    const fileUrl = files?.file?.map((file: UploadedFile) => file?.path);
     try {
+      console.log('test add message')
+      const files = req?.files as unknown as FilesObject;
+      const fileUrl = files?.file?.map((file: UploadedFile) => file?.path);
       const sender = req.user?.userId as string;
       const data = req.body;
       const result = await addMessForConvertationByUserIdService(data, sender, fileUrl);
