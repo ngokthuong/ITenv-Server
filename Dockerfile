@@ -13,6 +13,9 @@ RUN yarn install --frozen-lockfile
 # Copy source to container
 COPY . .  
 
+# Build TypeScript code
+RUN yarn build  
+
 # (ex: 8080)
 EXPOSE 8080  
 
