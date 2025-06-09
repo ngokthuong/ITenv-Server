@@ -1,15 +1,20 @@
-FROM node:22-alpine
+# Use node 22 on Alpine Linux
+FROM node:22-alpine 
 
-ENV NODE_OPTIONS=--max-old-space-size=1024
+# Place folder in container 
+WORKDIR /ITenv-Server 
 
-WORKDIR /ITenv-Server
+# copy package.json and yarn.lock.json to container
+COPY package.json yarn.lock ./  
 
-COPY package.json package-lock.json ./
+# install dependencies
+RUN yarn install --frozen-lockfile  
 
-RUN npm ci --legacy-peer-deps
+# Copy source to container
+COPY . .  
 
-COPY . .
+# (ex: 8080)
+EXPOSE 8080  
 
-EXPOSE 8080
-
-CMD ["npm", "start"]
+# Start server
+CMD ["yarn", "start"]

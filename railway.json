@@ -1,16 +1,20 @@
 {
     "$schema": "https://railway.com/railway.schema.json",
     "build": {
-      "builder": "DOCKERFILE",
-      "dockerfilePath": "Dockerfile"
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "Dockerfile"
     },
     "deploy": {
-      "runtime": "V2",
-      "numReplicas": 1,
-      "startCommand": "ts-node src/server.ts",
-      "sleepApplication": false,
-      "restartPolicyType": "ON_FAILURE",
-      "restartPolicyMaxRetries": 10
+        "runtime": "V2",
+        "numReplicas": 1,
+        "startCommand": "yarn build && yarn start",
+        "sleepApplication": false,
+        "multiRegionConfig": {
+            "asia-southeast1-eqsg3a": {
+                "numReplicas": 1
+            }
+        },
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
     }
-  }
-  
+}
