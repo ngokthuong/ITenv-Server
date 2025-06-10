@@ -1,23 +1,20 @@
 # Use node 22 on Alpine Linux
-FROM node:22-alpine 
+FROM node:22-alpine
 
-# Place folder in container 
-WORKDIR /ITenv-Server 
+# Set working directory
+WORKDIR /ITenv-Server
 
-# copy package.json and yarn.lock.json to container
-COPY package.json yarn.lock ./  
+# Copy dependencies first to leverage cache
+COPY package.json yarn.lock ./
 
-# install dependencies
-RUN yarn install --frozen-lockfile  
+# Install dependencies including ts-node
+RUN yarn install --frozen-lockfile
 
-# Copy source to container
-COPY . .  
+# Copy the rest of the source code
+COPY . .
 
-# Build TypeScript code
-RUN yarn build  
+# Expose the port your app uses
+EXPOSE 8080
 
-# (ex: 8080)
-EXPOSE 8080  
-
-# Start server
-CMD ["yarn", "start"]
+# Start the app with ts-node (adjust src/server.ts if needed)
+CMD ["yarn", "ts-node", "src/server.ts"]
