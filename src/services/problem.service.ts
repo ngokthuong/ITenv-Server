@@ -618,6 +618,11 @@ async function startDocker(
   fs.mkdirSync(srcDir, { recursive: true });
   fs.writeFileSync(filePath, typed_code);
 
+  console.log('📂 Thư mục srcDir:', srcDir);
+  console.log('📄 File TS đã ghi:', filePath);
+  console.log('🟢 File tồn tại:', fs.existsSync(filePath));
+
+
   const container = await docker.createContainer({
     Image: image,
     Cmd: runCmd,
