@@ -5,7 +5,7 @@ export const connection = async () => {
     const a = 0;
     const dbCon = await mongoose.connect(
       process.env.MONGODB_URI ??
-        'mongodb+srv://trinhngocthuong17523:ighLNRGp-8d57sQ@cluster0.iblhqgw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
+        'mongodb+srv://trinhngocthuong17523:1234567890@cluster0.iblhqgw.mongodb.net/ITenvDB?retryWrites=true&w=majority&appName=Cluster0',
     );
     mongoose.connection.on('error', (error: Error) => console.log(error));
     if (dbCon.connection.readyState === 1) {
