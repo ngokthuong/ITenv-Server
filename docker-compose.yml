@@ -7,3 +7,5 @@ services:
       - "8081:8080"
     environment:
       MONGO_URL: "mongodb+srv://trinhngocthuong17523:1234567890@cluster0.iblhqgw.mongodb.net/ITenvDB?retryWrites=true&w=majority&appName=Cluster0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
