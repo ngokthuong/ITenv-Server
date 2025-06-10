@@ -634,10 +634,10 @@ async function startDocker(
     Tty: false,
     Volumes: { '/src': {} },
     HostConfig: {
-      Binds: [`${process.cwd()}/src:/src`],
+      Binds: [`/root/ITenv-Server/src:/src`],
       Memory: 1024 * 1024 * 1024,
       CpuShares: 512,
-    },
+    },    
   });
 
   const statsStream = (await container.stats({ stream: true })) as Readable;
