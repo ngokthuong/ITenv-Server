@@ -621,6 +621,8 @@ async function startDocker(
   console.log('📂 Thư mục srcDir:', srcDir);
   console.log('📄 File TS đã ghi:', filePath);
   console.log('🟢 File tồn tại:', fs.existsSync(filePath));
+  console.log('Mounting:', `${process.cwd()}/src:/src`);
+
 
 
   const container = await docker.createContainer({
