@@ -4,7 +4,7 @@
   "description": "backend ITenv",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/server.ts",
+    "start": "NODE_OPTIONS=--max-old-space-size=1024 ts-node src/server.ts",
     "test": "jest --coverage",
     "lint:fix": "npx eslint . --ext .ts",
     "format": "prettier --write ."

@@ -1,20 +1,23 @@
-# Use node 22 on Alpine Linux
+# 1. Dùng image có Node + tools
 FROM node:22-alpine
 
-# Set working directory
+# 2. Set working directory
 WORKDIR /ITenv-Server
 
-# Copy dependencies first to leverage cache
+# 3. Copy package files
 COPY package.json yarn.lock ./
 
-# Install dependencies including ts-node
-RUN yarn install --frozen-lockfile
+# 4. Cài dependencies
+RUN yarn install
 
-# Copy the rest of the source code
+# 5. Copy toàn bộ project vào container
 COPY . .
 
-# Expose the port your app uses
+# 6. Tăng heap size cho Node.js khi chạy ts-node
+ENV NODE_OPTIONS=--max-old-space-size=2048
+
+# 7. Expose cổng chạy server (ví dụ: 8080)
 EXPOSE 8080
 
-# Start the app with ts-node (adjust src/server.ts if needed)
-CMD ["yarn", "ts-node", "src/server.ts"]
+# 8. Run trực tiếp bằng ts-node
+CMD ["yarn", "start"]
