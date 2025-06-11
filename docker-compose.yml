@@ -5,7 +5,25 @@ services:
     restart: always
     ports:
       - "8081:8080"
+    depends_on:
+      - mongodb
     environment:
-      MONGO_URL: "mongodb+srv://trinhngocthuong17523:1234567890@cluster0.iblhqgw.mongodb.net/ITenvDB?retryWrites=true&w=majority&appName=Cluster0"
+      MONGO_URL: "mongodb://mongodb:27017/DevArticlesDB"
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongo-db
+    restart: always
+    ports:
+      - "27018:27017"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.runCommand({ping:1})"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongodb_data:
+      MONGO_URL: "mongodb+srv://trinhngocthuong17523:1234567890@cluster0.iblhqgw.mongodb.net/ITenvDB?retryWrites=true&w=majority&appName=Cluster0"

@@ -8,9 +8,12 @@ WORKDIR /ITenv-Server
 COPY package.json yarn.lock ./
 
 # 4. Cài dependencies
-RUN yarn install
-
+RUN yarn install --frozen-lockfile  
 # 5. Copy toàn bộ project vào container
+
+RUN yarn build  
+
+
 COPY . .
 
 # 6. Tăng heap size cho Node.js khi chạy ts-node
