@@ -1,12 +1,35 @@
-# ITenv-Server
-# Giải thích các thư mục:
+# 🛠️ ITenv Backend – Developer Environment Manager
 
-dist: Thư mục chứa các file build
-src: Thư mục chứa mã nguồn
-src/constants: Chứa các file chứa các hằng số
-src/middlewares: Chứa các file chứa các hàm xử lý middleware, như validate, check token, ...
-src/controllers: Chứa các file nhận request, gọi đến service để xử lý logic nghiệp vụ, trả về response
-src/services: Chứa các file chứa method gọi đến database để xử lý logic nghiệp vụ
-src/models: Chứa các file chứa các model
-src/routes: Chứa các file chứa các route
-src/utils: Chứa các file chứa các hàm tiện ích, như mã hóa, gửi email, ...
+A scalable full-featured backend for managing developer environments.
+
+## 🔧 Stack
+
+- 🧠 **Backend**: Node.js, TypeScript, Express-style structure
+- 🗃️ **Database**: MongoDB
+- ⚡ **Cache**: Redis
+- 🔄 **Queue**: RabbitMQ
+- 📦 **DevOps**: Docker, Docker Compose
+- ☁️ **Cloud**: AWS (EC2, S3)
+
+## 🚀 Features
+
+- ✅ JWT Authentication
+- ✅ Environment CRUD APIs
+- ✅ Real-time updates with Socket.IO
+- ✅ Redis caching
+- ✅ Background workers with RabbitMQ
+- ✅ Dockerized deployment
+- ✅ Unit Testing with Jest
+
+## 📁 Project Structure
+
+```bash
+src/
+  ├── controllers/
+  ├── services/
+  ├── routes/
+  ├── middlewares/
+  ├── models/
+  ├── socket/
+  ├── config/
+  └── server.ts
